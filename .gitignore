@@ -1,0 +1,11 @@
+# Build
+/target
+.buildcache
+
+# Platform
+.DS_Store
+._*
+
+# Editors
+*.swp
+
