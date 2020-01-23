@@ -23,6 +23,9 @@ ls target/[platform string]/[build type]
 
 The `--debug`, `--release`, and `--toolchain` options will be automatically applied to subsequent invocations of the wrapper.
 
+### Dependencies
+
+- Boost `1.66.0`
 
 
 ## License / Contributing

@@ -16,3 +16,47 @@
 
 TODO
 
+
+
+## Modules
+
+The project is divided into relatively-independent modules, which are detected and built by our `cmake` build system.
+
+
+
+### Creating Modules
+
+A module is a directory in `modules` with a `CMakeLists.txt` file inside.
+Build targets for a module are created using the `arepa_create_*` functions, and can be interacted with like standard cmake targets.
+
+#### Template: Static Libraries
+
+```cmake
+include("${AREPA_CONFIG_CXX}")   # Include the build system functions
+
+arepa_create_module(my_module)   # Creates a static library module
+arepa_target_cxx(my_module)      # Configures the module to use C++
+```
+
+
+#### Template: Executables
+
+```cmake
+include("${AREPA_CONFIG_CXX}")   # Include the build system functions
+
+arepa_create_executable(my_executable "executable")
+arepa_target_cxx(my_executable)  # Configures the module to use C++
+```
+
+
+
+### Using Libraries
+
+Various libraries can be easily included using simple `arepa_use_*` functions.
+
+```cmake
+arepa_use_threads(TARGET)     # pthreads
+arepa_use_curses(TARGET)      # ncurses
+arepa_use_boost(TARGET)       # Boost
+arepa_use_boost_beast(TARGET) # Boost::Beast
+```
