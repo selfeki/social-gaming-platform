@@ -1,7 +1,7 @@
 
 add_executable(chatclient
-  chatclient.cpp
-  ChatWindow.cpp
+		chatclient.cpp
+		ChatWindow.cpp
 )
 
 set_target_properties(chatclient

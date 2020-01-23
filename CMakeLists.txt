@@ -1,35 +1,30 @@
 cmake_minimum_required(VERSION 3.12)
 project(SocialGaming)
 
-set(MY_PROJECT_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}")
-set(MY_PROJECT_MODULE_DIR "${MY_PROJECT_ROOT_DIR}/module")
-set(MY_PROJECT_CONFIG_CXX "${MY_PROJECT_ROOT_DIR}/scripts/cmake/cxx.cmake")
-set(MY_PROJECT_CONFIG_COMMON "${MY_PROJECT_ROOT_DIR}/scripts/cmake/common.cmake")
+# Configure environment-specific build variables.
+# These can be used to tweak the build process for the current environment.
+if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/.buildenv")
+	include("${CMAKE_CURRENT_LIST_DIR}/.buildenv")
+endif()
 
-set(PACKAGE_NAME WebSocketNetworking)
-set(PACKAGE_VERSION 0.2)
+# Configure Arepa build variables.
+set(AREPA_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}")
+set(AREPA_MODULE_DIR "${AREPA_ROOT_DIR}/module")
+set(AREPA_EXTERNAL_MODULE_DIR "${AREPA_ROOT_DIR}/extern")
+set(AREPA_CONFIG_CXX "${AREPA_ROOT_DIR}/scripts/cmake/cxx.cmake")
+set(AREPA_CONFIG_COMMON "${AREPA_ROOT_DIR}/scripts/cmake/common.cmake")
+
+# Configure project variables.
+set(PACKAGE_NAME SocialGaming)
+set(PACKAGE_VERSION 0.1)
 set(PACKAGE_STRING "${PACKAGE_NAME} ${PACKAGE_VERSION}")
-set(PACKAGE_BUGREPORT "wsumner@sfu.ca")
+set(PACKAGE_BUGREPORT "https://csil-git1.cs.surrey.sfu.ca/373-20-1-arepa/social-gaming/issues")
 
 # Include project modules.
-file(GLOB MY_PROJECT_MODULE_LISTS "${MY_PROJECT_MODULE_DIR}/*/CMakeLists.txt")
-foreach(module_file "${MY_PROJECT_MODULE_LISTS}")
+file(GLOB AREPA_MODULE_LISTS "${AREPA_MODULE_DIR}/*/CMakeLists.txt")
+foreach(module_file ${AREPA_MODULE_LISTS})
 	get_filename_component(module_dir "${module_file}" DIRECTORY)
 	get_filename_component(module_name "${module_dir}" NAME)
 	message("-- Found project module: ${module_name}")
 	add_subdirectory("${module_dir}")
 endforeach()
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fno-rtti")
-set(CMAKE_CXX_FLAGS_DEBUG 
-    "-O0 -g -fsanitize=address,undefined -fno-omit-frame-pointer"
-)
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
-
-add_subdirectory(lib)
-add_subdirectory(tools)
-
