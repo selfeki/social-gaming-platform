@@ -1,5 +1,3 @@
-# Load common configurations.
-include("${AREPA_CONFIG_COMMON}")
 include("${AREPA_CONFIG_CXX}")
 
 # Create module.
