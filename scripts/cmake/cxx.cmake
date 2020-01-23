@@ -28,12 +28,19 @@ endforeach()
 function(arepa_target_cxx module_name)
 	# Set the include directories.
 	target_include_directories("${module_name}"
+		PRIVATE
+			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+			${CMAKE_CURRENT_SOURCE_DIR}/src
 		PUBLIC
 			$<INSTALL_INTERFACE:include>
-			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-		PRIVATE
-			${CMAKE_CURRENT_SOURCE_DIR}/src
+			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/export/include>
 	)
+
+	# Set the exported include directories.
+	get_target_property(header_prefix "${module_name}" AREPA_HEADER_PREFIX)
+	if(header_prefix)
+		arepa_export_headers("${module_name}" "${CMAKE_CURRENT_SOURCE_DIR}/include")
+	endif()
 
 	# Set the source directories.
 	file(GLOB "${module_name}_SRC"
