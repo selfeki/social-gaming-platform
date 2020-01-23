@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.12
+		)
 project(SocialGaming)
 
 # Configure environment-specific build variables.
@@ -25,6 +26,11 @@ file(GLOB AREPA_MODULE_LISTS "${AREPA_MODULE_DIR}/*/CMakeLists.txt")
 foreach(module_file ${AREPA_MODULE_LISTS})
 	get_filename_component(module_dir "${module_file}" DIRECTORY)
 	get_filename_component(module_name "${module_dir}" NAME)
-	message("-- Found project module: ${module_name}")
-	add_subdirectory("${module_dir}")
+	if (NOT "${module_name}" IN_LIST SKIP_MODULES)
+		message("-- Found project module: ${module_name}")
+		add_subdirectory("${module_dir}")
+	else()
+		message("-- Skipping project module: ${module_name}")
+		message("   The module was named in SKIP_MODULES.")
+	endif()
 endforeach()
