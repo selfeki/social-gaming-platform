@@ -58,7 +58,7 @@ function(arepa_create_executable target_name executable_name)
 	message("   --> Creates executable \"${executable_name}\"")
 
 	# Create the build target.
-	add_executable("${target_name}")
+	add_executable("${target_name}" "")
 	set_target_properties(${target_name} PROPERTIES OUTPUT_NAME "${executable_name}")
 	arepa_add_target("${target_name}")
 
