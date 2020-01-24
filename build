@@ -16,6 +16,7 @@ INVOKE=main_project_build
 OPT_RECONFIGURE=false
 OPT_PROFILE=""
 OPT_TOOLCHAIN=""
+OPT_CORES="$(nproc 2>/dev/null || true)"
 CMAKE_ARGS=()
 MAKE_ARGS=()
 
@@ -67,6 +68,7 @@ while [[ "$#" -gt 0 ]]; do
 		"--toolchain")    invalidate [ "$OPT_TOOLCHAIN" != "$arg_value" ]; OPT_TOOLCHAIN="$arg_value";;
 		"--print-info")   INVOKE="main_project_info"; msg_status() { :; };;
 		"--help")         INVOKE="main_help";         msg_status() { :; };;
+    "--cores")        OPT_CORES="$arg_value";;
 		-*)               invalidate; add_cmake_arg "$1" "$2" || shift;;
 		*)                add_make_arg "$1";;
 	esac
@@ -88,6 +90,11 @@ if "$OPT_RECONFIGURE" && [[ -n "$BUILD_DIR" && -f "${BUILD_DIR}/CMakeCache.txt" 
 	if [[ -f "$VARCACHE_FILE" ]]; then
 		rm "$VARCACHE_FILE"
 	fi
+fi
+
+# Handle cores option.
+if [[ -n "$OPT_CORES" ]]; then
+  add_make_arg "-j${OPT_CORES}"
 fi
 
 # Handle toolchain option.
