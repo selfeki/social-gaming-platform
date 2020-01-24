@@ -16,7 +16,7 @@ BraceWrapping:
   AfterUnion:            false
   BeforeCatch:           false
   BeforeElse:            false
-  IndentBraces:          true
+  IndentBraces:          false
 SpacesBeforeTrailingComments: 4
 AlignTrailingComments: true
 AllowShortBlocksOnASingleLine: true
