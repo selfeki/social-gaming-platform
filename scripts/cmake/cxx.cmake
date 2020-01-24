@@ -53,7 +53,7 @@ function(arepa_target_cxx module_name)
 	target_sources("${module_name}" PRIVATE ${${module_name}_SRC})
 
 	# Configure the C++ properties.
-	set_target_properties(networking
+	set_target_properties("${module_name}"
 		PROPERTIES
 			LINKER_LANGUAGE CXX
 			CXX_STANDARD "${AREPA_DEFAULT_CXX_STANDARD}"
