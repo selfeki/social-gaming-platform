@@ -33,7 +33,6 @@ function(arepa_target_cxx module_name)
 			${CMAKE_CURRENT_SOURCE_DIR}/src
 		PUBLIC
 			$<INSTALL_INTERFACE:include>
-			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/export/include>
 	)
 
 	# Set the exported include directories.

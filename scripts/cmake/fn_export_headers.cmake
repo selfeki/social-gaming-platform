@@ -45,12 +45,4 @@ function(arepa_export_headers target_name header_dirs)
 			endif()
 		endforeach()
 	endforeach()
-#	target_include_directories("${module_name}"
-#			PUBLIC
-#			$<INSTALL_INTERFACE:include>
-#			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/export/include>
-#			)
-
-#	 Find all header files.
-#	file(GLOB_RECURSE header_files )
 endfunction(arepa_export_headers)
