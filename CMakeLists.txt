@@ -47,5 +47,5 @@ list(JOIN project_files "\n" project_files_joined)
 file(WRITE "${CMAKE_BINARY_DIR}/ArepaProjectFiles.txt" "${project_files_joined}")
 message("-- Generated project file list")
 
-# Add format target.
+# Add custom targets.
 include("${CMAKE_CURRENT_LIST_DIR}/scripts/cmake/incl_target_format.cmake")

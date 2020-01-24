@@ -17,6 +17,7 @@ else()
 	endif()
 
 	add_custom_command(TARGET format POST_BUILD
-		COMMAND tr '\\n' '\\0' "<${CMAKE_BINARY_DIR}/ArepaProjectFiles.txt" "|" xargs -0 -n 50 "${CLANG_FORMAT_EXE}" --verbose -i
+		COMMAND tr '\\n' '\\0' "<${CMAKE_BINARY_DIR}/ArepaProjectFiles.txt"
+			| xargs -0 -n 50 "${CLANG_FORMAT_EXE}" --verbose -i
 	)
 endif()
