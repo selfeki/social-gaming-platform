@@ -1,6 +1,7 @@
 # Build
 /target
 .buildcache
+.buildenv
 
 # Platform
 .DS_Store
