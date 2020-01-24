@@ -55,7 +55,7 @@ EOF
 			continue
 		fi
 
-		echo "$line"
+		echo "$line" 1>&2
 	done < <(cmake . -Wno-dev "$@" 2>&1 | grep -v "^--")
 })
 
