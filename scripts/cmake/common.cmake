@@ -23,7 +23,7 @@ function(arepa_create_module target_name export_prefix)
 	message("   --> Creates static library \"${target_name}\" (as \"${export_prefix}\")")
 
 	# Create the build target.
-	add_library("${target_name}")
+	add_library("${target_name}" "")
 	arepa_add_target("${target_name}")
 
 	# Configure the install command.
