@@ -21,7 +21,7 @@ CMAKE_ARGS=()
 MAKE_ARGS=()
 
 # Cache:
-if [[ -f "$VARCACHE_FILE" ]]; then source "$VARCACHE_FILE"; fi
+if [[ -f "$VARCACHE_FILE" ]]; then source "$VARCACHE_FILE" || VARCACHE_INVALID=1; fi
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Functions:

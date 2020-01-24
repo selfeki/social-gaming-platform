@@ -55,8 +55,8 @@ EOF
 			continue
 		fi
 
-		echo "$line"
-	done < <(cmake . -Wno-dev "$@" 2>&1 | grep -v "^--")
+		echo "$line" 1>&2
+	done < <(cmake . --no-warn-unused-cli -Wno-dev "$@" 2>&1 | grep -v "^--")
 })
 
 # Clean up.
