@@ -1,6 +1,7 @@
 ---
 BasedOnStyle: WebKit
 IndentWidth: 4
+UseTab: Never
 BreakBeforeBraces: Custom
 BraceWrapping:
   AfterFunction:         false
@@ -16,3 +17,7 @@ BraceWrapping:
   BeforeCatch:           false
   BeforeElse:            false
   IndentBraces:          true
+SpacesBeforeTrailingComments: 4
+AlignTrailingComments: true
+AllowShortBlocksOnASingleLine: true
+IndentPPDirectives: BeforeHash
