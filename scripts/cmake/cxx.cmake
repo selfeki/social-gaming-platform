@@ -4,8 +4,9 @@
 SET(AREPA_DEFAULT_CXX_STANDARD 17)
 SET(CMAKE_CXX_CLANG_TIDY clang-tidy)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
-	-pedantic -Wall -Wextra -Werror -Wno-unused -Wfloat-equal -Wold-style-cast \
-	-Wzero-as-null-pointer-constant -Wshadow -Wnon-virtual-dtor -Wint-to-pointer-cast"
+	-pedantic -Wall -Wextra -Werror -Wfloat-equal -Wold-style-cast \
+	-Wzero-as-null-pointer-constant -Wshadow -Wnon-virtual-dtor -Wint-to-pointer-cast \
+	-Wno-unused -Wno-unused-parameter"
 )
 
 # ----------------------------------------------------------------------------------------------------------------------
