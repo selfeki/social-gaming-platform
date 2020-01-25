@@ -23,6 +23,8 @@ using networking::Message;
 
 std::vector<Connection> clients;
 
+enum MsgType { chat, command, game_spec };
+
 
 void
 onConnect(Connection c) {
@@ -55,7 +57,9 @@ processMessages(Server& server, const std::deque<Message>& incoming) {
     } else if (message.text == "shutdown") {
       std::cout << "Shutting down.\n";
       quit = true;
-    } else {
+    } else if (message.text[0] == '/') { //it is a command
+      result << server.handleCommand(message.text.substr(1));
+    }else {
       result << message.connection.id << "> " << message.text << "\n";
     }
   }
