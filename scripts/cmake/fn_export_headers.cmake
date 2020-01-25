@@ -34,14 +34,19 @@ function(arepa_export_headers target_name header_dirs)
 
 			# Create the symlink.
 			file(MAKE_DIRECTORY "${export_header_dir_with_prefix}/${header_file_relative_dirname}")
-			execute_process(
-				COMMAND ln -s "${header_link_relative}" "${header_file_relative}"
-					WORKING_DIRECTORY "${export_header_dir_with_prefix}"
-				RESULT_VARIABLE code
-			)
+			if (NO_SYMLINKS)
+				configure_file("${header_file}" "${export_header_dir_with_prefix}/${header_file_relative}")
+				file(COPY "${header_file}" DESTINATION "${export_header_dir_with_prefix}")
+			else()
+				execute_process(
+					COMMAND ln -s "${header_link_relative}" "${header_file_relative}"
+						WORKING_DIRECTORY "${export_header_dir_with_prefix}"
+					RESULT_VARIABLE code
+				)
 
-			if(NOT "${code}" EQUAL 0)
-				message(FATAL_ERROR "Failed to symlink header file: ${header_file_relative} -> ${export_header_dir_with_prefix}/${header_file_relative}")
+				if(NOT "${code}" EQUAL 0)
+					message(FATAL_ERROR "Failed to symlink header file: ${header_file_relative} -> ${export_header_dir_with_prefix}/${header_file_relative}")
+				endif()
 			endif()
 		endforeach()
 	endforeach()
