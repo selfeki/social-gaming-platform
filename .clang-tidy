@@ -4,6 +4,7 @@ Checks: >-
   readability-identifier-naming,
   -google-build-using-namespace,
   -llvm-namespace-comment,
+  -fuchsia-*,
   -modernize-use-trailing-return-type
 
 WarningsAsErrors: '*'
