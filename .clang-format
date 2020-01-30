@@ -1,7 +1,11 @@
 ---
 BasedOnStyle: WebKit
+
+# Indentation:
 IndentWidth: 4
 UseTab: Never
+
+# Wrapping:
 BreakBeforeBraces: Custom
 BraceWrapping:
   AfterFunction:         false
@@ -17,7 +21,32 @@ BraceWrapping:
   BeforeCatch:           false
   BeforeElse:            false
   IndentBraces:          false
-SpacesBeforeTrailingComments: 4
-AlignTrailingComments: true
+
+# Misc:
 AllowShortBlocksOnASingleLine: true
 IndentPPDirectives: BeforeHash
+MaxEmptyLinesToKeep: 2
+
+# Trailing comments:
+SpacesBeforeTrailingComments: 4
+AlignTrailingComments: true
+
+# Includes:
+IncludeBlocks: Regroup
+IncludeCategories:
+
+  # Current module files first.
+  - Regex:        '^"'
+    Priority:     2
+
+  # Module files next.
+  - Regex:        '^<arepa/'
+    Priority:     3
+
+  # Library files next.
+  - Regex:        '^<(boost)/?'
+    Priority:     4
+
+  # Standard files next.
+  - Regex:        '^<'
+    Priority:     4
