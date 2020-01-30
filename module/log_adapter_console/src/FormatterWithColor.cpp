@@ -1,6 +1,6 @@
 #include "FormatterWithColor.hpp"
-#include "Formatter.hpp"
 
+#include "Formatter.hpp"
 #include "arepa/log/Entry.hpp"
 
 #include <chrono>
@@ -9,6 +9,10 @@
 using namespace arepa::log::console;
 using arepa::log::Entry;
 using std::string;
+
+// ---------------------------------------------------------------------------------------------------------------------
+#pragma mark - Overrides: Formatter -
+// ---------------------------------------------------------------------------------------------------------------------
 
 string FormatterWithColor::format_module(const string& module) const {
     return "\x1B[35m" + Formatter::format_module(module) + "\x1B[0m";

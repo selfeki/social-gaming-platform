@@ -11,24 +11,50 @@
 namespace arepa::log {
 
 /**
- * A class which collects the extra values provided by a log function into a vector of strings.
+ * A class which collects arbitrary extra values into a vector of strings.
  * This uses a stringstream under the hood.
  */
 class Collector {
-protected:
-    std::vector<std::string> collected;
 
+#pragma mark - Fields -
+private:
+    std::vector<std::string> _values;
+
+#pragma mark - Methods (Static) -
 public:
-    template <typename T>
-    Collector& operator<<(T value) {
-        std::stringstream convert;
-        convert << value;
-        this->collected.emplace_back(convert.str());
-        return *this;
+    /**
+     * Collects values into a string vector.
+     * @param args The values.
+     * @return The vector of collected values.
+     */
+    template <typename... As>
+    static std::vector<std::string> collect(const As&... args) {
+        Collector collector;
+        (collector << ... << args);
+        return collector._values;
     }
 
+#pragma mark - Methods -
+    /**
+     * Returns a reference to the vector of collected values.
+     * @return The collected values.
+     */
     const std::vector<std::string>& vec() {
-        return this->collected;
+        return this->_values;
+    }
+
+#pragma mark - Operators -
+public:
+    /**
+     * Collects a value.
+     * @param value The value.
+     */
+    template <typename T>
+    Collector& operator<<(const T& value) {
+        std::stringstream convert;
+        convert << value;
+        this->_values.emplace_back(convert.str());
+        return *this;
     }
 };
 

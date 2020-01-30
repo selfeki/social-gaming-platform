@@ -11,11 +11,19 @@ namespace arepa::log::console {
  * A class that formats log entries to human-readable text.
  */
 class Formatter {
+#pragma mark - Constructors -
 public:
+    /**
+    *
+    */
     virtual ~Formatter() = default;
 
+
+#pragma mark - Virtual -
+public:
     /**
      * Formats a log entry into a string.
+     *
      * @param entry The log entry.
      * @return The formatted string.
      */
@@ -23,6 +31,7 @@ public:
 
     /**
      * Formats a log entry's module name.
+     *
      * @param module The module name.
      * @return The formatted string.
      */
@@ -30,6 +39,7 @@ public:
 
     /**
      * Formats a log entry's timestamp.
+     *
      * @param timestamp The timestamp.
      * @return The formatted string.
      */
@@ -37,6 +47,7 @@ public:
 
     /**
      * Formats a log entry's log level.
+     *
      * @param level The log level.
      * @return The formatted string.
      */
@@ -44,6 +55,7 @@ public:
 
     /**
      * Formats a log entry's message.
+     *
      * @param message The message.
      * @return The formatted string.
      */
@@ -51,6 +63,7 @@ public:
 
     /**
      * Formats a log entry's values.
+     *
      * @param values The values vector.
      * @return The formatted string.
      */
@@ -58,6 +71,7 @@ public:
 
     /**
      * Formats a single value.
+     * 
      * @param index The value index.
      * @param value The value string.
      * @return The formatted string.

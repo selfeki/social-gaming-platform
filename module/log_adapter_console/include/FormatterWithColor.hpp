@@ -9,9 +9,11 @@ namespace arepa::log::console {
 
 /**
  * A class that formats log entries to human-readable text.
- * This uses pretty colors to make it more readable.
+ * This uses ANSI escape-sequence colors to make it more readable.
  */
 class FormatterWithColor : public Formatter {
+
+#pragma mark - Overrides: Formatter -
 public:
     [[nodiscard]] std::string format_module(const std::string& module) const override;
     [[nodiscard]] std::string format_timestamp(const arepa::log::Entry::Timestamp& timestamp) const override;

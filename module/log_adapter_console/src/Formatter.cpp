@@ -19,6 +19,10 @@ using std::tm;
 using std::vector;
 using std::chrono::system_clock;
 
+// ---------------------------------------------------------------------------------------------------------------------
+#pragma mark - Methods -
+// ---------------------------------------------------------------------------------------------------------------------
+
 string Formatter::format_entry(const Entry& entry) const {
     stringstream formatted;
     formatted << this->format_timestamp(entry.timestamp)
