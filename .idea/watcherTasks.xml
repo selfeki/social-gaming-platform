@@ -15,8 +15,8 @@
       </option>
       <option name="outputFromStdout" value="true" />
       <option name="program" value="clang-format" />
-      <option name="runOnExternalChanges" value="true" />
-      <option name="scopeName" value="Project Files" />
+      <option name="runOnExternalChanges" value="false" />
+      <option name="scopeName" value="Current File" />
       <option name="trackOnlyRoot" value="false" />
       <option name="workingDir" value="" />
       <envs />
