@@ -5,7 +5,11 @@ Checks: >-
   -google-build-using-namespace,
   -llvm-namespace-comment,
   -fuchsia-*,
-  -modernize-use-trailing-return-type
+  -modernize-use-trailing-return-type,
+  -misc-unused-using-decls
+
+# Notes:
+# - misc-unused-using-decls <-- Disabled because of false positives.
 
 WarningsAsErrors: '*'
 CheckOptions:
