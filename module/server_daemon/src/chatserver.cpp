@@ -7,7 +7,7 @@
 
 
 #include "Server.h"
-
+#include "command.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -24,7 +24,7 @@ using networking::Message;
 std::vector<Connection> clients;
 
 enum MsgType { chat, command, game_spec };
-
+commandSpace::Command userCommand; 
 
 void
 onConnect(Connection c) {
