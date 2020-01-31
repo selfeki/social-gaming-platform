@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <iostream>
 #include "cereal.h"
 #include "Server.h"
 
@@ -16,5 +16,5 @@ networking::Message Cereal::getMessage() const {
 }
 
 void Cereal::printMessage() const {
-    printf("message: %s\n", msg.text);
+    std::cout << "message: " << msg.text << "\n";
 }
