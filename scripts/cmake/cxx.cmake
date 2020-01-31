@@ -3,13 +3,14 @@
 # ----------------------------------------------------------------------------------------------------------------------
 SET(AREPA_DEFAULT_CXX_STANDARD 17)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
-	-pedantic -Wall -Wextra -Werror -Wfloat-equal -Wold-style-cast \
+	-pedantic -Wall -Wextra -Wfloat-equal -Wold-style-cast \
 	-Wzero-as-null-pointer-constant -Wshadow -Wnon-virtual-dtor -Wint-to-pointer-cast \
 	-Wno-unused -Wno-unused-parameter"
 )
 
 if(NOT AREPA_SKIP_LINTING)
 	SET(CMAKE_CXX_CLANG_TIDY clang-tidy)
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
 endif()
 
 # ----------------------------------------------------------------------------------------------------------------------
