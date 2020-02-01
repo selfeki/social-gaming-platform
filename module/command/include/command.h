@@ -1,7 +1,7 @@
 #include <string>
 #include <vector>
 #include "Server.h"
-//#include "GameManager.h"
+#include "GameManager.h"
 
 
 namespace commandSpace {

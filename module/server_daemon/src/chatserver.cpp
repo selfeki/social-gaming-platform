@@ -7,10 +7,9 @@
 
 #include "Server.h"
 #include "command.h"
-//#include "game_manager.h"
+
 //#include "dsl_interpreter.h"
 //#include "json_parser.h"
-#include "cereal.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -221,7 +220,7 @@ main(int argc, char* argv[]) {
     //game_manager.setUp(server_config)
 
   } catch (.../* const GameManagerError& e */ ){ //I suggest custom error handing class to catch the various configuration errors
-    std::cerr << "Game configuration failed";
+    std::cerr << "Server configuration failed";
               //<< e.what() << '\n'
               //<< e.where() << '\n,
   }
