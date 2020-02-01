@@ -2,9 +2,10 @@
 #define DSLInterpreter 
 
 #include <vector>
+#include <string.h>
 
 
-enum RuleKeyWord {
+enum RuleType {
   FOR_EACH,
   LOOP,
   IN_PARALLEL,
@@ -30,12 +31,30 @@ enum RuleKeyWord {
 
 class State;
 
+class Node;
 
-class Rule {
+class Node {
+	public:
+		Node(std::string name, std::vector<Node> children) ;
+		std::string getName();
+		Node getParent();
+		std::vector<Node> getChildren() ;
+	private:
+		std::string name;
+		Node parent;
+		std::vector<Node> children;
+};
+
+
+class RuleNode : public Node {
 public:
+	RuleNode(std:: string element, std::vector<RuleNode> children);
+	std::string getElement(); 
+	std::vector<RuleNode> getChildren();
 
 private:
-  std::vector<Rule> children;
+	RuleType type;
+  std::vector<RuleNode> children;
 
 };
 
