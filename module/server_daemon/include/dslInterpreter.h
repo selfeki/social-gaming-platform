@@ -1,5 +1,5 @@
-#ifndef DSLInterpreter
-#define DSLInterpreter 
+#ifndef DSLINTERPRETER_H
+#define DSLINTERPRETER_H 
 
 #include <vector>
 #include <string.h>
@@ -29,33 +29,64 @@ enum RuleType {
 };
 
 
+std::map<RuleType, std::string> RuleTypeMap;
+RuleTypeMap["for each"] = RuleType.FOR_EACH;
+RuleTypeMap["loop"] = RuleType.LOOP;
+RuleTypeMap["inparallel"] = RuleType.IN_PARALLEL;
+
+
 class State;
 
 class Node;
 
 class Node {
 	public:
-		Node(std::string name, std::vector<Node> children) ;
-		std::string getName();
-		Node getParent();
-		std::vector<Node> getChildren() ;
+		Node();
+		Node(Node& parent);
+		~Node();
 	private:
-		std::string name;
-		Node parent;
-		std::vector<Node> children;
+		Node* parent;
+};
+
+class ElementNode: public Node{
+	public:
+		ElementNode();
+		ElementNode(std::string data ){data=data;}
+		ElementNode(Node& parent, std::string data) 
+			:Node{parent},
+				data{data}
+			{}
+		~ElementNode();
+		std::get_data() {return data ;} ;
+	private:
+		std::string data ;
+};
+
+class ListNode: public Node{
+	public:
+		ListNde();
+		ListNode(Node& parent)
+			:Node{parent} 
+			{}
+		~ListNode();
+		std::vector<Node> getChildren(){return children};
+		void addChild(Node node) ;
+	private:
+		std::vector<Node> children ;
 };
 
 
-class RuleNode : public Node {
+class RuleNode : public LsitNode{
 public:
-	RuleNode(std:: string element, std::vector<RuleNode> children);
-	std::string getElement(); 
-	std::vector<RuleNode> getChildren();
-
+	RuleNode(RuleType ruleType);
+	RuleNode(Node& parent, RuleType ruleType)
+		:Node{parent},ls
+			type{ruleType}
+			{}
+	~RuleNode();
+	Node getType(){return type}; 
 private:
 	RuleType type;
-  std::vector<RuleNode> children;
-
 };
 
 
@@ -64,9 +95,11 @@ public:
 	State getNewState(State& state);
 
 private:
+	RuleNode parseRule(SpecWrapper Spec);
   interpretRule()
   interpretGlobalMessage(Rule)
   State state;
+	std::vector<RuleNode> Rules ;
 };
 
 #endif 
