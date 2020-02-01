@@ -4,7 +4,12 @@ Checks: >-
   readability-identifier-naming,
   -google-build-using-namespace,
   -llvm-namespace-comment,
-  -modernize-use-trailing-return-type
+  -fuchsia-*,
+  -modernize-use-trailing-return-type,
+  -misc-unused-using-decls
+
+# Notes:
+# - misc-unused-using-decls <-- Disabled because of false positives.
 
 WarningsAsErrors: '*'
 CheckOptions:

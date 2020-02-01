@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <iostream>
 #include "cereal.h"
 #include "Server.h"
 #include <iostream>

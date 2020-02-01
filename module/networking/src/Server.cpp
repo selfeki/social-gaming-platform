@@ -244,9 +244,9 @@ HTTPSession::handleRequest() {
           socket.shutdown(boost::asio::ip::tcp::socket::shutdown_send);
         } else if (sharedResponse->need_eof()) {
           // This signifies a deliberate close
-          boost::system::error_code ec;
-          socket.shutdown(boost::asio::ip::tcp::socket::shutdown_send, ec);
-          if (ec) {
+          boost::system::error_code err_code;
+          socket.shutdown(boost::asio::ip::tcp::socket::shutdown_send, err_code);
+          if (err_code) {
             session->serverImpl.reportError("Error closing HTTP stream");
           }
         } else {
