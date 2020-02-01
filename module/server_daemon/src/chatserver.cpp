@@ -7,7 +7,7 @@
 
 #include "Server.h"
 #include "command.h"
-
+#include "GameManager.h"
 //#include "dsl_interpreter.h"
 //#include "json_parser.h"
 #include <fstream>
@@ -29,7 +29,7 @@ using commandSpace::MessageResult;
 std::vector<Connection> clients;
 json json_parser;
 //initialize game manager
-//GameManager game_manager
+GameManager game_manager;
 
 //message types possible
 enum MessageType { COMMAND, GAME_CONFIG, NORMAL  };
@@ -68,12 +68,9 @@ void onDisconnect(Connection c) {
 }
 
 
-
-
-
 /*
 * processMessages is going to be a very involved function where 
-* the meat of the game server logic will take place. I suggest 
+* a lot of the game server logic will take place. I suggest 
 * breaking it up into sub routines
 */
 
@@ -124,31 +121,6 @@ std::vector<MessageResult> processMessages(Server& server, const std::deque<Mess
       default:
         break;
    }
-
-
-    /* This can be implemented inside the command object
-    switch(commandRecieved){
-        case commandType::message:
-          result << message.connection.id << "> " << message.text << "\n";
-          break;
-        case commandType::listMember:
-          result << message.connection.id << "> " << message.text << "\n";
-          result<<memberCommand().str();
-          break;
-        case commandType::quitFromServer:
-          server.disconnect(message.connection);
-          break;
-        case commandType::shutdownServer:
-          std::cout << "Shutting down.\n";
-          quit = true;
-          break;
-        default:
-          result << message.connection.id << "> " << message.text << "\n";
-          result<<"Command not defined.\n";
-          break;
-    }
-    */
-    //processedMessages.push_back({result.str(),quit,sentFrom,commandRecieved});
   }
   return processedMessages;
 }
@@ -217,9 +189,9 @@ main(int argc, char* argv[]) {
 
   //GameManager game_manager{ ... }
   try {
-    //game_manager.setUp(server_config)
+    game_manager.setUp(server_config);
 
-  } catch (.../* const GameManagerError& e */ ){ //I suggest custom error handing class to catch the various configuration errors
+  } catch (.../*const GameManagerException& e*/){ //I suggest custom error handing class to catch the various configuration errors
     std::cerr << "Server configuration failed";
               //<< e.what() << '\n'
               //<< e.where() << '\n,

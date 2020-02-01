@@ -1,4 +1,7 @@
+#pragma once
+
 #include "cereal.h"
+#include "Server.h"
 #include <exception>
 
 
@@ -19,8 +22,6 @@ private:
 class GameManager {
 
 public:
-
-    GameManager();
 
     void setUp(json server_config);
 

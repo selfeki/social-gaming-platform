@@ -3,7 +3,8 @@
 #include <exception>
 
 
-//GameManagerException::GameManagerException(std::string _info, int _err_id, std::string _json_field) 
+GameManagerException::GameManagerException(std::string _info, int _err_id, std::string _json_field) : 
+    info(_info), error_id(_err_id), json_field(_json_field){}
 
 std::string GameManagerException::getInfo() const {
     return info;    
@@ -17,5 +18,6 @@ std::string GameManagerException::getJsonField() const {
 
 void GameManager::setUp(json server_config) {
     throw(GameManagerException("oops", 0, "lol"));
+
 }
 
