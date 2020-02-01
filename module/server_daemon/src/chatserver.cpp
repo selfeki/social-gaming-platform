@@ -5,7 +5,6 @@
 // for details.
 /////////////////////////////////////////////////////////////////////////////
 
-
 #include "Server.h"
 #include "command.h"
 //#include "game_manager.h"
@@ -26,7 +25,7 @@ using networking::Connection;
 using networking::Message;
 using commandSpace::commandType;
 using commandSpace::Command;
-
+using commandSpace::MessageResult;
 
 std::vector<Connection> clients;
 json json_parser;
@@ -35,6 +34,15 @@ json json_parser;
 
 //message types possible
 enum MessageType { COMMAND, GAME_CONFIG, NORMAL  };
+
+MessageType getMessageType(std::string _message) {
+
+  if(_message[0] == '/') {    //it is a command
+    return MessageType::COMMAND;
+  } else {     //it is a regular message
+    return MessageType::NORMAL;
+  }
+}
 
 
 /*Nikola's code */
@@ -45,14 +53,6 @@ std::deque<Message> sendToClient(const Connection& client, const std::string& lo
   return outgoing;
 }
 
-std::ostringstream memberCommand(){
-  std::ostringstream result;
-  result<<"Command: Member List\n";
-  for (auto client : clients){
-    result<<client.id<<"\n";
-  }
-  return result;
-} 
 
 /*Nikola's code */
 
@@ -69,12 +69,7 @@ void onDisconnect(Connection c) {
 }
 
 
-struct MessageResult {
-  std::string result;
-  bool shouldShutdown;
-  Connection sentFrom;
-  commandType userCommand;
-};
+
 
 
 /*
@@ -85,23 +80,54 @@ struct MessageResult {
 
 std::vector<MessageResult> processMessages(Server& server, const std::deque<Message>& incoming) {
   std::vector<MessageResult> processedMessages;
-  std::ostringstream result;
+  //std::ostringstream result;
   Command userCommand;
   bool quit = false;
   for (auto& message : incoming) {
     Connection sentFrom = message.connection;
     
-    MessageType msg_type;
+    MessageType msg_type = getMessageType(message.text);
+
+    //commandType commandRecieved = userCommand.evaluateMessage(message.text);
+
+   switch(msg_type) {
+      case MessageType::COMMAND:
+        /*
+        * I'm thinking the userCommand object should return a vector of actions to take. 
+        * For example, /whisper <player> returns a single action, the whisper text and the connection id
+        * of the recipient of the whisper.
+        *  
+        * Command class will also need its own custom error handling, because
+        * there are lots of commands to deal with, including game_config errors.
+        * The error will simply be returned as a string and sent solely to the 
+        * sender of the erroneous command.
+        * */
+
+        processedMessages = userCommand.handleCommand(message.text, sentFrom);
+        break;
+      case MessageType::NORMAL:
+        /* 
+        * Any message without a special prefix will be interpreted as a gameplay message. 
+        * Will be send to the DSL interpreter. I think it may be easiest to have
+        * the game objects and the DSL intepreter library be called from inside
+        * the game manager.
+        * 
+        * Example use case: If all players have to send something to a game, then each time a
+        * player sends something, game_manager could return a vector of messages to
+        * each player in that particular game reading something like  "<player> has submitted their message..."
+        * After each player has submitted, the game would continue on.
+        * 
+        * */
+
+        //processedMessages = game_manager.sendGameMessage(message.text, sentFrom); 
+
+        break;
+      default:
+        break;
+   }
 
 
-
-
-    commandType commandRecieved = userCommand.evaluateMessage(message.text);
-    /*
-    * FOR 
-    */
-
-
+    /* This can be implemented inside the command object
     switch(commandRecieved){
         case commandType::message:
           result << message.connection.id << "> " << message.text << "\n";
@@ -122,7 +148,8 @@ std::vector<MessageResult> processMessages(Server& server, const std::deque<Mess
           result<<"Command not defined.\n";
           break;
     }
-    processedMessages.push_back({result.str(),quit,sentFrom,commandRecieved});
+    */
+    //processedMessages.push_back({result.str(),quit,sentFrom,commandRecieved});
   }
   return processedMessages;
 }
@@ -189,18 +216,29 @@ main(int argc, char* argv[]) {
 
   }
 
+  //GameManager game_manager{ ... }
   try {
     //game_manager.setUp(server_config)
+
   } catch (.../* const GameManagerError& e */ ){ //I suggest custom error handing class to catch the various configuration errors
     std::cerr << "Game configuration failed";
               //<< e.what() << '\n'
               //<< e.where() << '\n,
   }
 
+  /*
+  * Command module will have to keep track of state of game server (rooms, players)
+  * to implement its commands, so pass in pointer to game_manager object. 
+  */
+
+  //Command commands{game_manager} 
+
+
   unsigned short port = std::stoi(argv[1]);
   Server server{port, getHTTPMessage(argv[2]), onConnect, onDisconnect};
 
   while (true) {
+    
     /*
     * Main Game Server Loop
     */
@@ -225,7 +263,11 @@ main(int argc, char* argv[]) {
 
     
     for(auto message : processedMessages){
-      //If user input is a message send it to every client
+      /*
+      *With everything else encapsulated in the other classes, only need simple statements in this loop
+      * 
+      * */
+     /*
       if(message.userCommand != commandType::message){
         std::cout<<"Command recieved"<<std::endl;
         auto outgoing = sendToClient(message.sentFrom,message.result);
@@ -235,6 +277,10 @@ main(int argc, char* argv[]) {
         auto outgoing = buildOutgoing(message.result);
         server.send(outgoing);
       }
+      */
+      auto outgoing = buildOutgoing(message.result);
+      server.send(outgoing);
+
       
       if(message.shouldShutdown){
         shouldQuit = message.shouldShutdown;
