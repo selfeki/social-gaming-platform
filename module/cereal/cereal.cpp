@@ -1,7 +1,7 @@
 #include <iostream>
 #include "cereal.h"
 #include "Server.h"
-
+#include <iostream>
 
 Cereal::Cereal(networking::Message m) : msg(m) {
     formats::to_json(j, msg);
@@ -16,5 +16,5 @@ networking::Message Cereal::getMessage() const {
 }
 
 void Cereal::printMessage() const {
-    std::cout << "message: " << msg.text << "\n";
+    std::cout<<"message:"<<msg.text<<std::endl;
 }

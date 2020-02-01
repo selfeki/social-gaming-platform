@@ -7,7 +7,7 @@
 
 
 #include "Server.h"
-
+#include "command.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -19,22 +19,38 @@
 using networking::Server;
 using networking::Connection;
 using networking::Message;
+using commandSpace::commandType;
+using commandSpace::Command;
 
 
 std::vector<Connection> clients;
 
-enum MsgType { chat, command, game_spec };
+/*Nikola's code */
+//function to format a message object to a particular client
+std::deque<Message> sendToClient(const Connection& client, const std::string& log){
+  std::deque<Message> outgoing;
+  outgoing.push_back({client,log});
+  return outgoing;
+}
 
+std::ostringstream memberCommand(){
+  std::ostringstream result;
+  result<<"Command: Member List\n";
+  for (auto client : clients){
+    result<<client.id<<"\n";
+  }
+  return result;
+} 
 
-void
-onConnect(Connection c) {
+/*Nikola's code */
+
+void onConnect(Connection c) {
   std::cout << "New connection found: " << c.id << "\n";
   clients.push_back(c);
 }
 
 
-void
-onDisconnect(Connection c) {
+void onDisconnect(Connection c) {
   std::cout << "Connection lost: " << c.id << "\n";
   auto eraseBegin = std::remove(std::begin(clients), std::end(clients), c);
   clients.erase(eraseBegin, std::end(clients));
@@ -44,31 +60,46 @@ onDisconnect(Connection c) {
 struct MessageResult {
   std::string result;
   bool shouldShutdown;
+  Connection sentFrom;
+  commandType userCommand;
 };
 
 
-MessageResult
-processMessages(Server& server, const std::deque<Message>& incoming) {
+std::vector<MessageResult> processMessages(Server& server, const std::deque<Message>& incoming) {
+  std::vector<MessageResult> processedMessages;
   std::ostringstream result;
   bool quit = false;
   for (auto& message : incoming) {
-    if (message.text == "quit") {
-      server.disconnect(message.connection);
-    } else if (message.text == "shutdown") {
-      std::cout << "Shutting down.\n";
-      quit = true;
-    } else if (message.text[0] == '/') { //it is a command
-      result << server.handleCommand(message.text.substr(1));
-    }else {
-      result << message.connection.id << "> " << message.text << "\n";
+    Command userCommand;
+    Connection sentFrom = message.connection;
+    commandType commandRecieved = userCommand.evaluateMessage(message.text);
+    
+    switch(commandRecieved){
+        case commandType::message:
+          result << message.connection.id << "> " << message.text << "\n";
+          break;
+        case commandType::listMember:
+          result << message.connection.id << "> " << message.text << "\n";
+          result<<memberCommand().str();
+          break;
+        case commandType::quitFromServer:
+          server.disconnect(message.connection);
+          break;
+        case commandType::shutdownServer:
+          std::cout << "Shutting down.\n";
+          quit = true;
+          break;
+        default:
+          result << message.connection.id << "> " << message.text << "\n";
+          result<<"Command not defined.\n";
+          break;
     }
+    processedMessages.push_back({result.str(),quit,sentFrom,commandRecieved});
   }
-  return MessageResult{result.str(), quit};
+  return processedMessages;
 }
 
-
-std::deque<Message>
-buildOutgoing(const std::string& log) {
+std::deque<Message> buildOutgoing(const std::string& log) {
   std::deque<Message> outgoing;
   for (auto client : clients) {
     outgoing.push_back({client, log});
@@ -112,11 +143,28 @@ main(int argc, char* argv[]) {
                 << " " << e.what() << "\n\n";
       errorWhileUpdating = true;
     }
-
+    
+    bool shouldQuit = false;
     auto incoming = server.receive();
-    auto [log, shouldQuit] = processMessages(server, incoming);
-    auto outgoing = buildOutgoing(log);
-    server.send(outgoing);
+    std::vector<MessageResult> processedMessages = processMessages(server, incoming);
+
+    
+    for(auto message : processedMessages){
+      //If user input is a message send it to every client
+      if(message.userCommand != commandType::message){
+        std::cout<<"Command recieved"<<std::endl;
+        auto outgoing = sendToClient(message.sentFrom,message.result);
+        server.send(outgoing);
+      }else{
+        std::cout<<"Message recived"<<std::endl;
+        auto outgoing = buildOutgoing(message.result);
+        server.send(outgoing);
+      }
+      
+      if(message.shouldShutdown){
+        shouldQuit = message.shouldShutdown;
+      }
+    }
 
     if (shouldQuit || errorWhileUpdating) {
       break;
