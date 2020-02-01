@@ -1,31 +1,33 @@
-
 #include <string>
+#include <vector>
 
 
 namespace commandSpace {
 
 enum commandType {
-    listMember,// = "/member";
-    listRoom ,//= "/room"
-    createRoom ,   //= "/create"
-    joinRoom,   //command to join a room
-    nullCommand //does belong to any command 
+    listMember,
+    listRoom,
+    createRoom,
+    joinRoom,
+    kickUser,   
+    nullCommand,
+    quitFromServer,
+    shutdownServer,
+    message
 };
 
+//template <class T>
 class Command{
 public:
     Command();
-    //void recieveCommand();
-    void evaluateMessage(const std::string& message);
-    //void requestInfoToServer(enum  command);
-    void returnError();
-    void printResult();
+    commandType evaluateMessage(const std::string& message);
+    void requestInfoToServer(const commandType& command);
+    std::string returnCommandNotFoundError();
+    commandType getCommandType() const;
 
 private:
     commandType commandRecieved;
-
-
-
+    std::string userInput;  
 };
 
 }

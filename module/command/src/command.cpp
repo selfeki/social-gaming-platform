@@ -1,23 +1,17 @@
 #include "command.h"
 #include "Server.h"
-
+//#include "chatserver/chatserver.cpp"
 #include <string>
 
 namespace commandSpace{
-/*
-enum commandType {
-    listMember,
-    listRoom ,
-    createRoom ,  
-    joinRoom,   
-    nullCommand 
-};
-*/
-Command::Command(){
-    commandRecieved = commandType::nullCommand;
+
+//template <class T>
+Command::Command():commandRecieved(commandType::nullCommand), userInput(" "){
 }
 
-void requestInfoToServer(const commandType& command){
+/*
+//template <class T>
+void Command::requestInfoToServer(const commandType& command){
     switch (command){
         case commandType::listMember:
             
@@ -31,20 +25,24 @@ void requestInfoToServer(const commandType& command){
         case commandType::joinRoom:
 
             break;
-        case commandType::nullCommand:
+        case commandType::kickUser:
 
             break;
-        default:
-        
+        case commandType::nullCommand:
+            Command::returnCommandNotFoundError();
             break;   
     }
 }
+*/
 
-
-
-void evaluateMessage(const std::string& message){
-    commandType commandRecieved = commandType::listMember;
-    if(message == "/member"){
+//template <class T>
+commandType Command::evaluateMessage(const std::string& message){
+    //commandType commandRecieved = commandType::nullCommand;
+    userInput = message;
+    if(message[0] != '/'){
+        commandRecieved = commandType::message;
+    }
+    else if(message == "/member"){
         commandRecieved = commandType::listMember;
     }
     else if(message == "/room"){
@@ -56,31 +54,32 @@ void evaluateMessage(const std::string& message){
     else if(message == "/join"){
         commandRecieved = commandType::joinRoom;
     }
-    requestInfoToServer(commandRecieved);
-}
-
-}
-/*
-
-string message;
-
-
-
-void recieveCommand(string& message) {
-    if(message.substr(1,6) == "member"){
-
+    else if(message == "/kick"){
+        commandRecieved = commandType::kickUser;
     }
-
-    
-}
-
-
-void evaluateCommand(auto& message ){
-    switch (message){
-        case "/member":   ;  
-        case "/room":      ;
-        case "/join":       ;
+    else if(message == "/quit"){
+        commandRecieved = commandType::quitFromServer;
     }
+    else if(message == "/shutdown"){
+        commandRecieved = commandType::shutdownServer;
+    }
+    else {
+        commandRecieved = commandType::nullCommand;
+    }
+    return commandRecieved;
 }
-*/
+
+commandType Command::getCommandType() const {
+    return commandRecieved;
+}
+
+std::string Command::returnCommandNotFoundError(){
+    return "Error. Command :" +userInput+" not found\n";
+}
+
+
+
+
+}
+
 
