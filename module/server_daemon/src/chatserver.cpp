@@ -8,12 +8,17 @@
 
 #include "Server.h"
 #include "command.h"
+//#include "game_manager.h"
+//#include "dsl_interpreter.h"
+//#include "json_parser.h"
+#include "cereal.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <unistd.h>
 #include <vector>
+
 
 
 using networking::Server;
@@ -24,6 +29,13 @@ using commandSpace::Command;
 
 
 std::vector<Connection> clients;
+json json_parser;
+//initialize game manager
+//GameManager game_manager
+
+//message types possible
+enum MessageType { COMMAND, GAME_CONFIG, NORMAL  };
+
 
 /*Nikola's code */
 //function to format a message object to a particular client
@@ -65,15 +77,31 @@ struct MessageResult {
 };
 
 
+/*
+* processMessages is going to be a very involved function where 
+* the meat of the game server logic will take place. I suggest 
+* breaking it up into sub routines
+*/
+
 std::vector<MessageResult> processMessages(Server& server, const std::deque<Message>& incoming) {
   std::vector<MessageResult> processedMessages;
   std::ostringstream result;
+  Command userCommand;
   bool quit = false;
   for (auto& message : incoming) {
-    Command userCommand;
     Connection sentFrom = message.connection;
-    commandType commandRecieved = userCommand.evaluateMessage(message.text);
     
+    MessageType msg_type;
+
+
+
+
+    commandType commandRecieved = userCommand.evaluateMessage(message.text);
+    /*
+    * FOR 
+    */
+
+
     switch(commandRecieved){
         case commandType::message:
           result << message.connection.id << "> " << message.text << "\n";
@@ -131,10 +159,52 @@ main(int argc, char* argv[]) {
     return 1;
   }
 
+  json server_config;
+
+  if(argc == 4) {
+    //get server config json from command line
+    try {
+      server_config = json::parse(argv[3]);
+    }
+    catch(json::parse_error& e) {
+      std::cerr << "Your JSON isn't right bro.\n"
+                << "message: " << e.what() << '\n'
+                << "exception id" << e.id << '\n'
+                << "byte position of error: " << e.byte << std::endl;
+      return 1;
+    }
+
+  } else {
+    //else use default game config
+     server_config =
+     {
+         {"something", "something"},
+         {"a number", 42},
+         {"another number", 69},
+         {"something", true},
+         {"a bunch of somethings", {{"something", 69}, {"something", 69}}},
+         {"array of somethings", {69, 42, 69}}
+     };
+
+
+  }
+
+  try {
+    //game_manager.setUp(server_config)
+  } catch (.../* const GameManagerError& e */ ){ //I suggest custom error handing class to catch the various configuration errors
+    std::cerr << "Game configuration failed";
+              //<< e.what() << '\n'
+              //<< e.where() << '\n,
+  }
+
   unsigned short port = std::stoi(argv[1]);
   Server server{port, getHTTPMessage(argv[2]), onConnect, onDisconnect};
 
   while (true) {
+    /*
+    * Main Game Server Loop
+    */
+
     bool errorWhileUpdating = false;
     try {
       server.update();
@@ -143,9 +213,14 @@ main(int argc, char* argv[]) {
                 << " " << e.what() << "\n\n";
       errorWhileUpdating = true;
     }
-    
     bool shouldQuit = false;
+
+    /*
+    * Get all messages recieved since server.update()
+    */ 
     auto incoming = server.receive();
+    //I suggest the following
+
     std::vector<MessageResult> processedMessages = processMessages(server, incoming);
 
     
