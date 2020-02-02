@@ -21,7 +21,9 @@ enum commandType {
     message
 };
 
-template <typename IDType, typename RoomType>
+typedef uintptr_t RoomType; 
+
+template <typename IDType>
 struct MessageResult {
   std::string result;
   bool shouldShutdown;
@@ -33,14 +35,13 @@ struct MessageResult {
 
 //template <class T>
 
-
-template <typename IDType, typename RoomType>
+template <typename IDType>
 class Command{
 
 public:
     //Command(gameManager);
     Command();
-    std::vector<MessageResult<IDType, RoomType>> handleCommand(std::string msg_text, IDType sent_from );
+    std::vector<MessageResult<IDType>> handleCommand(std::string msg_text, IDType sent_from );
 
 private:
     /*

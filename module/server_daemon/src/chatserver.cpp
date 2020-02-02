@@ -21,8 +21,10 @@ using networking::Server;
 using networking::Connection;
 using networking::Message;
 
-typedef messageReturn<uintptr_t> messageReturnAlias;
-typedef GameManager<uintptr_t, int> GameManagerAlias;
+
+typedef uintptr_t UniqueConnectionID;
+typedef messageReturn<UniqueConnectionID> messageReturnAlias;
+typedef GameManager<UniqueConnectionID> GameManagerAlias;
 
 
 //typedef commandSpace::Command<Connection, int> CommandType;
@@ -41,26 +43,44 @@ json json_parser;
 //initialize game manager
 GameManagerAlias game_manager;
 
-std::unordered_map<std::string, Connection> playerConnectionMap;
+std::unordered_map<UniqueConnectionID, Connection> idConnectionMap;
+
+std::deque<messageReturnAlias> gameMessageQueue;
+std::deque<Message> networkMessageQueue;
 
 
-std::pair<std::deque<Message>, bool> convertGameMsgToNetworkingMsg(std::vector<messageReturnAlias> messages) {
-  for(auto& message : messages) {
-    //translate game_manager username handle its client connection object using a map or something 
+/*
+  transform game messages in game message queue to network messages in
+  network message queue, then empty game message queue 
+*/
+bool gameMessagesToNetworkMessages() {
+  bool quit = false;
+  for(auto& message : gameMessageQueue) {
+
+    std::string log = message.message;
+    Connection client;
+    if(message.shouldShutdown){
+      quit = true;
+    }
     for(auto& player : message.sendTo) {
-      Connection client = playerConnectionMap["howdy"];
-      std::string message_ = message.message;
 
+      client = idConnectionMap[player];
+
+      networkMessageQueue.push_back({client, log});
     }
   }
+  gameMessageQueue.clear();
+  return quit;
 }
+
+
 
 
 
 //message types possible
 enum MessageType { COMMAND, GAME_CONFIG, NORMAL  };
 
-MessageType getMessageType(std::string _message) {
+MessageType getMessageType(const std::string &_message) {
 
   if(_message[0] == '/') {    //it is a command
     return MessageType::COMMAND;
@@ -68,6 +88,49 @@ MessageType getMessageType(std::string _message) {
     return MessageType::NORMAL;
   }
 }
+
+/*
+* Interpret command and call appropriate game_manager api function
+*/
+
+
+std::vector<messageReturnAlias> parseCommandAndCollectResponse(const std::string& message, UniqueConnectionID id){
+  
+  std::vector<messageReturnAlias> return_message;
+
+  if(message == "/member"){
+    return_message = game_manager.returnRoomMembersCommand(id);
+  }
+  else if(message == "/room"){
+    return_message = game_manager.returnRoomCommand(id);
+  }
+  else if(message == "/create"){
+    return_message = game_manager.createRoomCommand(id);
+  }
+  else if(message == "/join"){
+    return_message = game_manager.joinRoomCommand(id);
+  }
+  else if(message == "/kick"){
+    return_message = game_manager.kickPlayerCommand(id);
+  }
+  else if(message == "/quit"){
+    return_message = game_manager.leaveRoomCommand(id);
+  }
+  else if(message == "/initgame"){
+    return_message = game_manager.initRoomCommand(id);
+  }
+  else if(message == "/shutdown"){
+    //return_message = game_manager.createRoomCommand(id);
+  }
+  else {
+    //return_message = game_manager.createRoomCommand(id);
+  }
+  return return_message;
+}
+
+
+
+
 
 
 /*Nikola's code */
@@ -83,15 +146,24 @@ std::deque<Message> sendToClient(const Connection& client, const std::string& lo
 
 void onConnect(Connection c) {
   std::cout << "New connection found: " << c.id << "\n";
+  //clients.push_back(c);
+  std::pair<UniqueConnectionID, Connection> entry{c.id, c};
+  idConnectionMap.insert(entry);
 
-  clients.push_back(c);
+  //override game manager and send back server welcome message...
+
+  networkMessageQueue.push_back({c, "Welcome to the server! Enter a command..."});
+
+
 }
 
 
 void onDisconnect(Connection c) {
   std::cout << "Connection lost: " << c.id << "\n";
-  auto eraseBegin = std::remove(std::begin(clients), std::end(clients), c);
-  clients.erase(eraseBegin, std::end(clients));
+  //auto eraseBegin = std::remove(std::begin(clients), std::end(clients), c);
+  //clients.erase(eraseBegin, std::end(clients));
+  idConnectionMap.erase(c.id);
+  //tell the game manager the player disconnected
 }
 
 
@@ -101,27 +173,32 @@ void onDisconnect(Connection c) {
 * breaking it up into sub routines
 */
 
-std::pair<std::deque<Message>, bool>
+void
 processMessages(Server& server, const std::deque<Message>& incoming) {
-  std::vector<messageReturnAlias> processedMessages;
+  //std::vector<messageReturnAlias> processedMessages;
 
   //bool quit = false;
   for (auto& message : incoming) {
     Connection sentFrom = message.connection;
-
-
     MessageType msg_type = getMessageType(message.text);
+
 
    switch(msg_type) {
       case MessageType::COMMAND:
+      {
         /*
         * game_manager should encapsulate the entire logic of the game server and simply return a deque/queue
         * of messages each with a client to send to. 
         * */
+        std::vector<messageReturnAlias> cmd_messages = parseCommandAndCollectResponse(message.text, sentFrom.id);
+        for(auto cmd_message : cmd_messages) {
+          gameMessageQueue.push_back(cmd_message);
+        }
 
-        processedMessages = game_manager.handleCommand(message.text, sentFrom.id);
         break;
+      }
       case MessageType::NORMAL:
+      {
         /* 
         * Any message without a special prefix will be interpreted as a gameplay message. 
         * Will be send to the DSL interpreter. I think it may be easiest to have
@@ -134,16 +211,23 @@ processMessages(Server& server, const std::deque<Message>& incoming) {
         * After each player has submitted, the game would continue on.
         * 
         * */
+        std::cout << "sup\n";
 
-        processedMessages = game_manager.handleGameMessage(message.text, sentFrom.id);
+
+        std::vector<messageReturnAlias> game_messages = game_manager.handleGameMessage(message.text, sentFrom.id);
+        for(auto game_message : game_messages) {
+          gameMessageQueue.push_back(game_message);
+        }
+        std::cout << "sup\n";
+
         break;
+      }
       default:
+
         break;
    }
   }
-
   //convert messages returned from game manager class to a structure interpretable by the networking module.
-  return convertGameMsgToNetworkingMsg(processedMessages);
 }
 
 std::deque<Message> buildOutgoing(const std::string& log) {
@@ -211,13 +295,14 @@ main(int argc, char* argv[]) {
   */
 
   try {
-    game_manager.setUp(server_config);
+    //game_manager.setUp(server_config);
   } catch (.../*const GameManagerException& e*/){ //custom error handing class to catch the various configuration errors?
     std::cerr << "Server configuration failed";
               //<< e.what() << '\n'
               //<< e.where() << '\n,
   }
 
+  std::cout << "howdy" << std::endl;
   /*
   * Command module will have to keep track of state of game server (rooms, players)
   * to implement its commands, so pass in pointer to game_manager object. 
@@ -247,11 +332,24 @@ main(int argc, char* argv[]) {
     */ 
     auto incoming = server.receive();
 
-    std::pair<std::deque<Message>, bool> processedMessages = processMessages(server, incoming);
 
-    shouldQuit = processedMessages.second;
 
-    server.send(processedMessages.first);    
+    //std::pair<std::deque<Message>, bool> processedMessages = processMessages(server, incoming);
+    processMessages(server, incoming);
+
+    for(auto &msg : incoming) {
+      std::cout << msg.text << "\n";
+    }
+
+
+    shouldQuit = gameMessagesToNetworkMessages();
+
+
+    //shouldQuit = processedMessages.second;
+
+    server.send(networkMessageQueue);    
+    
+    networkMessageQueue.clear();
 
     /*
     for(auto message : processedMessages){

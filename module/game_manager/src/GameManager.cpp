@@ -23,8 +23,8 @@ std::string GameManagerException::getJsonField() const {
     return json_field;    
 }
 
-template <typename IDType, typename RoomType>
-void Room<IDType, RoomType>::joinPlayer(IDType player) { //todo: should deal with some error handling
+template <typename IDType>
+void Room<IDType>::joinPlayer(IDType player) { //todo: should deal with some error handling
     /*
     Add player to the game, if DSL interpeter returns an error, 
     do something (send back error message).
@@ -37,8 +37,8 @@ void Room<IDType, RoomType>::joinPlayer(IDType player) { //todo: should deal wit
     players.push_back(player);
 }
 
-template <typename IDType, typename RoomType>
-void Room<IDType, RoomType>::exitPlayer(IDType player) {
+template <typename IDType>
+void Room<IDType>::exitPlayer(IDType player) {
     try {
         //game.playerQuit(player);
     } catch (.../* DSL_interpreter error */) {
@@ -47,47 +47,79 @@ void Room<IDType, RoomType>::exitPlayer(IDType player) {
     std::remove(players.begin(), players.end(), player); //todo: should deal with some error handling
 }   
 
-template <typename IDType, typename RoomType>
-void Room<IDType, RoomType>::gameUpdate() { //update the game's DSL interpreter
+template <typename IDType>
+void Room<IDType>::gameUpdate() { //update the game's DSL interpreter
 }
 
 
-template <typename IDType, typename RoomType>
-GameManager<IDType, RoomType>::GameManager() {
-    commands = commandSpace::Command<IDType, RoomType>();
+template <typename IDType>
+GameManager<IDType>::GameManager() {
+    commands = commandSpace::Command<IDType>();
 }
 
-template <typename IDType, typename RoomType>
-void GameManager<IDType, RoomType>::setUp(json server_config) {
+template <typename IDType>
+void GameManager<IDType>::setUp(json server_config) {
     throw(GameManagerException("oops", 0, "lol"));
 
 }
 
-template <typename IDType, typename RoomType>
-void GameManager<IDType, RoomType>::removePlayer(IDType player, RoomType room) {
+template <typename IDType>
+void GameManager<IDType>::removePlayer(IDType player, RoomID room) {
 
 }
 
-template <typename IDType, typename RoomType>
-void GameManager<IDType, RoomType>::addPlayer(IDType player, RoomType room) {
+template <typename IDType>
+void GameManager<IDType>::addPlayer(IDType player, RoomID room) {
 
 }
 
-template <typename IDType, typename RoomType>
-std::vector<IDType> GameManager<IDType, RoomType>::getPlayersInRoom(RoomType room) {
+template <typename IDType>
+std::vector<IDType> GameManager<IDType>::getPlayersInRoom(RoomID room) {
     std::vector<IDType> players;
 }
 
-template <typename IDType, typename RoomType>
-std::vector<messageReturn<IDType>> GameManager<IDType, RoomType>::handleCommand(std::string msg, IDType player) {
+template <typename IDType>
+std::vector<messageReturn<IDType>> GameManager<IDType>::handleGameMessage(std::string msg, IDType player) {
+    std::vector<messageReturn<IDType>> msg_list;
+    std::vector<IDType> player_list = {player};
+    msg_list.push_back(messageReturn<IDType> {player_list, "You are not in a room, please join or create a room.", false});
+    return msg_list;
 }
 
-template <typename IDType, typename RoomType>
-std::vector<messageReturn<IDType>> GameManager<IDType, RoomType>::handleGameMessage(std::string msg, IDType player) {
+template <typename IDType>
+std::vector<messageReturn<IDType>> GameManager<IDType>::returnRoomMembersCommand(IDType id){
+
+}
+template <typename IDType>
+std::vector<messageReturn<IDType>> GameManager<IDType>::returnRoomCommand(IDType id){
+
+}
+template <typename IDType>
+std::vector<messageReturn<IDType>> GameManager<IDType>::createRoomCommand(IDType id){
+
+}
+template <typename IDType>
+std::vector<messageReturn<IDType>> GameManager<IDType>::joinRoomCommand(IDType id){
+
+}
+template <typename IDType>
+std::vector<messageReturn<IDType>> GameManager<IDType>::kickPlayerCommand(IDType id){
+
+}
+template <typename IDType>
+std::vector<messageReturn<IDType>> GameManager<IDType>::leaveRoomCommand(IDType id){
+
+}
+template <typename IDType>
+std::vector<messageReturn<IDType>> GameManager<IDType>::initRoomCommand(IDType id){
+
 }
 
 
-template class GameManager<uintptr_t, int>;
+
+
+
+template class GameManager<uintptr_t>;
 
 /*
 *Avoids linking error allows us to use a template. 

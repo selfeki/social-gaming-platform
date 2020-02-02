@@ -18,8 +18,8 @@ namespace commandSpace{
 
 
 //template <class T>
-template <typename IDType, typename RoomType>
-Command<IDType, RoomType>::Command() : commandRecieved(commandType::nullCommand), userInput(" "){}
+template <typename IDType>
+Command<IDType>::Command() : commandRecieved(commandType::nullCommand), userInput(" "){}
 
 /*
 * Putting MessageResult in command class for better
@@ -57,8 +57,8 @@ void Command::requestInfoToServer(const commandType& command){
 */
 
 //template <class T>
-template <typename IDType, typename RoomType>
-commandType Command<IDType, RoomType>::evaluateMessage(const std::string& message){
+template <typename IDType>
+commandType Command<IDType>::evaluateMessage(const std::string& message){
     commandType _commandRecieved = commandType::nullCommand;
     userInput = message;
     if(message[0] != '/'){
@@ -93,12 +93,12 @@ commandType Command<IDType, RoomType>::evaluateMessage(const std::string& messag
     }
     return _commandRecieved;
 }
-template <typename IDType, typename RoomType>
-commandType Command<IDType, RoomType>::getCommandType() const {
+template <typename IDType>
+commandType Command<IDType>::getCommandType() const {
     return commandRecieved;
 }
-template <typename IDType, typename RoomType>
-std::string Command<IDType, RoomType>::returnCommandNotFoundError(){
+template <typename IDType>
+std::string Command<IDType>::returnCommandNotFoundError(){
     return "Error. Command :" +userInput+" not found\n";
 }
 
@@ -112,10 +112,10 @@ std::ostringstream Command::memberCommand(){
   return result;
 } 
 */
-template <typename IDType, typename RoomType>
-std::vector<MessageResult<IDType, RoomType>> 
-Command<IDType, RoomType>::handleCommand(std::string msg_text, IDType sent_from ) {
-    std::vector<MessageResult<IDType, RoomType>> message_queue;
+template <typename IDType>
+std::vector<MessageResult<IDType>> 
+Command<IDType>::handleCommand(std::string msg_text, IDType sent_from ) {
+    std::vector<MessageResult<IDType>> message_queue;
     std::ostringstream result;
     commandType command_recieved = evaluateMessage(msg_text);
     IDType sendTo;
@@ -149,8 +149,8 @@ Command<IDType, RoomType>::handleCommand(std::string msg_text, IDType sent_from 
 
 }
 
-template class Command<uintptr_t, int>;
-template struct MessageResult<uintptr_t, int>;
+template class Command<uintptr_t>;
+template struct MessageResult<uintptr_t>;
 
 }
 
