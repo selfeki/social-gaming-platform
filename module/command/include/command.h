@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include "Server.h"
-#include "GameManager.h"
+
 
 
 namespace commandSpace {
@@ -20,27 +20,32 @@ enum commandType {
     message
 };
 
+template <typename IDType, typename RoomType>
 struct MessageResult {
   std::string result;
   bool shouldShutdown;
-  networking::Connection sentFrom;
-  networking::Connection sendTo;
+  IDType sentFrom;
+  IDType sendTo;
+  RoomType room;
   //commandType userCommand;
 };
 
 //template <class T>
 
 
-
+template <typename IDType, typename RoomType>
 class Command{
 
 public:
     //Command(gameManager);
     Command();
-    std::vector<MessageResult> handleCommand(std::string msg_text, networking::Connection sent_from );
+    std::vector<MessageResult<IDType, RoomType>> handleCommand(std::string msg_text, IDType sent_from );
 
 private:
-    //GameManager* gameManager;
+    /*
+    * This commands class will have to have access to
+    * the game server state
+    */
     commandType commandRecieved;
     std::string userInput;  
     commandType evaluateMessage(const std::string& message);

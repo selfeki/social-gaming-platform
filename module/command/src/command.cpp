@@ -1,5 +1,7 @@
 #include "command.h"
 #include "Server.h"
+#include "GameManager.h"
+
 //#include "chatserver/chatserver.cpp"
 #include <fstream>
 #include <iostream>
@@ -14,9 +16,10 @@ using networking::Message;
 
 namespace commandSpace{
 
+
 //template <class T>
-Command::Command():commandRecieved(commandType::nullCommand), userInput(" "){
-}
+template <typename IDType, typename RoomType>
+Command<IDType, RoomType>::Command() : commandRecieved(commandType::nullCommand), userInput(" "){}
 
 /*
 * Putting MessageResult in command class for better
@@ -54,8 +57,9 @@ void Command::requestInfoToServer(const commandType& command){
 */
 
 //template <class T>
-commandType Command::evaluateMessage(const std::string& message){
-    //commandType commandRecieved = commandType::nullCommand;
+template <typename IDType, typename RoomType>
+commandType Command<IDType, RoomType>::evaluateMessage(const std::string& message){
+    commandType commandRecieved = commandType::nullCommand;
     userInput = message;
     if(message[0] != '/'){
         commandRecieved = commandType::message;
@@ -86,12 +90,12 @@ commandType Command::evaluateMessage(const std::string& message){
     }
     return commandRecieved;
 }
-
-commandType Command::getCommandType() const {
+template <typename IDType, typename RoomType>
+commandType Command<IDType, RoomType>::getCommandType() const {
     return commandRecieved;
 }
-
-std::string Command::returnCommandNotFoundError(){
+template <typename IDType, typename RoomType>
+std::string Command<IDType, RoomType>::returnCommandNotFoundError(){
     return "Error. Command :" +userInput+" not found\n";
 }
 
@@ -105,13 +109,13 @@ std::ostringstream Command::memberCommand(){
   return result;
 } 
 */
-
-std::vector<MessageResult> 
-Command::handleCommand(std::string msg_text, Connection sent_from ) {
-    std::vector<MessageResult> message_queue;
+template <typename IDType, typename RoomType>
+std::vector<MessageResult<IDType, RoomType>> 
+Command<IDType, RoomType>::handleCommand(std::string msg_text, IDType sent_from ) {
+    std::vector<MessageResult<IDType, RoomType>> message_queue;
     std::ostringstream result;
     commandType command_recieved = evaluateMessage(msg_text);
-    Connection sendTo;
+    IDType sendTo;
     bool quit = false;
 
     switch(command_recieved){
@@ -142,6 +146,8 @@ Command::handleCommand(std::string msg_text, Connection sent_from ) {
 
 }
 
+template class Command<Connection, int>;
+template class MessageResult<Connection, int>;
 
 }
 

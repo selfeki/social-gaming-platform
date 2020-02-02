@@ -3,7 +3,10 @@
 #include "cereal.h"
 #include "Server.h"
 #include <exception>
+#include "command.h"
 
+#ifndef _TESTTEMP_H_
+#define _TESTTEMP_H_
 
 
 
@@ -19,10 +22,28 @@ private:
     std::string json_field;
 }; 
 
+
+
+
+template <typename IDType, typename RoomType>
 class GameManager {
 
 public:
+    GameManager();
 
     void setUp(json server_config);
 
+    //void removePlayer(IDType id, RoomType room);
+
+    //std::vector<RoomType> getPlayers(RoomType);
+
+    //void addPlayer(IDType id, RoomType room);
+
+private:
+
+    commandSpace::Command<IDType, RoomType> commands; //so that commands class can interact with game server state
+
+
 };
+
+#endif

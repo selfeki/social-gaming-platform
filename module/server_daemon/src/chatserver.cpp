@@ -6,8 +6,8 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #include "Server.h"
-#include "command.h"
 #include "GameManager.h"
+
 //#include "dsl_interpreter.h"
 //#include "json_parser.h"
 #include <fstream>
@@ -17,19 +17,24 @@
 #include <unistd.h>
 #include <vector>
 
-
-
 using networking::Server;
 using networking::Connection;
 using networking::Message;
-using commandSpace::commandType;
-using commandSpace::Command;
-using commandSpace::MessageResult;
+
+
+typedef commandSpace::Command<Connection, int> CommandType;
+typedef commandSpace::MessageResult<Connection, int> MessageResultType;
+
+
+//using namespace commandSpace;
+//using commandSpace::commandType;
+//using commandSpace::Command<std::string, std::string>;
+//using commandSpace::MessageResult<std::string, std::string>;
 
 std::vector<Connection> clients;
 json json_parser;
 //initialize game manager
-GameManager game_manager;
+GameManager<Connection, int> game_manager;
 
 //message types possible
 enum MessageType { COMMAND, GAME_CONFIG, NORMAL  };
@@ -74,10 +79,10 @@ void onDisconnect(Connection c) {
 * breaking it up into sub routines
 */
 
-std::vector<MessageResult> processMessages(Server& server, const std::deque<Message>& incoming) {
-  std::vector<MessageResult> processedMessages;
+std::vector<MessageResultType> processMessages(Server& server, const std::deque<Message>& incoming) {
+  std::vector<MessageResultType> processedMessages;
   //std::ostringstream result;
-  Command userCommand;
+  CommandType userCommand;
   bool quit = false;
   for (auto& message : incoming) {
     Connection sentFrom = message.connection;
@@ -230,7 +235,7 @@ main(int argc, char* argv[]) {
     auto incoming = server.receive();
     //I suggest the following
 
-    std::vector<MessageResult> processedMessages = processMessages(server, incoming);
+    std::vector<MessageResultType> processedMessages = processMessages(server, incoming);
 
     
     for(auto message : processedMessages){
