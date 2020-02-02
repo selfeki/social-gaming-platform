@@ -59,36 +59,39 @@ void Command::requestInfoToServer(const commandType& command){
 //template <class T>
 template <typename IDType, typename RoomType>
 commandType Command<IDType, RoomType>::evaluateMessage(const std::string& message){
-    commandType commandRecieved = commandType::nullCommand;
+    commandType _commandRecieved = commandType::nullCommand;
     userInput = message;
     if(message[0] != '/'){
-        commandRecieved = commandType::message;
+        _commandRecieved = commandType::message;
     }
     else if(message == "/member"){
-        commandRecieved = commandType::listMember;
+        _commandRecieved = commandType::listMember;
     }
     else if(message == "/room"){
-        commandRecieved = commandType::listRoom;
+        _commandRecieved = commandType::listRoom;
     }
     else if(message == "/create"){
-        commandRecieved = commandType::createRoom;
+        _commandRecieved = commandType::createRoom;
     }
     else if(message == "/join"){
-        commandRecieved = commandType::joinRoom;
+        _commandRecieved = commandType::joinRoom;
     }
     else if(message == "/kick"){
-        commandRecieved = commandType::kickUser;
+        _commandRecieved = commandType::kickUser;
     }
     else if(message == "/quit"){
-        commandRecieved = commandType::quitFromServer;
+        _commandRecieved = commandType::quitFromServer;
+    }
+    else if(message == "/initgame"){
+        _commandRecieved = commandType::initGame;
     }
     else if(message == "/shutdown"){
-        commandRecieved = commandType::shutdownServer;
+        _commandRecieved = commandType::shutdownServer;
     }
     else {
-        commandRecieved = commandType::nullCommand;
+        _commandRecieved = commandType::nullCommand;
     }
-    return commandRecieved;
+    return _commandRecieved;
 }
 template <typename IDType, typename RoomType>
 commandType Command<IDType, RoomType>::getCommandType() const {
@@ -147,7 +150,7 @@ Command<IDType, RoomType>::handleCommand(std::string msg_text, IDType sent_from 
 }
 
 template class Command<Connection, int>;
-template class MessageResult<Connection, int>;
+template struct MessageResult<Connection, int>;
 
 }
 

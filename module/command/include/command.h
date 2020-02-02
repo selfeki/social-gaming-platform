@@ -16,6 +16,7 @@ enum commandType {
     kickUser,   
     nullCommand,
     quitFromServer,
+    initGame,
     shutdownServer,
     message
 };

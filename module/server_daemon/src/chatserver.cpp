@@ -36,6 +36,7 @@ json json_parser;
 //initialize game manager
 GameManager<Connection, int> game_manager;
 
+
 //message types possible
 enum MessageType { COMMAND, GAME_CONFIG, NORMAL  };
 
@@ -62,6 +63,7 @@ std::deque<Message> sendToClient(const Connection& client, const std::string& lo
 
 void onConnect(Connection c) {
   std::cout << "New connection found: " << c.id << "\n";
+
   clients.push_back(c);
 }
 
@@ -82,7 +84,7 @@ void onDisconnect(Connection c) {
 std::vector<MessageResultType> processMessages(Server& server, const std::deque<Message>& incoming) {
   std::vector<MessageResultType> processedMessages;
   //std::ostringstream result;
-  CommandType userCommand;
+  //CommandType userCommand;
   bool quit = false;
   for (auto& message : incoming) {
     Connection sentFrom = message.connection;
@@ -94,17 +96,11 @@ std::vector<MessageResultType> processMessages(Server& server, const std::deque<
    switch(msg_type) {
       case MessageType::COMMAND:
         /*
-        * I'm thinking the userCommand object should return a vector of actions to take. 
-        * For example, /whisper <player> returns a single action, the whisper text and the connection id
-        * of the recipient of the whisper.
-        *  
-        * Command class will also need its own custom error handling, because
-        * there are lots of commands to deal with, including game_config errors.
-        * The error will simply be returned as a string and sent solely to the 
-        * sender of the erroneous command.
+        * game_manager should encapsulate the entire logic of the game server and simply return a deque/queue
+        * of messages each with a client to send to. 
         * */
 
-        processedMessages = userCommand.handleCommand(message.text, sentFrom);
+        processedMessages = game_manager.handleCommand(message.text, sentFrom);
         break;
       case MessageType::NORMAL:
         /* 
@@ -121,7 +117,7 @@ std::vector<MessageResultType> processMessages(Server& server, const std::deque<
         * */
 
         //processedMessages = game_manager.sendGameMessage(message.text, sentFrom); 
-
+        game_manager.parseGameMessage(message.text, sentFrom)
         break;
       default:
         break;
