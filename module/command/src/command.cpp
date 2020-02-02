@@ -123,10 +123,10 @@ Command<IDType, RoomType>::handleCommand(std::string msg_text, IDType sent_from 
 
     switch(command_recieved){
         case commandType::message:
-            result << sent_from.id << "> " << msg_text << "\n";
+            result << sent_from << "> " << msg_text << "\n";
             break;
         case commandType::listMember:
-            result << sent_from.id << "> " << msg_text << "\n";
+            result << sent_from << "> " << msg_text << "\n";
             //result << memberCommand().str();
             break;
         case commandType::quitFromServer:
@@ -137,7 +137,7 @@ Command<IDType, RoomType>::handleCommand(std::string msg_text, IDType sent_from 
             quit = true;
             break;
         default:
-            result << sent_from.id << "> " << msg_text << "\n";
+            result << sent_from << "> " << msg_text << "\n";
             result<<"Command not defined.\n";
             break;
     }
@@ -149,8 +149,8 @@ Command<IDType, RoomType>::handleCommand(std::string msg_text, IDType sent_from 
 
 }
 
-template class Command<Connection, int>;
-template struct MessageResult<Connection, int>;
+template class Command<uintptr_t, int>;
+template struct MessageResult<uintptr_t, int>;
 
 }
 

@@ -21,20 +21,40 @@ using networking::Server;
 using networking::Connection;
 using networking::Message;
 
+typedef messageReturn<uintptr_t> messageReturnAlias;
+typedef GameManager<uintptr_t, int> GameManagerAlias;
 
-typedef commandSpace::Command<Connection, int> CommandType;
-typedef commandSpace::MessageResult<Connection, int> MessageResultType;
 
+//typedef commandSpace::Command<Connection, int> CommandType;
+//typedef commandSpace::MessageResult<Connection, int> MessageResultType;
 
+//messages to send to server and a shouldQuit flag.
 //using namespace commandSpace;
 //using commandSpace::commandType;
 //using commandSpace::Command<std::string, std::string>;
 //using commandSpace::MessageResult<std::string, std::string>;
 
 std::vector<Connection> clients;
+
+
 json json_parser;
 //initialize game manager
-GameManager<Connection, int> game_manager;
+GameManagerAlias game_manager;
+
+std::unordered_map<std::string, Connection> playerConnectionMap;
+
+
+std::pair<std::deque<Message>, bool> convertGameMsgToNetworkingMsg(std::vector<messageReturnAlias> messages) {
+  for(auto& message : messages) {
+    //translate game_manager username handle its client connection object using a map or something 
+    for(auto& player : message.sendTo) {
+      Connection client = playerConnectionMap["howdy"];
+      std::string message_ = message.message;
+
+    }
+  }
+}
+
 
 
 //message types possible
@@ -81,17 +101,16 @@ void onDisconnect(Connection c) {
 * breaking it up into sub routines
 */
 
-std::vector<MessageResultType> processMessages(Server& server, const std::deque<Message>& incoming) {
-  std::vector<MessageResultType> processedMessages;
-  //std::ostringstream result;
-  //CommandType userCommand;
-  bool quit = false;
+std::pair<std::deque<Message>, bool>
+processMessages(Server& server, const std::deque<Message>& incoming) {
+  std::vector<messageReturnAlias> processedMessages;
+
+  //bool quit = false;
   for (auto& message : incoming) {
     Connection sentFrom = message.connection;
-    
-    MessageType msg_type = getMessageType(message.text);
 
-    //commandType commandRecieved = userCommand.evaluateMessage(message.text);
+
+    MessageType msg_type = getMessageType(message.text);
 
    switch(msg_type) {
       case MessageType::COMMAND:
@@ -100,7 +119,7 @@ std::vector<MessageResultType> processMessages(Server& server, const std::deque<
         * of messages each with a client to send to. 
         * */
 
-        processedMessages = game_manager.handleCommand(message.text, sentFrom);
+        processedMessages = game_manager.handleCommand(message.text, sentFrom.id);
         break;
       case MessageType::NORMAL:
         /* 
@@ -116,14 +135,15 @@ std::vector<MessageResultType> processMessages(Server& server, const std::deque<
         * 
         * */
 
-        //processedMessages = game_manager.sendGameMessage(message.text, sentFrom); 
-        game_manager.parseGameMessage(message.text, sentFrom)
+        processedMessages = game_manager.handleGameMessage(message.text, sentFrom.id);
         break;
       default:
         break;
    }
   }
-  return processedMessages;
+
+  //convert messages returned from game manager class to a structure interpretable by the networking module.
+  return convertGameMsgToNetworkingMsg(processedMessages);
 }
 
 std::deque<Message> buildOutgoing(const std::string& log) {
@@ -184,15 +204,15 @@ main(int argc, char* argv[]) {
          {"a bunch of somethings", {{"something", 69}, {"something", 69}}},
          {"array of somethings", {69, 42, 69}}
      };
-
-
   }
 
-  //GameManager game_manager{ ... }
+  /*
+  Configurate game_manager...
+  */
+
   try {
     game_manager.setUp(server_config);
-
-  } catch (.../*const GameManagerException& e*/){ //I suggest custom error handing class to catch the various configuration errors
+  } catch (.../*const GameManagerException& e*/){ //custom error handing class to catch the various configuration errors?
     std::cerr << "Server configuration failed";
               //<< e.what() << '\n'
               //<< e.where() << '\n,
@@ -202,9 +222,6 @@ main(int argc, char* argv[]) {
   * Command module will have to keep track of state of game server (rooms, players)
   * to implement its commands, so pass in pointer to game_manager object. 
   */
-
-  //Command commands{game_manager} 
-
 
   unsigned short port = std::stoi(argv[1]);
   Server server{port, getHTTPMessage(argv[2]), onConnect, onDisconnect};
@@ -229,28 +246,18 @@ main(int argc, char* argv[]) {
     * Get all messages recieved since server.update()
     */ 
     auto incoming = server.receive();
-    //I suggest the following
 
-    std::vector<MessageResultType> processedMessages = processMessages(server, incoming);
+    std::pair<std::deque<Message>, bool> processedMessages = processMessages(server, incoming);
 
-    
+    shouldQuit = processedMessages.second;
+
+    server.send(processedMessages.first);    
+
+    /*
     for(auto message : processedMessages){
-      /*
-      *With everything else encapsulated in the other classes, only need simple statements in this loop
-      * 
-      * */
-     /*
-      if(message.userCommand != commandType::message){
-        std::cout<<"Command recieved"<<std::endl;
-        auto outgoing = sendToClient(message.sentFrom,message.result);
-        server.send(outgoing);
-      }else{
-        std::cout<<"Message recived"<<std::endl;
-        auto outgoing = buildOutgoing(message.result);
-        server.send(outgoing);
-      }
-      */
-      auto outgoing = buildOutgoing(message.result);
+
+
+      //auto outgoing = buildOutgoing(message.result);
       server.send(outgoing);
 
       
@@ -258,6 +265,8 @@ main(int argc, char* argv[]) {
         shouldQuit = message.shouldShutdown;
       }
     }
+    */
+    
 
     if (shouldQuit || errorWhileUpdating) {
       break;

@@ -10,14 +10,16 @@
 #ifndef _TESTTEMP_H_
 #define _TESTTEMP_H_
 
-
+/*
+* Struct that the game manager returns to the daemon in response to every parsed message
+*/
 
 template <typename IDType>
 struct messageReturn {
     std::vector<IDType> sendTo;
     std::string message;
+    bool shouldShutdown;
 };
-
 
 
 class GameManagerException: public std::exception {
@@ -72,25 +74,26 @@ public:
     void setUp(json server_config);
 
     void removePlayer(IDType player, RoomType room);
+    
     void addPlayer(IDType player, RoomType room);
-
 
     std::vector<IDType> getPlayersInRoom(RoomType room);
 
+    std::vector<messageReturn<IDType>> handleCommand(std::string msg, IDType player);
 
-    //void removePlayer(IDType id, RoomType room);
+    std::vector<messageReturn<IDType>> handleGameMessage(std::string msg, IDType player);
 
-    //std::vector<RoomType> getPlayers(RoomType);
-
-    //void addPlayer(IDType id, RoomType room);
 
 private:
 
     commandSpace::Command<IDType, RoomType> commands; //so that commands class can interact with game server state
 
     std::vector<IDType> all_players;
+
     std::unordered_map<RoomType, Room<IDType, RoomType>> all_rooms;
+
     int max_players;
+    
     int max_rooms;
     
 };

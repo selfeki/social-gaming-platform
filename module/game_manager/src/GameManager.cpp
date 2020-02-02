@@ -78,11 +78,16 @@ std::vector<IDType> GameManager<IDType, RoomType>::getPlayersInRoom(RoomType roo
     std::vector<IDType> players;
 }
 
+template <typename IDType, typename RoomType>
+std::vector<messageReturn<IDType>> GameManager<IDType, RoomType>::handleCommand(std::string msg, IDType player) {
+}
+
+template <typename IDType, typename RoomType>
+std::vector<messageReturn<IDType>> GameManager<IDType, RoomType>::handleGameMessage(std::string msg, IDType player) {
+}
 
 
-
-
-template class GameManager<networking::Connection, int>;
+template class GameManager<uintptr_t, int>;
 
 /*
 *Avoids linking error allows us to use a template. 
