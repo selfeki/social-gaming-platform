@@ -6,6 +6,7 @@
 
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/beast.hpp>
+#include <memory>
 
 namespace arepa::networking::websocket {
 
@@ -14,6 +15,10 @@ namespace arepa::networking::websocket {
  * This uses boost::asio and boost::beast to handle the underlying I/O opertaions.
  */
 class BeastSocketListener : public std::enable_shared_from_this<BeastSocketListener> {
+
+#pragma mark - Types -
+private:
+    typedef boost::beast::websocket::stream<boost::beast::tcp_stream> BeastWebsocket;
 
 #pragma mark - Fields -
 private:
@@ -31,12 +36,13 @@ public:
     //    /**
     //     * A signal for when a new socket connection is established.
     //     */
-    //    arepa::communication::Signal<arepa::communication::Socket> on_accept;
+    //    arepa::communication::Signal<std::shared_ptr<arepa::communication::Socket>> on_accept;
 
 
 #pragma mark - Methods (Private) -
 private:
     void _on_async_accept(boost::beast::error_code ec, boost::asio::ip::tcp::socket socket);
+    void _on_async_accept_websocket(std::unique_ptr<BeastWebsocket> socket, boost::beast::error_code ec);
     void _do_async_accept();
 
 
