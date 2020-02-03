@@ -6,11 +6,12 @@
 #include "command.h"
 #include <algorithm>
 #include <time.h>
+#include <unordered_map>
 
 #ifndef _TESTTEMP_H_
 #define _TESTTEMP_H_
 
-typedef uintptr_t RoomID; 
+typedef std::string RoomID; 
 
 /*
 * Struct that the game manager returns to the daemon in response to every parsed message
@@ -41,9 +42,12 @@ template <typename IDType>
 class Room {
 
 public:
-    void joinPlayer(IDType player);
+    Room(IDType _owner, RoomID room_code);
+    void playerJoin(IDType player);
     void exitPlayer(IDType player);
     void gameUpdate();
+    std::vector<IDType> returnPlayers();
+    void configRoomAndGame(json game_config);
 private:
     std::vector<IDType> players;
     IDType owner;
@@ -57,13 +61,6 @@ private:
     */
     //Game game;
 };
-
-/*
-    
-
-
-*/
-
 
 
 template <typename IDType>
@@ -84,7 +81,7 @@ public:
     std::vector<messageReturn<IDType>> returnRoomMembersCommand(IDType id);
     std::vector<messageReturn<IDType>> returnRoomCommand(IDType id);
     std::vector<messageReturn<IDType>> createRoomCommand(IDType id);
-    std::vector<messageReturn<IDType>> joinRoomCommand(IDType id);
+    std::vector<messageReturn<IDType>> joinRoomCommand(IDType id, std::string room_id);
     std::vector<messageReturn<IDType>> kickPlayerCommand(IDType id);
     std::vector<messageReturn<IDType>> leaveRoomCommand(IDType id);
     std::vector<messageReturn<IDType>> initRoomCommand(IDType id);
@@ -97,8 +94,11 @@ private:
     commandSpace::Command<IDType> commands; //so that commands class can interact with game server state
 
     std::vector<IDType> all_players;
+    //std::vector<Room<IDType>> rooms;
+    std::unordered_map<RoomID, Room<IDType>> id_room_map;
+    std::unordered_map<IDType, std::string> id_player_map;
+    std::unordered_map<IDType, RoomID> player_room_map;
 
-    std::unordered_map<RoomID, std::unique_ptr<Room<IDType>>> all_rooms;
 
     int max_players;
 

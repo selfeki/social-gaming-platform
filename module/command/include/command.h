@@ -21,7 +21,7 @@ enum commandType {
     message
 };
 
-typedef uintptr_t RoomType; 
+typedef std::string RoomType; 
 
 template <typename IDType>
 struct MessageResult {

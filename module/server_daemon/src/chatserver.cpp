@@ -13,6 +13,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <iterator>
 #include <string>
 #include <unistd.h>
 #include <vector>
@@ -58,13 +59,15 @@ bool gameMessagesToNetworkMessages() {
   for(auto& message : gameMessageQueue) {
 
     std::string log = message.message;
-    Connection client;
     if(message.shouldShutdown){
       quit = true;
     }
-    for(auto& player : message.sendTo) {
 
-      client = idConnectionMap[player];
+    for(auto player : message.sendTo) {
+
+      Connection client = idConnectionMap.at(player);
+      std::cout << client.id << "\n";
+      std::cout << log << "\n";
 
       networkMessageQueue.push_back({client, log});
     }
@@ -98,28 +101,41 @@ std::vector<messageReturnAlias> parseCommandAndCollectResponse(const std::string
   
   std::vector<messageReturnAlias> return_message;
 
-  if(message == "/member"){
+  //tokenize string by ' '
+
+  std::vector<std::string> tokens;
+
+  std::istringstream iss(message);
+  std::copy(std::istream_iterator<std::string>(iss),
+              std::istream_iterator<std::string>(),
+              std::back_inserter(tokens));
+
+
+
+  if(tokens[0] == "/member"){
     return_message = game_manager.returnRoomMembersCommand(id);
   }
-  else if(message == "/room"){
+  else if(tokens[0] == "/room"){
     return_message = game_manager.returnRoomCommand(id);
   }
-  else if(message == "/create"){
+  else if(tokens[0] == "/create"){
     return_message = game_manager.createRoomCommand(id);
   }
-  else if(message == "/join"){
-    return_message = game_manager.joinRoomCommand(id);
+  else if(tokens[0] == "/join"){
+    if(tokens.size() > 1){
+      return_message = game_manager.joinRoomCommand(id, tokens[1]);
+    }  
   }
-  else if(message == "/kick"){
+  else if(tokens[0] == "/kick"){
     return_message = game_manager.kickPlayerCommand(id);
   }
-  else if(message == "/quit"){
+  else if(tokens[0] == "/quit"){
     return_message = game_manager.leaveRoomCommand(id);
   }
-  else if(message == "/initgame"){
+  else if(tokens[0] == "/initgame"){
     return_message = game_manager.initRoomCommand(id);
   }
-  else if(message == "/shutdown"){
+  else if(tokens[0] == "/shutdown"){
     //return_message = game_manager.createRoomCommand(id);
   }
   else {
@@ -211,14 +227,15 @@ processMessages(Server& server, const std::deque<Message>& incoming) {
         * After each player has submitted, the game would continue on.
         * 
         * */
-        std::cout << "sup\n";
+        //std::cout << "sup\n";
 
 
         std::vector<messageReturnAlias> game_messages = game_manager.handleGameMessage(message.text, sentFrom.id);
         for(auto game_message : game_messages) {
           gameMessageQueue.push_back(game_message);
+          std::cout << "in here\n";
         }
-        std::cout << "sup\n";
+        //std::cout << "sup\n";
 
         break;
       }
@@ -302,7 +319,7 @@ main(int argc, char* argv[]) {
               //<< e.where() << '\n,
   }
 
-  std::cout << "howdy" << std::endl;
+  //std::cout << "howdy" << std::endl;
   /*
   * Command module will have to keep track of state of game server (rooms, players)
   * to implement its commands, so pass in pointer to game_manager object. 
@@ -336,11 +353,8 @@ main(int argc, char* argv[]) {
 
     //std::pair<std::deque<Message>, bool> processedMessages = processMessages(server, incoming);
     processMessages(server, incoming);
-
-    for(auto &msg : incoming) {
-      std::cout << msg.text << "\n";
-    }
-
+    
+    
 
     shouldQuit = gameMessagesToNetworkMessages();
 
