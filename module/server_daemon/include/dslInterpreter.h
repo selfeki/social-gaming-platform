@@ -1,8 +1,8 @@
-#ifndef DSLINTERPRETER_H
-#define DSLINTERPRETER_H 
-
 #include <vector>
-#include <string.h>
+#include <string>
+#include <map>
+
+#include <State.h>
 
 
 enum RuleType {
@@ -28,78 +28,101 @@ enum RuleType {
   SCORES
 };
 
+// this does not compile
+// std::map<RuleType, std::string> RuleTypeMap;
+// RuleTypeMap["for each"] = RuleType.FOR_EACH;
+// RuleTypeMap["loop"] = RuleType.LOOP;
+// RuleTypeMap["inparallel"] = RuleType.IN_PARALLEL;
 
-std::map<RuleType, std::string> RuleTypeMap;
-RuleTypeMap["for each"] = RuleType.FOR_EACH;
-RuleTypeMap["loop"] = RuleType.LOOP;
-RuleTypeMap["inparallel"] = RuleType.IN_PARALLEL;
-
-
-class State;
-
-class Node;
 
 class Node {
-	public:
-		Node();
-		Node(Node& parent);
-		~Node();
-	private:
-		Node* parent;
-};
-
-class ElementNode: public Node{
-	public:
-		ElementNode();
-		ElementNode(std::string data ){data=data;}
-		ElementNode(Node& parent, std::string data) 
-			:Node{parent},
-				data{data}
-			{}
-		~ElementNode();
-		std::get_data() {return data ;} ;
-	private:
-		std::string data ;
-};
-
-class ListNode: public Node{
-	public:
-		ListNde();
-		ListNode(Node& parent)
-			:Node{parent} 
-			{}
-		~ListNode();
-		std::vector<Node> getChildren(){return children};
-		void addChild(Node node) ;
-	private:
-		std::vector<Node> children ;
-};
-
-
-class RuleNode : public LsitNode{
 public:
-	RuleNode(RuleType ruleType);
-	RuleNode(Node& parent, RuleType ruleType)
-		:Node{parent},ls
-			type{ruleType}
-			{}
-	~RuleNode();
-	Node getType(){return type}; 
+  Node(Node& parent)
+    : parent{&parent}
+      { }
+
+  const Node& 
+  getParent() { return *parent; }
+
+  void 
+  setParent(Node& node) { parent = &node; }
+
 private:
+  Node* parent;
+};
+
+
+class RuleNode : public Node {
+public:
+	RuleNode(Node& parent, Node& child, RuleType ruleType);
+
+  const Node& 
+  getChild() { return *child; }
+
+  void 
+  setChild(Node& node) { child = &node; }
+
+	RuleType getType() { return type; }
+
+private:
+  Node* child;
+
 	RuleType type;
 };
 
 
-class DSLInterpreter {
-public:
-	State getNewState(State& state);
+class ListNode: public Node {
+	public:
+		ListNode(Node& parent, std::vector<Node>& children);
 
-private:
-	RuleNode parseRule(SpecWrapper Spec);
-  interpretRule()
-  interpretGlobalMessage(Rule)
-  State state;
-	std::vector<RuleNode> Rules ;
+		const std::vector<Node>&
+    getChildren() { return children; }
+
+		void 
+    addChild(Node& node) { children.emplace_back(node); }
+
+    // TODO
+    void
+    RemoveChild(Node& node);
+
+	private:
+		std::vector<Node>& children;
 };
 
-#endif 
+
+class ElementNode: public Node {
+public:
+  ElementNode(Node& parent, std::string& data)
+    : Node(parent),
+      data{data}
+      { }
+
+  const std::string&
+  getData() { return data; }
+
+private:
+  std::string& data;
+};
+
+
+// todo: separate rule parsing and interpreting into different components
+// todo: identify end of interpretation inside interpretVisitor
+
+class DSLInterpreter {
+public:
+  DSLInterpreter(Node& rule)
+    : currentRule{&rule}
+      { }
+  
+  void
+  setRule(Node rule) { currentRule = &rule; }
+
+  State
+  interpret(Environment& env, State& state);
+
+private:
+  State
+  interpretRule(State state, Node& rule);
+
+  Node* currentRule;
+};
