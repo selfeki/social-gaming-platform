@@ -46,7 +46,7 @@ public:
     : parent{parent}
       { }
 
-  std::optional<Node*>
+  std::optional<Node*>&
   getParent() { return parent; }
 
   void 
