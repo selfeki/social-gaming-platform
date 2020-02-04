@@ -1,6 +1,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <optional>
 
 #include <State.h>
 
@@ -37,24 +38,32 @@ enum RuleType {
 
 class Node {
 public:
-  Node(Node& parent)
-    : parent{&parent}
+  Node()
+    : parent{std::nullopt}
+    { }
+
+  Node(Node* parent)
+    : parent{parent}
       { }
 
-  const Node& 
-  getParent() { return *parent; }
+  std::optional<Node*>
+  getParent() { return parent; }
 
   void 
   setParent(Node& node) { parent = &node; }
 
 private:
-  Node* parent;
+  std::optional<Node*> parent;
 };
 
 
 class RuleNode : public Node {
 public:
-	RuleNode(Node& parent, Node& child, RuleType ruleType);
+	RuleNode(Node& parent, Node& child, RuleType ruleType)
+    : Node(parent),
+      child{&child},
+      type{ruleType}
+      { }
 
   const Node& 
   getChild() { return *child; }
@@ -73,7 +82,10 @@ private:
 
 class ListNode: public Node {
 	public:
-		ListNode(Node& parent, std::vector<Node>& children);
+		ListNode(Node& parent, std::vector<Node>& ch)
+    : Node(parent),
+      children{ch}
+      { }
 
 		const std::vector<Node>&
     getChildren() { return children; }
@@ -121,8 +133,5 @@ public:
   interpret(Environment& env, State& state);
 
 private:
-  State
-  interpretRule(State state, Node& rule);
-
   Node* currentRule;
 };
