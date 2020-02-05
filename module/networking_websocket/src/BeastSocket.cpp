@@ -5,6 +5,7 @@
 using namespace arepa::networking::websocket;
 namespace beast = boost::beast;
 namespace asio = boost::asio;
+using boost::beast::websocket::close_reason;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
@@ -82,9 +83,9 @@ void BeastSocket::send(Data data) {
 }
 
 void BeastSocket::close() {
-    // TODO(ethan)
+    this->_connection->close(close_reason());
 }
 
 void BeastSocket::close(std::string reason) {
-    // TODO(ethan)
+    this->_connection->close(close_reason(reason));
 }
