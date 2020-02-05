@@ -57,7 +57,8 @@ void BeastSocket::_do_async_read() {
 
 void BeastSocket::_on_async_read(error_code ec, std::size_t transferred) {
     if (ec) {
-        this->on_error.emit(BeastSocket::convert_error(ec));
+        this->on_error(BeastSocket::convert_error(ec));
+        this->on_close();
         return;
     }
 
@@ -77,7 +78,8 @@ void BeastSocket::_on_async_read(error_code ec, std::size_t transferred) {
 
 void BeastSocket::_on_async_write(boost::beast::error_code ec, std::size_t transferred) {
     if (ec) {
-        this->on_error.emit(BeastSocket::convert_error(ec));
+        this->on_error(BeastSocket::convert_error(ec));
+        this->on_close();
         return;
     }
 }
