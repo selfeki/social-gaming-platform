@@ -10,6 +10,11 @@ namespace arepa::communication {
 
 /**
  * A class that contains std::function-based signal (event) listeners.
+ *
+ * IMPORTANT IMPLEMENTATION NOTE:
+ * When a listener is attached to a signal, it must be removed if the listener's object is destroyed or moved.
+ * Failure to do so will result in UAF and/or memory leaks.
+ *
  * @tparam Ts The function parameter types.
  */
 template <typename... Ts>
@@ -30,7 +35,7 @@ protected:
             : listener(listener)
             , listener_id(id) {}
 
-        bool operator==(const ListenerID& id) {
+        bool operator==(ListenerID id) {
             return this->listener_id == id;
         }
     };
@@ -80,6 +85,20 @@ public:
     }
 
     /**
+     * Forwards this signal to another signal of the same kind.
+     * When this signal emits data, the other signal will also emit the same data.
+     *
+     * @param signal The signal to forward to.
+     * 
+     * @return The listener ID.
+     */
+    ListenerID forward(Signal<Ts...>& signal) {
+        return this->listen([&signal](const Ts... args) {
+            signal.emit(args...);
+        });
+    }
+
+    /**
      * Removes a listener.
      *
      * @param id The listener ID.
@@ -91,18 +110,18 @@ public:
 
         // Try to remove it from the regular listeners.
         {
-            auto find = std::find(std::begin(this->_listeners), std::end(this->_listeners), id);
-            if (find != std::end(this->_listeners)) {
-                this->_listeners.erase(find);
+            auto it = std::remove(std::begin(this->_listeners), std::end(this->_listeners), id);
+            if (it != std::end(this->_listeners)) {
+                this->_listeners.erase(it, std::end(this->_listeners));
                 return true;
             }
         }
 
         // Try to remove it from the once listeners.
         {
-            auto find = std::find(std::begin(this->_listeners_once), std::end(this->_listeners_once), id);
-            if (find != std::end(this->_listeners_once)) {
-                this->_listeners.erase(find);
+            auto it = std::remove(std::begin(this->_listeners_once), std::end(this->_listeners_once), id);
+            if (it != std::end(this->_listeners_once)) {
+                this->_listeners_once.erase(it, std::end(this->_listeners_once));
                 return true;
             }
         }
@@ -113,19 +132,19 @@ public:
 
     /**
      * Emits a signal to the listeners.
-     * @param args The listener arguments.
+     * @param args The signal data.
      */
-    void emit(Ts... args) {
+    void emit(const Ts&... data) {
         std::unique_lock guard(this->_mutex);
 
         // Emit to once-listeners.
         for (auto listener : this->_listeners_once) {
-            listener.listener(std::forward<Ts>(args)...);
+            listener.listener(data...);
         }
 
         // Emit to many-listeners.
         for (auto listener : this->_listeners) {
-            listener.listener(std::forward<Ts>(args)...);
+            listener.listener(data...);
         }
 
         // Clear once-listeners.
@@ -141,6 +160,16 @@ public:
      */
     ListenerID operator()(std::function<void(Ts...)> func) {
         return this->listen(std::move(func));
+    }
+
+    /**
+     * Emits a signal.
+     * This is the same as the emit() method.
+     *
+     * @param data The signal data.
+     */
+    void operator()(const Ts&... data) {
+        this->emit(data...);
     }
 };
 }

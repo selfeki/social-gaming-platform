@@ -18,6 +18,9 @@ public:
 #pragma mark - Fields -
 private:
     std::shared_ptr<Socket> _socket;
+    decltype(_socket->on_data)::ListenerID _attach_socket_on_data;
+    decltype(_socket->on_error)::ListenerID _attach_socket_on_error;
+    decltype(_socket->on_close)::ListenerID _attach_socket_on_close;
 
 #pragma mark - Signals -
 public:
@@ -29,25 +32,48 @@ public:
     /**
      * A signal for when the socket is closed.
      */
-    arepa::communication::Signal<>& on_close;
+    arepa::communication::Signal<> on_close;
 
     /**
      * A signal for when the socket is closed due to an error.
      */
-    arepa::communication::Signal<NetworkException>& on_error;
+    arepa::communication::Signal<NetworkException> on_error;
 
 
 #pragma mark - Constructors -
 public:
     SocketAdapter(std::shared_ptr<Socket> socket)
-        : _socket(std::move(socket))
-        , on_close(this->_socket->on_close)
-        , on_error(this->_socket->on_error) {
-        this->_socket->on_data([this](const Socket::Data& data) {
+        : _socket(std::move(socket)) {
+        this->_attach_signals();
+    }
+
+    SocketAdapter(SocketAdapter&& move)
+        : _socket(std::move(move._socket)) {
+        this->_attach_signals();
+    }
+
+    SocketAdapter(const SocketAdapter& copy)
+        : _socket(copy._socket) {
+        this->_attach_signals();
+    }
+
+    ~SocketAdapter() {
+        this->_socket->on_data.remove(this->_attach_socket_on_data);
+        this->_socket->on_error.remove(this->_attach_socket_on_error);
+        this->_socket->on_close.remove(this->_attach_socket_on_close);
+    }
+
+
+#pragma mark - Private -
+private:
+    void _attach_signals() {
+        this->_attach_socket_on_error = this->_socket->on_error.forward(this->on_error);
+        this->_attach_socket_on_close = this->_socket->on_close.forward(this->on_close);
+        this->_attach_socket_on_data = this->_socket->on_data.listen([this](const Socket::Data& data) {
             auto message = Message::from_bytes(data);
             this->on_message.emit(message);
         });
-    }
+    };
 
 
 #pragma mark - Methods -
