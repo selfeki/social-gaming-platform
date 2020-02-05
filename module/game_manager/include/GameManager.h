@@ -8,8 +8,7 @@
 #include <time.h>
 #include <unordered_map>
 
-#ifndef _TESTTEMP_H_
-#define _TESTTEMP_H_
+
 
 /*
 *Game_manager class
@@ -102,4 +101,3 @@ private:
     IDType admin;
 };
 
-#endif
