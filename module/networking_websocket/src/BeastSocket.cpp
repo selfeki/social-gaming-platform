@@ -14,8 +14,6 @@ using std::uint8_t;
 using std::unique_ptr;
 using BeastSocketConnection = BeastSocket::BeastSocketConnection;
 
-#include <iostream>
-
 // ---------------------------------------------------------------------------------------------------------------------
 #pragma mark - Constructors -
 // ---------------------------------------------------------------------------------------------------------------------
@@ -65,15 +63,16 @@ void BeastSocket::_on_async_read(error_code ec, std::size_t transferred) {
 
     // Covert to data.
     auto buffer = static_cast<const uint8_t*>(this->_buffer.data().data());
-    auto data = make_shared<Data>();
-    data->reserve(transferred);
-    std::copy(buffer, buffer + transferred, std::back_inserter(*data));
+    auto data = Data();
+    data.reserve(transferred);
+    std::copy(buffer, buffer + transferred, std::back_inserter(data));
+    this->_buffer.clear();
 
     // Read next packet.
     this->_do_async_read();
 
-    // DEBUG
-    this->send(*data);
+    // Emit the data.
+    this->on_data.emit(data);
 }
 
 void BeastSocket::_on_async_write(boost::beast::error_code ec, std::size_t transferred) {
