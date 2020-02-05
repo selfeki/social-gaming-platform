@@ -38,15 +38,10 @@ public:
 
 #pragma mark - Methods (Private) -
 private:
-    void
-    _on_async_accept(boost::beast::error_code ec, boost::asio::ip::tcp::socket socket);
-    void _do_async_accept();
-
-
 #pragma mark - Constructors -
 public:
-    Socket() noexcept(false);
-    virtual ~Socket();
+    Socket() noexcept(false) = default;
+    virtual ~Socket() = default;
 
 #pragma mark - Methods -
 public:

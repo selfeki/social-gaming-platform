@@ -57,7 +57,7 @@ public:
         std::unique_lock guard(this->_mutex);
 
         ListenerID id = (this->_next_listener_id++);
-        this->_listeners.emplace(id, std::forward<Listener>(listener));
+        this->_listeners.push_back(Container(id, listener));
 
         return id;
     }
@@ -115,17 +115,17 @@ public:
      * Emits a signal to the listeners.
      * @param args The listener arguments.
      */
-    void emit(Ts&&... args) {
+    void emit(Ts... args) {
         std::unique_lock guard(this->_mutex);
 
         // Emit to once-listeners.
         for (auto listener : this->_listeners_once) {
-            listener(std::forward<Ts>(args)...);
+            listener.listener(std::forward<Ts>(args)...);
         }
 
         // Emit to many-listeners.
         for (auto listener : this->_listeners) {
-            listener(std::forward<Ts>(args)...);
+            listener.listener(std::forward<Ts>(args)...);
         }
 
         // Clear once-listeners.

@@ -15,7 +15,9 @@ using std::make_shared;
 Listener::Listener(const Options& options)
     : _options(options)
     , _context(options)
-    , _listener(make_shared<BeastSocketListener>(this->_context)) {}
+    , _listener(make_shared<BeastSocketListener>(this->_context))
+    , on_accept(this->_listener->on_accept) {
+}
 
 
 // ---------------------------------------------------------------------------------------------------------------------

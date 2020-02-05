@@ -12,10 +12,11 @@
 using namespace arepa::networking::websocket;
 namespace beast = boost::beast;
 namespace asio = boost::asio;
-using std::make_unique;
-using std::unique_ptr;
+using std::make_shared;
+using std::shared_ptr;
 using boost_socket = boost::asio::ip::tcp::socket;
 using boost_socket_base = boost::asio::socket_base;
+using BeastSocketConnection = BeastSocket::BeastSocketConnection;
 
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -65,7 +66,7 @@ void BeastSocketListener::_on_async_accept(beast::error_code ec, boost_socket tc
     }
 
     // Configure the socket.
-    auto socket = make_unique<BeastWebsocket>(std::move(tcp_socket));
+    auto socket = make_shared<BeastSocketConnection>(std::move(tcp_socket));
     socket->set_option(beast::websocket::stream_base::timeout::suggested(beast::role_type::server));
     socket->set_option(beast::websocket::stream_base::decorator([](beast::websocket::response_type& response) {
         response.set(beast::http::field::server, "arepa-ws");
@@ -73,15 +74,19 @@ void BeastSocketListener::_on_async_accept(beast::error_code ec, boost_socket tc
 
     // Accept the socket as a websocket.
     socket->async_accept(
-        beast::bind_front_handler(&BeastSocketListener::_on_async_accept_websocket, shared_from_this(), std::move(socket)));
+        beast::bind_front_handler(&BeastSocketListener::_on_async_accept_websocket, shared_from_this(), socket));
 }
 
-#include <iostream>
-void BeastSocketListener::_on_async_accept_websocket(unique_ptr<BeastWebsocket> socket, boost::beast::error_code ec) {
+void BeastSocketListener::_on_async_accept_websocket(shared_ptr<BeastSocketConnection> socket, boost::beast::error_code ec) {
     if (ec) {
         //TODO(ethan): Error handling.
         return;
     }
 
-    // TODO: Move the socket into a WebsocketSocket object.
+    // Move the socket into a Socket object.
+    auto websocket = make_shared<BeastSocket>(socket);
+    websocket->internal_start_reading();
+
+    // Emit the socket.
+    this->on_accept.emit(websocket);
 }

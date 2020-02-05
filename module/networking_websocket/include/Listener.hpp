@@ -22,8 +22,15 @@ private:
     BeastContext _context;
     std::shared_ptr<BeastSocketListener> _listener;
 
+
 #pragma mark - Signals -
 public:
+    /**
+     * A signal for when a new socket connection is established.
+     */
+    arepa::communication::Signal<std::shared_ptr<arepa::networking::Socket>>& on_accept;
+
+
 #pragma mark - Constructors -
 public:
     explicit Listener(const Options& options) noexcept(false);
@@ -36,6 +43,7 @@ protected:
 public:
     /**
      * Starts listening for websocket connections.
+     * This object should not be moved after this method is called.
      */
     void start() noexcept(false);
 
