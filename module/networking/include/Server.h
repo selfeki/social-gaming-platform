@@ -124,19 +124,6 @@ public:
    */
   void disconnect(Connection connection);
 
-  //--------Ryan's Code----------
-  std::unordered_map<std::string, Connection> playerMap;
-  //hash from player name to connection?
-  Connection playerToConnection(std::string player);
-  std::string kickPlayer(std::string player);
-  std::string mutePlayer(std::string player);
-  void endGame();
-  void resetGame();
-  std::string whisperToPlayer(std::string player);
-  std::string handleCommand(std::string command);
-  //-----------------------------
-
-
 
 
 private:

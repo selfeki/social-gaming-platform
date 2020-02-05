@@ -1,13 +1,34 @@
 #include "command.h"
 #include "Server.h"
+#include "GameManager.h"
+
 //#include "chatserver/chatserver.cpp"
+#include <fstream>
+#include <iostream>
+#include <sstream>
 #include <string>
+//#include "game_manager.h"
+
+
+using networking::Server;
+using networking::Connection;
+using networking::Message;
 
 namespace commandSpace{
 
+
 //template <class T>
-Command::Command():commandRecieved(commandType::nullCommand), userInput(" "){
-}
+template <typename IDType>
+Command<IDType>::Command() : commandRecieved(commandType::nullCommand), userInput(" "){}
+
+/*
+* Putting MessageResult in command class for better
+* information hiding. The command class is now just an api the
+* daemon has to deal with, rather than the command class being 
+* designed aruond the daemon. 
+*/
+
+
 
 /*
 //template <class T>
@@ -36,49 +57,100 @@ void Command::requestInfoToServer(const commandType& command){
 */
 
 //template <class T>
-commandType Command::evaluateMessage(const std::string& message){
-    //commandType commandRecieved = commandType::nullCommand;
+template <typename IDType>
+commandType Command<IDType>::evaluateMessage(const std::string& message){
+    commandType _commandRecieved = commandType::nullCommand;
     userInput = message;
     if(message[0] != '/'){
-        commandRecieved = commandType::message;
+        _commandRecieved = commandType::message;
     }
     else if(message == "/member"){
-        commandRecieved = commandType::listMember;
+        _commandRecieved = commandType::listMember;
     }
     else if(message == "/room"){
-        commandRecieved = commandType::listRoom;
+        _commandRecieved = commandType::listRoom;
     }
     else if(message == "/create"){
-        commandRecieved = commandType::createRoom;
+        _commandRecieved = commandType::createRoom;
     }
     else if(message == "/join"){
-        commandRecieved = commandType::joinRoom;
+        _commandRecieved = commandType::joinRoom;
     }
     else if(message == "/kick"){
-        commandRecieved = commandType::kickUser;
+        _commandRecieved = commandType::kickUser;
     }
     else if(message == "/quit"){
-        commandRecieved = commandType::quitFromServer;
+        _commandRecieved = commandType::quitFromServer;
+    }
+    else if(message == "/initgame"){
+        _commandRecieved = commandType::initGame;
     }
     else if(message == "/shutdown"){
-        commandRecieved = commandType::shutdownServer;
+        _commandRecieved = commandType::shutdownServer;
     }
     else {
-        commandRecieved = commandType::nullCommand;
+        _commandRecieved = commandType::nullCommand;
     }
+    return _commandRecieved;
+}
+template <typename IDType>
+commandType Command<IDType>::getCommandType() const {
     return commandRecieved;
 }
-
-commandType Command::getCommandType() const {
-    return commandRecieved;
-}
-
-std::string Command::returnCommandNotFoundError(){
+template <typename IDType>
+std::string Command<IDType>::returnCommandNotFoundError(){
     return "Error. Command :" +userInput+" not found\n";
 }
 
+/*
+std::ostringstream Command::memberCommand(){
+  std::ostringstream result;
+  result<<"Command: Member List\n";
+  for (auto client : clients){
+    result<<client.id<<"\n";
+  }
+  return result;
+} 
+*/
+template <typename IDType>
+std::vector<MessageResult<IDType>> 
+Command<IDType>::handleCommand(std::string msg_text, IDType sent_from ) {
+    std::vector<MessageResult<IDType>> message_queue;
+    std::ostringstream result;
+    commandType command_recieved = evaluateMessage(msg_text);
+    IDType sendTo;
+    bool quit = false;
 
+    switch(command_recieved){
+        case commandType::message:
+            result << sent_from << "> " << msg_text << "\n";
+            break;
+        case commandType::listMember:
+            result << sent_from << "> " << msg_text << "\n";
+            //result << memberCommand().str();
+            break;
+        case commandType::quitFromServer:
+            //server.disconnect(sent_from);
+            break;
+        case commandType::shutdownServer:
+            std::cout << "Shutting down.\n";
+            quit = true;
+            break;
+        default:
+            result << sent_from << "> " << msg_text << "\n";
+            result<<"Command not defined.\n";
+            break;
+    }
 
+    message_queue.push_back({result.str(),quit,sent_from,sendTo});
+    
+
+    return message_queue;
+
+}
+
+template class Command<uintptr_t>;
+template struct MessageResult<uintptr_t>;
 
 }
 
