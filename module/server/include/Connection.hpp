@@ -41,12 +41,24 @@ public:
      * Returns the network socket for the connection.
      * @return A reference to the network socket.
      */
-    arepa::protocol::MessageSocket& socket();
+    [[nodiscard]] arepa::protocol::MessageSocket& socket();
 
     /**
      * Returns the session object for the connection.
      * @return A reference to the session object.
      */
-    arepa::networking::Session<>& session();
+    [[nodiscard]] arepa::networking::Session<>& session();
+
+    /**
+     * Returns the session token for the connection.
+     * @return A reference to the session token.
+     */
+    [[nodiscard]] inline const arepa::networking::SessionToken& session_token() const;
+
+    /**
+     * Returns the session ID for the connection.
+     * @return A reference to the session ID.
+     */
+    [[nodiscard]] inline const arepa::networking::SessionToken::Id& session_id() const;
 };
 }

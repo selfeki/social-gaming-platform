@@ -34,6 +34,14 @@ Session<>& Connection::session() {
     return this->_session;
 }
 
+const SessionToken& Connection::session_token() const {
+    return this->_session.token();
+}
+
+const SessionToken::Id& Connection::session_id() const {
+    return this->_session.token().id();
+}
+
 MessageSocket& Connection::socket() {
     return this->_socket;
 }
