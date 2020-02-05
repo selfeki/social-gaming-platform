@@ -6,6 +6,7 @@
 
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
+#include <iostream>
 
 namespace arepa::networking {
 

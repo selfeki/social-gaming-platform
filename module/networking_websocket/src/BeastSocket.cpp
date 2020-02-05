@@ -1,5 +1,6 @@
 #include "BeastSocket.hpp"
 
+#include <boost/system/system_error.hpp>
 #include <memory>
 
 using namespace arepa::networking::websocket;
@@ -14,6 +15,7 @@ using std::uint8_t;
 using std::unique_ptr;
 using BeastSocketConnection = BeastSocket::BeastSocketConnection;
 
+#include <iostream>
 // ---------------------------------------------------------------------------------------------------------------------
 #pragma mark - Constructors -
 // ---------------------------------------------------------------------------------------------------------------------
@@ -56,9 +58,7 @@ void BeastSocket::_do_async_read() {
 }
 
 void BeastSocket::_on_async_read(error_code ec, std::size_t transferred) {
-    if (ec) {
-        this->on_error(BeastSocket::convert_error(ec));
-        this->on_close();
+    if (this->_handle_error(ec)) {
         return;
     }
 
@@ -76,12 +76,28 @@ void BeastSocket::_on_async_read(error_code ec, std::size_t transferred) {
     this->on_data.emit(data);
 }
 
-void BeastSocket::_on_async_write(boost::beast::error_code ec, std::size_t transferred) {
-    if (ec) {
-        this->on_error(BeastSocket::convert_error(ec));
-        this->on_close();
+void BeastSocket::_on_async_write(error_code ec, std::size_t transferred) {
+    if (this->_handle_error(ec)) {
         return;
     }
+}
+
+bool BeastSocket::_handle_error(const error_code& ec) {
+    if (!ec) {
+        return false;
+    }
+
+    this->_connected = false;
+
+    // If it's not an end_of_stream (remote close), it's an error.
+    // Send an on_error signal.
+    if (ec != boost::beast::http::error::end_of_stream) {
+        this->on_error(BeastSocket::convert_error(ec));
+    }
+
+    // Send an on_close signal.
+    this->on_close();
+    return true;
 }
 
 
@@ -94,15 +110,17 @@ void BeastSocket::send(Data data) {
 }
 
 void BeastSocket::close() {
-    this->_connected = false;
-    this->_connection->close(close_reason());
-    this->on_close();
+    if (this->_connected.exchange(false)) {
+        this->_connection->close(close_reason());
+        this->_connection = nullptr;
+    }
 }
 
 void BeastSocket::close(std::string reason) {
-    this->_connected = false;
-    this->_connection->close(close_reason(reason));
-    this->on_close();
+    if (this->_connected.exchange(false)) {
+        this->_connection->close(close_reason(reason));
+        this->_connection = nullptr;
+    }
 }
 
 bool BeastSocket::is_connected() {

@@ -33,6 +33,7 @@ private:
 
 #pragma mark - Methods (Private) -
 private:
+    bool _handle_error(const boost::beast::error_code& ec);
     void _on_async_write(boost::beast::error_code ec, std::size_t transferred);
     void _on_async_read(boost::beast::error_code ec, std::size_t transferred);
     void _do_async_read();

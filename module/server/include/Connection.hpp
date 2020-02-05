@@ -32,7 +32,7 @@ public:
     explicit Connection(std::shared_ptr<arepa::networking::Socket> socket);
     Connection(Connection&& move) noexcept;
     Connection(const Connection& copy) = delete;
-    ~Connection() = default;
+    ~Connection();
 
 
 #pragma mark - Methods -

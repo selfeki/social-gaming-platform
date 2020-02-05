@@ -25,6 +25,7 @@ Connection::Connection(Connection&& move) noexcept
     , _session(std::move(move._session)) {
 }
 
+Connection::~Connection() = default;
 
 // ---------------------------------------------------------------------------------------------------------------------
 #pragma mark - Methods -

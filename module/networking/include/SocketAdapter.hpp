@@ -2,6 +2,8 @@
 
 #include "Socket.hpp"
 
+#include <iostream>    // DEBUG
+
 namespace arepa::networking {
 
 /**
@@ -10,17 +12,13 @@ namespace arepa::networking {
 template <typename Message>
 class SocketAdapter {
 
-#pragma mark - Types -
-public:
-    typedef std::vector<uint8_t> Data;
-
-
 #pragma mark - Fields -
 private:
     std::shared_ptr<Socket> _socket;
     decltype(_socket->on_data)::ListenerID _attach_socket_on_data;
     decltype(_socket->on_error)::ListenerID _attach_socket_on_error;
     decltype(_socket->on_close)::ListenerID _attach_socket_on_close;
+
 
 #pragma mark - Signals -
 public:

@@ -99,6 +99,14 @@ public:
     }
 
     /**
+     * Returns the number of non-temporary listeners for the signal.
+     * @return The signal count.
+     */
+    std::size_t listener_count() {
+        return this->_listeners.size();
+    }
+
+    /**
      * Removes a listener.
      *
      * @param id The listener ID.
@@ -135,20 +143,32 @@ public:
      * @param args The signal data.
      */
     void emit(const Ts&... data) {
-        std::unique_lock guard(this->_mutex);
+        std::vector<Listener> listeners;
 
-        // Emit to once-listeners.
-        for (auto listener : this->_listeners_once) {
-            listener.listener(data...);
+        {
+            // Copy the listeners to the vector.
+            // We use a separate vector to prevent deadlocks from signals that remove themselves.
+            std::shared_lock guard(this->_mutex);
+            listeners.reserve(this->_listeners_once.size() + this->_listeners.size());
+
+            // Copy once-listeners.
+            for (auto listener : this->_listeners_once) {
+                listeners.push_back(listener.listener);
+            }
+
+            // Copy many-listeners.
+            for (auto listener : this->_listeners) {
+                listeners.push_back(listener.listener);
+            }
+
+            // Clear the once-listeners.
+            this->_listeners_once.clear();
         }
 
-        // Emit to many-listeners.
-        for (auto listener : this->_listeners) {
-            listener.listener(data...);
+        // Call the listeners.
+        for (auto listener : listeners) {
+            listener(data...);
         }
-
-        // Clear once-listeners.
-        this->_listeners_once.clear();
     }
 
 
