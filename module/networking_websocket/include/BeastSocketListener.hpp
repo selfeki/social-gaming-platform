@@ -25,10 +25,10 @@ private:
 
 #pragma mark - Signals -
 public:
-    //    /**
-    //     * A signal for when a new socket connection failed to be established.
-    //     */
-    //    arepa::communication::Signal<arepa::communication::SocketException> on_error;
+    /**
+     * A signal for when a new socket connection failed to be established.
+     */
+    arepa::communication::Signal<arepa::networking::NetworkException> on_error;
 
     /**
      * A signal for when a new socket connection is established.

@@ -61,7 +61,7 @@ void BeastSocketListener::_on_async_accept(beast::error_code ec, boost_socket tc
 
     // Handle any potential error.
     if (ec) {
-        //TODO(ethan): Error handling.
+        this->on_error.emit(NetworkException(NetworkException::ESTABLISH_ERROR));
         return;
     }
 
@@ -79,7 +79,7 @@ void BeastSocketListener::_on_async_accept(beast::error_code ec, boost_socket tc
 
 void BeastSocketListener::_on_async_accept_websocket(shared_ptr<BeastSocketConnection> socket, boost::beast::error_code ec) {
     if (ec) {
-        //TODO(ethan): Error handling.
+        this->on_error.emit(NetworkException(NetworkException::ESTABLISH_ERROR));
         return;
     }
 

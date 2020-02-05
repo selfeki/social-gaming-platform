@@ -21,6 +21,11 @@ private:
     boost::beast::flat_buffer _buffer;
 
 
+#pragma mark - Methods (Protected) -
+private:
+    static NetworkException convert_error(boost::beast::error_code ec);
+
+
 #pragma mark - Methods (Private) -
 private:
     void _on_async_write(boost::beast::error_code ec, std::size_t transferred);

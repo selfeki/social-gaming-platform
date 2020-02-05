@@ -15,7 +15,17 @@ public:
         ILLEGAL_BIND_PORT,
 
         /**
-         * Failed to establish a websocket.
+         * The remote socket closed.
+         */
+        REMOTE_CONNECTION_CLOSED,
+
+        /**
+         * Some remote connection error.
+         */
+        REMOTE_CONNECTION_ERROR,
+
+        /**
+         * Failed to establish a socket.
          */
         ESTABLISH_ERROR,
 

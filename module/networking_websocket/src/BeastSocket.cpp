@@ -5,6 +5,7 @@
 using namespace arepa::networking::websocket;
 namespace beast = boost::beast;
 namespace asio = boost::asio;
+using boost::beast::error_code;
 using boost::beast::websocket::close_reason;
 using std::make_shared;
 using std::make_unique;
@@ -34,6 +35,19 @@ void BeastSocket::internal_start_reading() {
 
 
 // ---------------------------------------------------------------------------------------------------------------------
+#pragma mark - Methods (Protected) -
+// ---------------------------------------------------------------------------------------------------------------------
+
+arepa::networking::NetworkException BeastSocket::convert_error(boost::beast::error_code ec) {
+    if (ec == boost::system::errc::connection_reset) {
+        return NetworkException(NetworkException::REMOTE_CONNECTION_CLOSED);
+    }
+
+    return NetworkException(NetworkException::REMOTE_CONNECTION_ERROR);
+}
+
+
+// ---------------------------------------------------------------------------------------------------------------------
 #pragma mark - Methods (Private) -
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -43,9 +57,9 @@ void BeastSocket::_do_async_read() {
             shared_from_this()));
 }
 
-void BeastSocket::_on_async_read(boost::beast::error_code ec, std::size_t transferred) {
+void BeastSocket::_on_async_read(error_code ec, std::size_t transferred) {
     if (ec) {
-        //TODO(ethan): Error handling.
+        this->on_error.emit(BeastSocket::convert_error(ec));
         return;
     }
 
@@ -60,17 +74,13 @@ void BeastSocket::_on_async_read(boost::beast::error_code ec, std::size_t transf
 
     // DEBUG
     this->send(*data);
-    std::cout << "Got something!" << std::endl;
 }
 
-void BeastSocket::_on_async_write(boost::beast::error_code ec,
-    std::size_t transferred) {
+void BeastSocket::_on_async_write(boost::beast::error_code ec, std::size_t transferred) {
     if (ec) {
-        //TODO(ethan): Error handling.
+        this->on_error.emit(BeastSocket::convert_error(ec));
         return;
     }
-
-    std::cout << "Sent something!" << std::endl;
 }
 
 
