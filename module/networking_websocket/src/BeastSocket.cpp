@@ -92,9 +92,17 @@ void BeastSocket::send(Data data) {
 }
 
 void BeastSocket::close() {
+    this->_connected = false;
     this->_connection->close(close_reason());
+    this->on_close();
 }
 
 void BeastSocket::close(std::string reason) {
+    this->_connected = false;
     this->_connection->close(close_reason(reason));
+    this->on_close();
+}
+
+bool BeastSocket::is_connected() {
+    return this->_connected;
 }

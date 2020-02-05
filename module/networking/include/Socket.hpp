@@ -49,6 +49,12 @@ public:
 #pragma mark - Methods -
 public:
     /**
+     * Checks if the socket is still connected.
+     * @return True if connected, false otherwise.
+     */
+    virtual bool is_connected() = 0;
+
+    /**
      * Closes the socket.
      * @param reason If applicable, the reason for closing the socket.
      */

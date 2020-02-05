@@ -5,7 +5,7 @@
 namespace arepa::networking {
 
 /**
- * A wrapper around a Socket which serializes and deserializes stuctured data.
+ * A wrapper around a Socket which serializes and deserializes structured data.
  */
 template <typename Message>
 class SocketAdapter {
@@ -93,12 +93,27 @@ public:
 
 #pragma mark - Override: Socket -
 public:
+    /**
+     * Closes the socket.
+     * @param reason If applicable, the reason for closing the socket.
+     */
     void close(std::string reason) {
         this->_socket->close(reason);
     }
 
+    /**
+     * Closes the socket.
+     */
     void close() {
         this->_socket->close();
+    }
+
+    /**
+     * Checks if the socket is still connected.
+     * @return True if connected, false otherwise.
+     */
+    bool is_connected() {
+        return this->_socket->is_connected();
     }
 };
 

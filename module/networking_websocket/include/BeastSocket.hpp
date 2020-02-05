@@ -2,6 +2,7 @@
 
 #include <arepa/networking/Socket.hpp>
 
+#include <atomic>
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
 #include <memory>
@@ -20,6 +21,7 @@ public:
 
 #pragma mark - Fields -
 private:
+    std::atomic<bool> _connected = true;
     std::shared_ptr<BeastSocketConnection> _connection;
     boost::beast::flat_buffer _buffer;
 
@@ -49,6 +51,7 @@ public:
 
 #pragma mark - Override: Socket -
 public:
+    bool is_connected() override;
     void close(std::string reason) override;
     void close() override;
     void send(Data data) override;
