@@ -9,6 +9,9 @@
 
 namespace arepa::networking {
 
+/**
+ * An abstract class representing a remote socket.
+ */
 class Socket {
 
 #pragma mark - Types -

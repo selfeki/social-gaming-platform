@@ -8,6 +8,9 @@
 
 namespace arepa::networking::websocket {
 
+/**
+ * An implementation of Socket which uses the Beast websocket library.
+ */
 class BeastSocket : public arepa::networking::Socket, public std::enable_shared_from_this<BeastSocket> {
 
 #pragma mark - Types -

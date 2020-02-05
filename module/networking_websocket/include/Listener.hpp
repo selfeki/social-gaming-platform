@@ -14,6 +14,10 @@
 
 namespace arepa::networking::websocket {
 
+/**
+ * A class which acts as a connection listener.
+ * This will accept remote websocket connections and construct a Socket objects for each connection.
+ */
 class Listener {
 
 #pragma mark - Fields -
