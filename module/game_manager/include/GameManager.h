@@ -11,20 +11,23 @@
 #ifndef _TESTTEMP_H_
 #define _TESTTEMP_H_
 
-typedef std::string RoomID; 
-
 /*
-* Struct that the game manager returns to the daemon in response to every parsed message
+*Game_manager class
 */
 
+//uniquely identifying room id
+typedef std::string RoomID; 
+
+//message return struct, game_manager returns a vector of these to the daemon,
+//on for each client that is to be sent a message
 template <typename IDType>
 struct messageReturn {
-    std::vector<IDType> sendTo;
+    IDType sendTo;
     std::string message;
     bool shouldShutdown;
 };
 
-
+//Custom error handling might be good for the future?
 class GameManagerException: public std::exception {
 public:
     GameManagerException(std::string _info, int _err_id, std::string _json_field);
@@ -55,10 +58,8 @@ private:
     int player_count;
     time_t born;
     RoomID room_id;
-    /*
-    * Each room will be associated with a game. The game class is basically the
-    * DSL interpreter. 
-    */
+
+    //the game object associated with each room will run the game's DSL interpreter
     //Game game;
 };
 
@@ -69,15 +70,10 @@ class GameManager {
 public:
 
     GameManager();
-
     void setUp(json server_config);
-
     void removePlayer(IDType player, RoomID room);
-    
     void addPlayer(IDType player, RoomID room);
-
     std::vector<IDType> getPlayersInRoom(RoomID room);
-
     std::vector<messageReturn<IDType>> returnRoomMembersCommand(IDType id);
     std::vector<messageReturn<IDType>> returnRoomCommand(IDType id);
     std::vector<messageReturn<IDType>> createRoomCommand(IDType id);
@@ -85,27 +81,25 @@ public:
     std::vector<messageReturn<IDType>> kickPlayerCommand(IDType id);
     std::vector<messageReturn<IDType>> leaveRoomCommand(IDType id);
     std::vector<messageReturn<IDType>> initRoomCommand(IDType id);
-
     std::vector<messageReturn<IDType>> handleGameMessage(std::string msg, IDType player);
-
 
 private:
 
-    commandSpace::Command<IDType> commands; //so that commands class can interact with game server state
-
+    //commandSpace::Command<IDType> commands; 
     std::vector<IDType> all_players;
-    //std::vector<Room<IDType>> rooms;
+
+    //roomID to room object map
     std::unordered_map<RoomID, Room<IDType>> id_room_map;
+
+    //player ID to username map?
     std::unordered_map<IDType, std::string> id_player_map;
+
+    //player ID to roomID map
     std::unordered_map<IDType, RoomID> player_room_map;
 
-
     int max_players;
-
     int max_rooms;
-
     IDType admin;
-    
 };
 
 #endif
