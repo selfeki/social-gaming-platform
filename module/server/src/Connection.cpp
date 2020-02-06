@@ -87,6 +87,6 @@ Connection& Connection::operator<<(const arepa::protocol::Message& message) {
     return *this;
 }
 
-Connection& arepa::server::operator<<(std::shared_ptr<Connection>& connection, const arepa::protocol::Message& message) {
+Connection& arepa::server::operator<<(const std::shared_ptr<Connection>& connection, const arepa::protocol::Message& message) {
     return *connection << message;
 }

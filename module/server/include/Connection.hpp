@@ -110,6 +110,6 @@ public:
 };
 
 
-Connection& operator<<(std::shared_ptr<Connection>& connection, const arepa::protocol::Message& message);
+Connection& operator<<(const std::shared_ptr<Connection>& connection, const arepa::protocol::Message& message);
 
 }

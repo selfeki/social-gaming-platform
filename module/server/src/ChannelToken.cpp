@@ -72,7 +72,7 @@ const ChannelToken::Code& ChannelToken::code() const {
 #pragma mark - Operators -
 // ---------------------------------------------------------------------------------------------------------------------
 
-ChannelToken::operator std::string() const {
+ChannelToken::operator string() const {
     return boost::uuids::to_string(this->_id);
 }
 
