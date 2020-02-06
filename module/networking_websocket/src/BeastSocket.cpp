@@ -15,7 +15,6 @@ using std::uint8_t;
 using std::unique_ptr;
 using BeastSocketConnection = BeastSocket::BeastSocketConnection;
 
-#include <iostream>
 // ---------------------------------------------------------------------------------------------------------------------
 #pragma mark - Constructors -
 // ---------------------------------------------------------------------------------------------------------------------
@@ -82,6 +81,14 @@ void BeastSocket::_on_async_write(error_code ec, std::size_t transferred) {
     }
 }
 
+void BeastSocket::_on_async_close(error_code ec) {
+    if (this->_handle_error(ec)) {
+        return;
+    }
+
+    this->on_close();
+}
+
 bool BeastSocket::_handle_error(const error_code& ec) {
     if (!ec) {
         return false;
@@ -111,14 +118,18 @@ void BeastSocket::send(Data data) {
 
 void BeastSocket::close() {
     if (this->_connected.exchange(false)) {
-        this->_connection->close(close_reason());
+        this->on_data.remove_all();
+
+        this->_connection->async_close(close_reason(), beast::bind_front_handler(&BeastSocket::_on_async_close, shared_from_this()));
         this->_connection = nullptr;
     }
 }
 
 void BeastSocket::close(std::string reason) {
     if (this->_connected.exchange(false)) {
-        this->_connection->close(close_reason(reason));
+        this->on_data.remove_all();
+
+        this->_connection->async_close(close_reason(reason), beast::bind_front_handler(&BeastSocket::_on_async_close, shared_from_this()));
         this->_connection = nullptr;
     }
 }
