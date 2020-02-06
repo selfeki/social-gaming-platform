@@ -61,6 +61,7 @@ public:
         this->_socket->on_close.remove(this->_attach_socket_on_close);
     }
 
+
 #pragma mark - Private -
 private:
     void _attach_signals() {
