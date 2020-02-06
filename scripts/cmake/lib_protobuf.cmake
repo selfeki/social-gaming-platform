@@ -34,7 +34,15 @@ function(arepa_use_protobuf target_name)
 		get_filename_component(header_name_noext "${generated_header_name}" NAME_WE)
 		get_filename_component(header_name_parent "${generated_header_name}" DIRECTORY)
 
-		file(WRITE "${header_output_dir}/${header_name_parent}/${header_name_noext}.hpp" "#include \"${generated_header}\"")
+		if (NO_SYMLINKS)
+			file(WRITE "${header_output_dir}/${header_name_parent}/${header_name_noext}.hpp" "#include <${generated_header}>")
+		else()
+			file(TOUCH "${generated_header}")
+			set(destination_link "${header_output_dir}/${header_name_parent}${header_name_noext}.hpp")
+			get_filename_component(destination_link_parent "${destination_link}" DIRECTORY)
+			file(MAKE_DIRECTORY "${destination_link_parent}")
+			file(CREATE_LINK "${generated_header}" "${destination_link}" SYMBOLIC)
+		endif()
 	endforeach()
 
 	# Export!

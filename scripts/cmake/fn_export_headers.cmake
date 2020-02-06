@@ -22,15 +22,7 @@ function(arepa_export_headers target_name header_dirs)
 		file(GLOB_RECURSE header_files "${header_dir}/*")
 		foreach(header_file ${header_files})
 			file(RELATIVE_PATH header_file_relative "${header_dir}" "${header_file}")
-			file(RELATIVE_PATH header_link_relative "${export_header_dir_with_prefix}" "${header_file}")
 			get_filename_component(header_file_relative_dirname "${header_file_relative}" DIRECTORY)
-
-			# Remove the old symlink.
-			execute_process(
-					COMMAND bash -c "[[ -L \"${header_file_relative}\" ]] && rm \"${header_file_relative}\""
-					WORKING_DIRECTORY "${export_header_dir_with_prefix}"
-					ERROR_QUIET
-			)
 
 			# Create the symlink.
 			file(MAKE_DIRECTORY "${export_header_dir_with_prefix}/${header_file_relative_dirname}")
@@ -38,15 +30,7 @@ function(arepa_export_headers target_name header_dirs)
 				configure_file("${header_file}" "${export_header_dir_with_prefix}/${header_file_relative}")
 				file(COPY "${header_file}" DESTINATION "${export_header_dir_with_prefix}")
 			else()
-				execute_process(
-					COMMAND ln -s "${header_link_relative}" "${header_file_relative}"
-						WORKING_DIRECTORY "${export_header_dir_with_prefix}"
-					RESULT_VARIABLE code
-				)
-
-				if(NOT "${code}" EQUAL 0)
-					message(FATAL_ERROR "Failed to symlink header file: ${header_file_relative} -> ${export_header_dir_with_prefix}/${header_file_relative}")
-				endif()
+				file(CREATE_LINK "${header_file}" "${export_header_dir_with_prefix}/${header_file_relative}" SYMBOLIC)
 			endif()
 		endforeach()
 	endforeach()
