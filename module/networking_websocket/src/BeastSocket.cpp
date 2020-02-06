@@ -75,7 +75,7 @@ void BeastSocket::_on_async_read(error_code ec, std::size_t transferred) {
     this->on_data.emit(data);
 }
 
-void BeastSocket::_on_async_write(error_code ec, std::size_t transferred) {
+void BeastSocket::_on_async_write(shared_ptr<Data>, error_code ec, std::size_t transferred) {
     if (this->_handle_error(ec)) {
         return;
     }
@@ -113,7 +113,10 @@ bool BeastSocket::_handle_error(const error_code& ec) {
 // ---------------------------------------------------------------------------------------------------------------------
 
 void BeastSocket::send(Data data) {
-    this->_connection->async_write(asio::buffer(data), beast::bind_front_handler(&BeastSocket::_on_async_write, shared_from_this()));
+    // NOTE(ethan): We create a pointer and bind it to the callback so the buffer's underlying memory isn't freed until
+    //              the callback has fired.
+    auto buffer = make_shared<Data>(data);
+    this->_connection->async_write(asio::buffer(*buffer), beast::bind_front_handler(&BeastSocket::_on_async_write, shared_from_this(), buffer));
 }
 
 void BeastSocket::close() {
