@@ -139,6 +139,20 @@ public:
     }
 
     /**
+     * Removes all listeners.
+     * @return The number of removed listeners.
+     */
+    std::size_t remove_all() {
+        std::unique_lock guard(this->_mutex);
+        std::size_t removed = this->_listeners_once.size() + this->_listeners.size();
+
+        this->_listeners_once.clear();
+        this->_listeners.clear();
+
+        return removed;
+    }
+
+    /**
      * Emits a signal to the listeners.
      * @param args The signal data.
      */
@@ -148,7 +162,7 @@ public:
         {
             // Copy the listeners to the vector.
             // We use a separate vector to prevent deadlocks from signals that remove themselves.
-            std::shared_lock guard(this->_mutex);
+            std::unique_lock guard(this->_mutex);
             listeners.reserve(this->_listeners_once.size() + this->_listeners.size());
 
             // Copy once-listeners.
