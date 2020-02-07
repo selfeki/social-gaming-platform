@@ -48,7 +48,7 @@ Room<IDType>::Room(IDType _owner, RoomID room_code) : owner(_owner), room_id(roo
 }
 
 template <typename IDType>
-void Room<IDType>::configRoomAndGame(json game_config) {
+void Room<IDType>::configRoomAndGame(const g_config& game_config) {
 
 }
 
@@ -103,7 +103,7 @@ GameManager<IDType>::GameManager() {
 }
 
 template <typename IDType>
-void GameManager<IDType>::setUp(json server_config) {
+void GameManager<IDType>::setUp(const s_config& server_config) {
     throw(GameManagerException("oops", 0, "lol"));
 }
 
