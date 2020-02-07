@@ -256,8 +256,9 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::leaveRoomCommand(IDType 
     //player is in room
     } else {
         RoomID curr_player_room_ID = player_room_map.at(player_id);
-        Room player_room = id_room_map.at(curr_player_room_ID);
-        player_room.exitPlayer(player_id);
+        //Room player_room = id_room_map.at(curr_player_room_ID);
+        //player_room.exitPlayer(player_id);
+        id_room_map.at(curr_player_room_ID).exitPlayer(player_id);
         std::string text = std::to_string(player_id) + " has left the room.";
         player_list = id_room_map.at(curr_player_room_ID).returnPlayers();
         //place user back into lobby
@@ -311,20 +312,20 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::destroyRoom(IDType playe
 }
 
 template <typename IDType>
-std::vector<messageReturn<IDType>> GameManager<IDType>::whisperCommand(IDType player_id, std::string recipient_id, std::string msg){
+std::vector<messageReturn<IDType>> GameManager<IDType>::whisperCommand(IDType player_id, std::string recipient, std::string msg){
     std::vector<messageReturn<IDType>> msg_list;
     std::vector<IDType> player_list;
     //TODO: find propper way to change from string to IDTYPE
-    IDType recip_of_wsp = std::stoul(recipient_id, nullptr, 0);
 
-    if(std::find(all_players.begin(), all_players.end(), recip_of_wsp)!= all_players.end()){
+    if(userName_id_map.count(recipient) == 0){
         std::string text = "Player: " + std::to_string(player_id) + " does not exist.";
         for(auto &player : player_list){
             msg_list.push_back(messageReturn<IDType> {player, text, false});
         }
     } else {
-        player_list.push_back(recip_of_wsp);
-        std::string text = id_player_map.at(recip_of_wsp) + " says: " + msg;
+        IDType recip_id = userName_id_map.at(recipient);
+        player_list.push_back(recip_id);
+        std::string text = std::to_string(player_id) + " says: " + msg;
         for(auto &player : player_list){
             msg_list.push_back(messageReturn<IDType> {player, text, false});
         }

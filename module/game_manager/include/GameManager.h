@@ -94,7 +94,10 @@ private:
     std::unordered_map<RoomID, Room<IDType>> id_room_map;
 
     //player ID to username map?
-    std::unordered_map<IDType, std::string> id_player_map;
+    //std::unordered_map<IDType, std::string> id_player_map;
+
+    //username to player ID
+    std::unordered_map<std::string, IDType> userName_id_map;
 
     //player ID to roomID map
     std::unordered_map<IDType, RoomID> player_room_map;
