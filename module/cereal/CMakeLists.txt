@@ -1,5 +1,3 @@
-SET (BOOST_ROOT "/usr/local/boost-1.69.0")
-
 add_library(cereal cereal.cpp)
 
 find_package(Boost 1.66 COMPONENTS system REQUIRED)
@@ -11,8 +9,8 @@ target_include_directories(cereal
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
-target_link_libraries(cereal PRIVATE nlohmann_json::nlohmann_json)
 target_link_libraries(cereal PRIVATE networking)
+target_link_libraries(cereal PUBLIC nlohmann_json::nlohmann_json)
 target_link_libraries(cereal
   PRIVATE
     ${Boost_LIBRARIES}

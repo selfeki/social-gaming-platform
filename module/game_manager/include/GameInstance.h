@@ -1,6 +1,6 @@
 #include <vector>
 #include <string>
-#include <DSLInterpreter.h>
+#include "DSLInterpreter.h"
 
 
 using IDType = std::string;
@@ -11,10 +11,6 @@ public:
   GameInstance(State& state)
     // use singleton  to generate unique ids?
     : IDType{id},
-      //This will create a dangling reference. 
-      // It's a bit weird, but this will initialize the reference 
-      // with the temporary DSLInterpreter constructed on this line.
-      // todo: research why this is wrong.
       Interpreter{},
       environments{extractEnvironments(state)},
       rules{extractRules(state)}
@@ -40,11 +36,6 @@ public:
 
 private:
   IDType gameID;
-  // Be careful about having the fields be references. 
-  // Ask yourself what the ownership relationships are. 
-  // If the object should own something, make sure it is not a reference.
-  // If it should not own something, then a reference to that thing 
-  // must be passed in as an argument to the constructor.
   DSLInterpreter interpreter;
   std::vector<Node> rules;
   Environment environment;

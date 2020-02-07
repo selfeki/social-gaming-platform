@@ -29,11 +29,7 @@ enum RuleType {
   SCORES
 };
 
-// this does not compile
-// std::map<RuleType, std::string> RuleTypeMap;
-// RuleTypeMap["for each"] = RuleType.FOR_EACH;
-// RuleTypeMap["loop"] = RuleType.LOOP;
-// RuleTypeMap["inparallel"] = RuleType.IN_PARALLEL;
+// todo: replace this with equivalent boost::variant implementation
 
 
 class Node {
