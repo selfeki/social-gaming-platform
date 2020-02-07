@@ -7,6 +7,7 @@
 
 #include "Server.h"
 #include "GameManager.h"
+#include "jsonconfig.h"
 
 //#include "dsl_interpreter.h"
 //#include "json_parser.h"
@@ -29,8 +30,7 @@ typedef GameManager<UniqueConnectionID> GameManagerAlias;
 
 //std::vector<Connection> clients;
 
-
-json json_parser;
+std::string default_json = "templates/server/default.json";
 
 GameManagerAlias game_manager;
 
@@ -226,39 +226,30 @@ getHTTPMessage(const char* htmlLocation) {
 
 int
 main(int argc, char* argv[]) {
-  if (argc < 3) {
-    std::cerr << "Usage:\n  " << argv[0] << " <port> <html response>\n"
-              << "  e.g. " << argv[0] << " 4002 ./webchat.html\n";
+
+  json j;
+  std::ifstream s;
+  s_config server_config;
+
+  if (argc < 2) {
+    s.open(default_json);
+  } else {
+    s.open(argv[1]);
+  }
+
+  try {
+    j = json::parse(s);
+    server_config = j.get<s_config>();
+  }
+  catch(json::parse_error& e) {
+    std::cerr << "Your JSON isn't right bro.\n"
+              << "message: " << e.what() << '\n'
+              << "exception id" << e.id << '\n'
+              << "byte position of error: " << e.byte << std::endl;
     return 1;
   }
 
-  json server_config;
-
-  if(argc == 4) {
-    //get server config json from command line, will be the third argument when daemon executed
-    try {
-      server_config = json::parse(argv[3]);
-    }
-    catch(json::parse_error& e) {
-      std::cerr << "Your JSON isn't right bro.\n"
-                << "message: " << e.what() << '\n'
-                << "exception id" << e.id << '\n'
-                << "byte position of error: " << e.byte << std::endl;
-      return 1;
-    }
-
-  } else {
-    //else use some default server config
-     server_config =
-     {
-         {"something", "something"},
-         {"a number", 42},
-         {"another number", 69},
-         {"something", true},
-         {"a bunch of somethings", {{"something", 69}, {"something", 69}}},
-         {"array of somethings", {69, 42, 69}}
-     };
-  }
+  server_config::print_config(server_config); // debug
 
   /*
   Try to configurate game_manager... with custom error handling to give useful
@@ -272,8 +263,15 @@ main(int argc, char* argv[]) {
               //<< e.where() << '\n,
   }
 
-  unsigned short port = std::stoi(argv[1]);
-  Server server{port, getHTTPMessage(argv[2]), onConnect, onDisconnect};
+  unsigned short port = server_config.port;
+
+  //getHTTPMessage takes char array not string, LAME
+  int str_size = server_config.htmlpath.size()+1;
+  char html[str_size+1];
+  server_config.htmlpath.copy(html, str_size+1);
+  html[str_size] = '\0';
+
+  Server server{port, getHTTPMessage(html), onConnect, onDisconnect};
 
   /*
   * Main Game Server Loop
