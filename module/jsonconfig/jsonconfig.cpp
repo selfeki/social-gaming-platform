@@ -1,7 +1,6 @@
 #include <iostream>
 #include <unordered_map>
 #include <vector>
-#include <nlohmann/json.hpp>
 #include "jsonconfig.h"
 
 using json = nlohmann::json;
