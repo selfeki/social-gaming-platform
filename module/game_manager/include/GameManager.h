@@ -1,6 +1,6 @@
 #pragma once
 
-#include "cereal.h"
+#include "jsonconfig.h"
 #include "Server.h"
 #include <exception>
 #include "command.h"
@@ -8,8 +8,8 @@
 #include <time.h>
 #include <unordered_map>
 
-
-
+using g_config = game_config::configuration;
+using s_config = server_config::configuration;
 /*
 *Game_manager class
 */
@@ -49,7 +49,7 @@ public:
     void exitPlayer(IDType player);
     void gameUpdate();
     std::vector<IDType> returnPlayers();
-    void configRoomAndGame(json game_config);
+    void configRoomAndGame(const g_config& game_config);
 private:
     std::vector<IDType> players;
     IDType owner;
@@ -69,7 +69,7 @@ class GameManager {
 public:
 
     GameManager();
-    void setUp(json server_config);
+    void setUp(const s_config& server_config);
     void removePlayer(IDType player, RoomID room);
     void addPlayer(IDType player, RoomID room);
     std::vector<IDType> getPlayersInRoom(RoomID room);
