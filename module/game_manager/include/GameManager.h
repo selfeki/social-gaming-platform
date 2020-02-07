@@ -83,6 +83,7 @@ public:
     std::vector<messageReturn<IDType>> initRoomCommand(IDType id);
     std::vector<messageReturn<IDType>> handleGameMessage(std::string msg, IDType player);
     std::vector<messageReturn<IDType>> destroyRoom(IDType id);
+    std::vector<messageReturn<IDType>> whisperCommand(IDType id, std::string recipient_id, std::string);
 
 private:
 

@@ -1,7 +1,7 @@
 
 #include "GameManager.h"
 #include "Server.h"
-#include <unordered_map>
+
 typedef std::string RoomID;
 
 std::string gen_random(const int len) {
@@ -281,7 +281,7 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::destroyRoom(IDType playe
     if(player_room_map.count(player_id) == 0){
         std::string text = "Action Prohibited. You are not in a room.";
         for(auto &player : player_list){
-            msg_list.push_back(messageReturn<IDType> {player_id, text, false});
+            msg_list.push_back(messageReturn<IDType> {player, text, false});
         }
     }
     else{
@@ -292,7 +292,7 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::destroyRoom(IDType playe
         if(peopleInRoom > 1){
             std::string text = "Action Prohibited. There are still people in the room";
             for(auto &player : player_list){
-                msg_list.push_back(messageReturn<IDType> {player_id, text, false});
+                msg_list.push_back(messageReturn<IDType> {player, text, false});
             }
         } else if (player_room.getOwner() != player_id){
             std::string text = "Action Prohibited. You are not the owner of this room.";
@@ -308,6 +308,28 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::destroyRoom(IDType playe
             }
         }
     }
+}
+
+template <typename IDType>
+std::vector<messageReturn<IDType>> GameManager<IDType>::whisperCommand(IDType player_id, std::string recipient_id, std::string msg){
+    std::vector<messageReturn<IDType>> msg_list;
+    std::vector<IDType> player_list;
+    //TODO: find propper way to change from string to IDTYPE
+    IDType recip_of_wsp = std::stoul(recipient_id, nullptr, 0);
+
+    if(std::find(all_players.begin(), all_players.end(), recip_of_wsp)!= all_players.end()){
+        std::string text = "Player: " + std::to_string(player_id) + " does not exist.";
+        for(auto &player : player_list){
+            msg_list.push_back(messageReturn<IDType> {player, text, false});
+        }
+    } else {
+        player_list.push_back(recip_of_wsp);
+        std::string text = id_player_map.at(recip_of_wsp) + " says: " + msg;
+        for(auto &player : player_list){
+            msg_list.push_back(messageReturn<IDType> {player, text, false});
+        }
+    }
+    return msg_list;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`
 
