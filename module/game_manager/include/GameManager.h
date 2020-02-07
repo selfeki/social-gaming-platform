@@ -50,6 +50,7 @@ public:
     void gameUpdate();
     std::vector<IDType> returnPlayers();
     void configRoomAndGame(json game_config);
+    IDType getOwner();
 private:
     std::vector<IDType> players;
     IDType owner;
@@ -77,10 +78,11 @@ public:
     std::vector<messageReturn<IDType>> returnRoomCommand(IDType id);
     std::vector<messageReturn<IDType>> createRoomCommand(IDType id);
     std::vector<messageReturn<IDType>> joinRoomCommand(IDType id, std::string room_id);
-    std::vector<messageReturn<IDType>> kickPlayerCommand(IDType id, IDType id_to_kick);
+    std::vector<messageReturn<IDType>> kickPlayerCommand(IDType id, std::string id_to_kick);
     std::vector<messageReturn<IDType>> leaveRoomCommand(IDType id);
     std::vector<messageReturn<IDType>> initRoomCommand(IDType id);
     std::vector<messageReturn<IDType>> handleGameMessage(std::string msg, IDType player);
+    std::vector<messageReturn<IDType>> destroyRoom(IDType id);
 
 private:
 

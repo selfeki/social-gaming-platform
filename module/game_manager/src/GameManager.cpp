@@ -1,7 +1,7 @@
 
 #include "GameManager.h"
 #include "Server.h"
-
+#include <unordered_map>
 typedef std::string RoomID;
 
 std::string gen_random(const int len) {
@@ -86,6 +86,10 @@ template <typename IDType>
 void Room<IDType>::gameUpdate() {
 }
 
+template <typename IDType>
+IDType Room<IDType>::getOwner(){
+    return owner;
+}
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
@@ -218,9 +222,13 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::joinRoomCommand(IDType i
 }
 
 template <typename IDType>
-std::vector<messageReturn<IDType>> GameManager<IDType>::kickPlayerCommand(IDType id, IDType id_to_kick){
+std::vector<messageReturn<IDType>> GameManager<IDType>::kickPlayerCommand(IDType id, std::string id_to_kick){
     std::vector<messageReturn<IDType>> msg_list;
     std::vector<IDType> player_list;
+
+    //TODO: find propper way to change from string to IDTYPE
+    IDType player_to_kick = std::stoul(id_to_kick, nullptr, 0);
+
     if (id != admin){
         std::string msg_text = "Action Prohibited. You are not an admin.";
         player_list.push_back(id);
@@ -228,7 +236,8 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::kickPlayerCommand(IDType
             msg_list.push_back(messageReturn<IDType> {player, msg_text, false});
         }
     } else {
-        leaveRoomCommand(id_to_kick);
+        //leaveRoomCommand(id_to_kick);
+        leaveRoomCommand(player_to_kick);
     }
     return msg_list;
 }
@@ -236,8 +245,8 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::kickPlayerCommand(IDType
 template <typename IDType>
 std::vector<messageReturn<IDType>> GameManager<IDType>::leaveRoomCommand(IDType player_id){
     std::vector<messageReturn<IDType>> msg_list;
-    //player is not in a room
     std::vector<IDType> player_list;
+    //player is not in a room
     if(player_room_map.count(player_id) == 0){
         player_list.push_back(player_id);
         std::string text = "You are not in a room!";
@@ -264,6 +273,42 @@ template <typename IDType>
 std::vector<messageReturn<IDType>> GameManager<IDType>::initRoomCommand(IDType id){
 }
 
+template <typename IDType>
+std::vector<messageReturn<IDType>> GameManager<IDType>::destroyRoom(IDType player_id){
+    std::vector<messageReturn<IDType>> msg_list;
+    std::vector<IDType> player_list;
+    //player is not in room
+    if(player_room_map.count(player_id) == 0){
+        std::string text = "Action Prohibited. You are not in a room.";
+        for(auto &player : player_list){
+            msg_list.push_back(messageReturn<IDType> {player_id, text, false});
+        }
+    }
+    else{
+        RoomID room_to_destroy = player_room_map.at(player_id);
+        Room player_room = id_room_map.at(room_to_destroy);
+        int peopleInRoom = player_room.returnPlayers().size();
+        //if room still has people in it
+        if(peopleInRoom > 1){
+            std::string text = "Action Prohibited. There are still people in the room";
+            for(auto &player : player_list){
+                msg_list.push_back(messageReturn<IDType> {player_id, text, false});
+            }
+        } else if (player_room.getOwner() != player_id){
+            std::string text = "Action Prohibited. You are not the owner of this room.";
+            for(auto &player : player_list){
+                msg_list.push_back(messageReturn<IDType> {player, text, false});
+            }
+        } else {
+            //TODO: clean up game instance when implemented
+            id_room_map.erase(room_to_destroy);
+            std::string text = "Room: " + std::to_string(player_id) + " has been removed.";
+            for(auto &player : player_list){
+                msg_list.push_back(messageReturn<IDType> {player, text, false});
+            }
+        }
+    }
+}
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`
 
 
