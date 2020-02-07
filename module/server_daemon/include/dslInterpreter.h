@@ -91,7 +91,7 @@ class ListNode: public Node {
     getChildren() { return children; }
 
 		void 
-    addChild(Node& node) { children.emplace_back(node); }
+    addChild(Node& node) { children.push_back(node); }
 
     // TODO
     void
