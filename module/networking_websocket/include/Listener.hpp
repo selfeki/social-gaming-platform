@@ -10,8 +10,8 @@
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
 #include <cstdint>
+#include <iostream>
 #include <memory>
-
 namespace arepa::networking::websocket {
 
 /**
@@ -41,8 +41,6 @@ public:
     ~Listener() = default;
 
 
-#pragma mark - Methods (Protected) -
-protected:
 #pragma mark - Methods -
 public:
     /**

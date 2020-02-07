@@ -36,5 +36,10 @@ BeastContext::BeastContext(const Options& options)
 }
 
 BeastContext::~BeastContext() {
-    delete this->io_context;
+    this->io_context->stop();
+
+    // Join the threads so it doesn't crash the entire program.
+    for (auto& thread : this->threads) {
+        thread.join();
+    }
 }
