@@ -2,6 +2,8 @@
 
 #include <arepa/networking/SessionToken.hpp>
 
+#include <string_view>
+
 using namespace arepa::server;
 using arepa::communication::ChannelMultiQueue;
 using arepa::communication::ChannelSingleQueue;
@@ -9,8 +11,9 @@ using arepa::networking::Session;
 using arepa::networking::SessionToken;
 using arepa::networking::Socket;
 using arepa::protocol::Message;
-using arepa::protocol::MessageSocket;
 using std::shared_ptr;
+using std::string;
+using std::string_view;
 
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -18,7 +21,7 @@ using std::shared_ptr;
 // ---------------------------------------------------------------------------------------------------------------------
 
 Connection::Connection(shared_ptr<Socket> socket)
-    : _socket(MessageSocket(std::move(socket)))
+    : _socket(ConnectionSocket(std::move(socket)))
     , _session(SessionToken::generate()) {
     this->_attach_signals();
 }
@@ -39,8 +42,8 @@ Connection::~Connection() {
 // ---------------------------------------------------------------------------------------------------------------------
 
 void Connection::_attach_signals() {
-    this->_attach_socket_on_message = this->_socket.on_message([this](const Message& message) {
-        this->_channel.send(message);
+    this->_attach_socket_on_message = this->_socket.on_message([this](const Packet& packet) {
+        this->_channel.send(packet);
     });
 }
 
@@ -49,11 +52,11 @@ void Connection::_attach_signals() {
 #pragma mark - Methods -
 // ---------------------------------------------------------------------------------------------------------------------
 
-Connection::MessageQueue Connection::create_message_queue() {
+Connection::PacketQueue Connection::create_packet_queue() {
     return this->_channel.create_consumer();
 }
 
-Connection::MessageQueue Connection::create_message_queue(ChannelMultiQueue<Message>::Filter filter) {
+Connection::PacketQueue Connection::create_packet_queue(ChannelMultiQueue<Packet>::Filter filter) {
     return this->_channel.create_consumer(std::move(filter));
 }
 
@@ -73,20 +76,31 @@ const SessionToken::Id& Connection::session_id() const {
     return this->_session.token().id();
 }
 
-MessageSocket& Connection::socket() {
+ConnectionSocket& Connection::socket() {
     return this->_socket;
 }
 
 
 // ---------------------------------------------------------------------------------------------------------------------
-#pragma mark - Methods -
+#pragma mark - Operators -
 // ---------------------------------------------------------------------------------------------------------------------
 
-Connection& Connection::operator<<(const arepa::protocol::Message& message) {
-    this->_socket.send(message);
+Connection& Connection::operator<<(const Packet& packet) {
+    this->_socket.send(packet);
     return *this;
 }
 
-Connection& arepa::server::operator<<(const std::shared_ptr<Connection>& connection, const arepa::protocol::Message& message) {
-    return *connection << message;
+Connection& Connection::operator<<(const string_view& text) {
+    Message message;
+    message.set_type(Message::SYSTEM);
+    message.set_text(std::string(text));
+    return *this << Packet(message);
+}
+
+Connection& Connection::operator<<(const string& text) {
+    return *this << string_view(text);
+}
+
+Connection& Connection::operator<<(const char* text) {
+    return *this << string_view(text);
 }

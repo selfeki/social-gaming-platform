@@ -5,13 +5,13 @@
 # Function:    arepa_use_protobuf
 # Description:
 #
-#     Configures a pre-existing target to use Protobuf.
+#     Configures a pre-existing target to compile and export Protobuf sources.
 #
 # Arguments:
 #
 #     * `target_name`     - The target name.
 #
-function(arepa_use_protobuf target_name)
+function(arepa_compile_protobuf target_name)
 	find_package(Protobuf REQUIRED)
 
 	# Find all the protobuf files for the target.
@@ -19,6 +19,8 @@ function(arepa_use_protobuf target_name)
 	get_target_property(output_dir "${target_name}" BINARY_DIR)
 	file(GLOB proto_files "${target_dir}/proto/*.proto")
 	set(header_output_dir "${output_dir}/generated_headers")
+
+	# Ensure that it rebuilds protobuf files.
 
 	# Generate source code using protobuf.
 	protobuf_generate_cpp(generated_sources generated_headers ${proto_files})
@@ -47,4 +49,27 @@ function(arepa_use_protobuf target_name)
 
 	# Export!
 	arepa_export_headers("${target_name}" "${header_output_dir}")
+endfunction(arepa_compile_protobuf)
+
+# Function:    arepa_use_protobuf
+# Description:
+#
+#     Configures a pre-existing target to use Protobuf.
+#
+# Arguments:
+#
+#     * `target_name`     - The target name.
+#     * `scope`?          - The library scope. Use PUBLIC if headers are re-exported.
+#
+function(arepa_use_protobuf target_name)
+	find_package(Protobuf REQUIRED)
+
+	if("${ARGC}" GREATER 1)
+		set(scope "${ARGV1}")
+	else()
+		set(scope PRIVATE)
+	endif()
+
+	target_link_libraries("${target_name}" "${scope}" ${Protobuf_LIBRARIES})
+	target_include_directories("${target_name}" SYSTEM "${scope}" ${Protobuf_INCLUDE_DIRS})
 endfunction(arepa_use_protobuf)

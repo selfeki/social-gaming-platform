@@ -1,13 +1,16 @@
 #pragma once
 
+#include "ConnectionSocket.hpp"
+#include "Packet.hpp"
+
 #include <arepa/communication/ChannelMultiQueue.hpp>
 #include <arepa/communication/ChannelSingleQueue.hpp>
 #include <arepa/networking/Session.hpp>
 #include <arepa/networking/Socket.hpp>
 #include <arepa/protocol/Message.hpp>
-#include <arepa/protocol/MessageSocket.hpp>
 
 #include <memory>
+#include <string_view>
 
 namespace arepa::server {
 
@@ -17,7 +20,7 @@ namespace arepa::server {
 class Connection {
 #pragma mark - Types -
 public:
-    typedef std::shared_ptr<arepa::communication::ChannelSingleQueue<arepa::protocol::Message>> MessageQueue;
+    typedef std::shared_ptr<arepa::communication::ChannelSingleQueue<Packet>> PacketQueue;
 
 
 #pragma mark - Fields -
@@ -25,7 +28,7 @@ private:
     /**
      * The network socket for the connection.
      */
-    arepa::protocol::MessageSocket _socket;
+    ConnectionSocket _socket;
 
     /**
      * The client session information for the connection.
@@ -35,7 +38,7 @@ private:
     /**
      * The MPMC message channel.
      */
-    arepa::communication::ChannelMultiQueue<arepa::protocol::Message> _channel;
+    arepa::communication::ChannelMultiQueue<Packet> _channel;
 
     decltype(_socket.on_message)::ListenerID _attach_socket_on_message;
 
@@ -56,28 +59,28 @@ private:
 #pragma mark - Methods -
 public:
     /**
-     * Creates a new message queue for this connection.
-     * All received messages will be copied to this queue, which can be consumed in a thread-safe manner.
+     * Creates a new packet queue for this connection.
+     * All received packet will be copied to this queue, which can be consumed in a thread-safe manner.
      *
-     * @return The new message queue.
+     * @return The new packet queue.
      */
-    [[nodiscard]] MessageQueue create_message_queue();
+    [[nodiscard]] PacketQueue create_packet_queue();
 
     /**
-     * Creates a new filtered message queue for this connection.
-     * Messages will be copied to this queue, which can be consumed in a thread-safe manner.
+     * Creates a new filtered packet queue for this connection.
+     * Packets will be copied to this queue, which can be consumed in a thread-safe manner.
      *
      * @param filter The filter function.
      *
-     * @return The new message queue.
+     * @return The new packet queue.
      */
-    [[nodiscard]] MessageQueue create_message_queue(decltype(_channel)::Filter filter);
+    [[nodiscard]] PacketQueue create_packet_queue(decltype(_channel)::Filter filter);
 
     /**
      * Returns the network socket for the connection.
      * @return A reference to the network socket.
      */
-    [[nodiscard]] arepa::protocol::MessageSocket& socket();
+    [[nodiscard]] ConnectionSocket& socket();
 
     /**
      * Returns the session object for the connection.
@@ -106,10 +109,15 @@ public:
 
 #pragma mark - Operators -
 public:
-    Connection& operator<<(const arepa::protocol::Message& message);
+    Connection& operator<<(const Packet& message);
+    Connection& operator<<(const std::string& message);
+    Connection& operator<<(const std::string_view& message);
+    Connection& operator<<(const char* message);
 };
 
-
-Connection& operator<<(const std::shared_ptr<Connection>& connection, const arepa::protocol::Message& message);
+template <typename T>
+Connection& operator<<(const std::shared_ptr<Connection>& connection, const T& data) {
+    return *connection << data;
+}
 
 }

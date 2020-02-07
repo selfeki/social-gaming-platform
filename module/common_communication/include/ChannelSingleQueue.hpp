@@ -123,7 +123,7 @@ public:
 
         T message = std::move(this->_queue.front());
         this->_queue.pop();
-        return message;
+        return { message };
     }
 };
 }

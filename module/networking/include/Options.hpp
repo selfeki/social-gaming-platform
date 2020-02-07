@@ -13,7 +13,7 @@ class Options {
 
 #pragma mark - Constants -
 public:
-    static const size_t DEFAULT_THREAD_COUNT = 4;
+    static constexpr size_t DEFAULT_THREAD_COUNT = 4;
 
 
 #pragma mark - Fields -

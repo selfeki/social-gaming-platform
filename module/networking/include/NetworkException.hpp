@@ -11,9 +11,6 @@ class NetworkException : public std::exception {
 public:
     enum Kind {
 
-        ILLEGAL_BIND_ADDRESS,
-        ILLEGAL_BIND_PORT,
-
         /**
          * The remote socket closed.
          */
