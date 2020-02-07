@@ -4,5 +4,5 @@ arepa_create_module(game_manager ".")
 arepa_target_cxx(game_manager)	
 
 target_link_libraries(game_manager networking)
-target_link_libraries(game_manager cereal)
+target_link_libraries(game_manager jsonconfig)
 target_link_libraries(game_manager command)
