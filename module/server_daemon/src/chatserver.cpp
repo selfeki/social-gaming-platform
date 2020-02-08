@@ -136,9 +136,6 @@ std::vector<messageReturnAlias> parseCommandAndCollectResponse(const std::string
 
 
 
-
-
-
 /*Nikola's code */
 //function to format a message object to a particular client
 std::deque<Message> sendToClient(const Connection& client, const std::string& log){
