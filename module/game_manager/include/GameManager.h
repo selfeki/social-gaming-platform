@@ -50,6 +50,7 @@ public:
     void gameUpdate();
     std::vector<IDType> returnPlayers();
     void configRoomAndGame(const g_config& game_config);
+    IDType getOwner();
 private:
     std::vector<IDType> players;
     IDType owner;
