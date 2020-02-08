@@ -2,7 +2,8 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <string>
+
+
 
 
 /* Command Class 
@@ -11,14 +12,15 @@
 */
 
 namespace commandSpace{
-
-
-
-
-    Command::Command() : commandRecieved(commandType::message),userInput(" "){}
+    Command::Command() : commandRecieved(commandType::message),userInput(std::vector<input>{" "}){}
     
     //Initializes userInput and commandRecieved according to messageRecieved
-    Command::Command(const input &message):userInput(message){
+    Command::Command(const input &message){
+        std::istringstream iss(message);
+        std::copy(std::istream_iterator<std::string>(iss),
+              std::istream_iterator<std::string>(),
+              std::back_inserter(userInput));
+        
         evaluateMessage(message);
     }
 
@@ -29,6 +31,7 @@ namespace commandSpace{
             commandRecieved = commandType::message;
         }
         else {
+
             auto search = commandMap.find(message);
             if(search != commandMap.end()){
                 commandRecieved = search->second;
@@ -41,6 +44,10 @@ namespace commandSpace{
 
     commandType& Command::getCommandType()  {
         return commandRecieved;
+    }
+
+    std::vector<input> Command::getTokens() const{
+        return userInput;
     }
 }
 

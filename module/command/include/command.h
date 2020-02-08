@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <iterator>
 
 
 
@@ -28,21 +29,19 @@ enum commandType {
     nullCommand     //undefined command. return error
 };
 
-
-
-
-
 class Command{
 public:
     Command();
     Command(const input &message);
 
     void evaluateMessage(const std::string& message);
-    commandType& getCommandType() ;
+    commandType& getCommandType();
+    std::vector<input> getTokens() const;
 
 private:
         commandType commandRecieved;
-        input userInput;
+        //tokenized user input 
+        std::vector<input> userInput;
         //map to connect user input to command
         const std::unordered_map <std::string,commandType> commandMap ={
             {"/member", commandType::listMember},
@@ -54,8 +53,6 @@ private:
             {"/initgame", commandType::initGame},
             {"/shutdown", commandType::shutdownServer},
         };
-
-
 
 };
 
