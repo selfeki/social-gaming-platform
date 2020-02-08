@@ -71,12 +71,12 @@ using SetupValue = boost::make_recursive_variant<
 ////// Player and Audience States
 
 struct Player {
-
+  std::string name;
 };
 
 
 struct Audience {
-
+  std::string name;
 };
 
 
