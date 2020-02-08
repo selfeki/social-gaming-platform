@@ -46,8 +46,8 @@ std::deque<Message> networkMessageQueue;
 
 /*
 transform game messages in game message queue to network messages in
-network message queue, then empty the game message queue. These act like queues, 
-sof first game message processed is first to be put into the network queue. 
+network message queue, then empty the game message queue. These act like queues,
+sof first game message processed is first to be put into the network queue.
 */
 bool gameMessagesToNetworkMessages() {
   bool quit = false;
@@ -66,7 +66,7 @@ bool gameMessagesToNetworkMessages() {
     std::cout << client.id << "\n";
     std::cout << log << "\n";
     networkMessageQueue.push_back({client, log});
-    
+
   }
   return quit;
 }
@@ -92,9 +92,9 @@ MessageType getMessageType(const std::string &_message) {
 * Interpret command and call appropriate game_manager api function (there might be a better way to do this)
 */
 std::vector<messageReturnAlias> parseCommandAndCollectResponse(const std::string& message, UniqueConnectionID id){
-  
+
   std::vector<messageReturnAlias> game_manager_message;
-  
+
   //tokenize the string, split by ' '
   std::vector<std::string> tokens;
   std::istringstream iss(message);
@@ -114,10 +114,10 @@ std::vector<messageReturnAlias> parseCommandAndCollectResponse(const std::string
   else if(tokens[0] == "/join"){
     if(tokens.size() > 1){
       game_manager_message = game_manager.joinRoomCommand(id, tokens[1]);
-    }  
+    }
   }
   else if(tokens[0] == "/kick"){
-    game_manager_message = game_manager.kickPlayerCommand(id);
+    game_manager_message = game_manager.kickPlayerCommand(id, tokens[1]);
   }
   else if(tokens[0] == "/quit"){
     game_manager_message = game_manager.leaveRoomCommand(id);
@@ -257,7 +257,7 @@ main(int argc, char* argv[]) {
   */
   try {
     //game_manager.setUp(server_config);
-  } catch (.../*const GameManagerException& e*/){ 
+  } catch (.../*const GameManagerException& e*/){
     std::cerr << "Server configuration failed";
               //<< e.what() << '\n'
               //<< e.where() << '\n,
@@ -290,18 +290,18 @@ main(int argc, char* argv[]) {
     }
     bool shouldQuit = false;
 
-    
+
     //Get all messages recieved since server.update()
     auto incoming = server.receive();
 
     //Process messages and put them in gameMessagesQueue (global queue)
     processMessages(server, incoming);
-    
+
     //if an admin runs a comman to shutdown server, shouldQuit will be set to true
     shouldQuit = gameMessagesToNetworkMessages();
-    server.send(networkMessageQueue);    
+    server.send(networkMessageQueue);
     networkMessageQueue.clear();
-    
+
     if (shouldQuit || errorWhileUpdating) {
       break;
     }
@@ -309,4 +309,3 @@ main(int argc, char* argv[]) {
   }
   return 0;
 }
-

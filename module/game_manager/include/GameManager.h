@@ -15,7 +15,7 @@ using s_config = server_config::configuration;
 */
 
 //uniquely identifying room id
-typedef std::string RoomID; 
+typedef std::string RoomID;
 
 //message return struct, game_manager returns a vector of these to the daemon,
 //on for each client that is to be sent a message
@@ -37,7 +37,7 @@ private:
     std::string info;
     int error_id;
     std::string json_field;
-}; 
+};
 
 
 template <typename IDType>
@@ -77,21 +77,26 @@ public:
     std::vector<messageReturn<IDType>> returnRoomCommand(IDType id);
     std::vector<messageReturn<IDType>> createRoomCommand(IDType id);
     std::vector<messageReturn<IDType>> joinRoomCommand(IDType id, std::string room_id);
-    std::vector<messageReturn<IDType>> kickPlayerCommand(IDType id);
+    std::vector<messageReturn<IDType>> kickPlayerCommand(IDType id, std::string id_to_kick);
     std::vector<messageReturn<IDType>> leaveRoomCommand(IDType id);
     std::vector<messageReturn<IDType>> initRoomCommand(IDType id);
     std::vector<messageReturn<IDType>> handleGameMessage(std::string msg, IDType player);
+    std::vector<messageReturn<IDType>> destroyRoom(IDType id);
+    std::vector<messageReturn<IDType>> whisperCommand(IDType id, std::string recipient_id, std::string);
 
 private:
 
-    //commandSpace::Command<IDType> commands; 
+    //commandSpace::Command<IDType> commands;
     std::vector<IDType> all_players;
 
     //roomID to room object map
     std::unordered_map<RoomID, Room<IDType>> id_room_map;
 
     //player ID to username map?
-    std::unordered_map<IDType, std::string> id_player_map;
+    //std::unordered_map<IDType, std::string> id_player_map;
+
+    //username to player ID
+    std::unordered_map<std::string, IDType> userName_id_map;
 
     //player ID to roomID map
     std::unordered_map<IDType, RoomID> player_room_map;
@@ -100,4 +105,3 @@ private:
     int max_rooms;
     IDType admin;
 };
-
