@@ -24,20 +24,20 @@ namespace networking {
  *  guaranteed to be unique across all actively connected Client instances.
  */
 struct Connection {
-  uintptr_t id;
+    uintptr_t id;
 
-  bool
-  operator==(Connection other) const {
-    return id == other.id;
-  }
+    bool
+    operator==(Connection other) const {
+        return id == other.id;
+    }
 };
 
 
 struct ConnectionHash {
-  size_t
-  operator()(Connection c) const {
-    return std::hash<decltype(c.id)>{}(c.id);
-  }
+    size_t
+    operator()(Connection c) const {
+        return std::hash<decltype(c.id)> {}(c.id);
+    }
 };
 
 
@@ -46,8 +46,8 @@ struct ConnectionHash {
  *  Connection.
  */
 struct Message {
-  Connection connection;
-  std::string text;
+    Connection connection;
+    std::string text;
 };
 
 
@@ -55,7 +55,7 @@ struct Message {
 class ServerImpl;
 
 struct ServerImplDeleter {
-  void operator()(ServerImpl* serverImpl);
+    void operator()(ServerImpl* serverImpl);
 };
 
 
@@ -76,7 +76,7 @@ struct ServerImplDeleter {
  */
 class Server {
 public:
-  /**
+    /**
    *  Construct a Server that listens for connections on the given port.
    *  The onConnect and onDisconnect arguments are callbacks called when a
    *  Client connects or disconnects from the Server respectively.
@@ -92,74 +92,72 @@ public:
    *  The httpMessage is a string containing HTML content that will be sent
    *  in response to standard HTTP requests for any path ending in `index.html`.
    */
-  template <typename C, typename D>
-  Server(unsigned short port,
-         std::string httpMessage,
-         C onConnect,
-         D onDisconnect)
-    : connectionHandler{std::make_unique<ConnectionHandlerImpl<C,D>>(onConnect, onDisconnect)},
-      impl{buildImpl(*this, port, std::move(httpMessage))}
-      { }
+    template <typename C, typename D>
+    Server(unsigned short port,
+        std::string httpMessage,
+        C onConnect,
+        D onDisconnect)
+        : connectionHandler { std::make_unique<ConnectionHandlerImpl<C, D>>(onConnect, onDisconnect) }
+        , impl { buildImpl(*this, port, std::move(httpMessage)) } {}
 
-  /**
+    /**
    *  Perform all pending sends and receives. This function can throw an
    *  exception if any of the I/O operations encounters an error.
    */
-  void update();
+    void update();
 
-  /**
+    /**
    *  Send a list of messages to their respective Clients.
    */
-  void send(const std::deque<Message>& messages);
+    void send(const std::deque<Message>& messages);
 
-  /**
+    /**
    *  Receive Message instances from Client instances. This returns all Message
    *  instances collected by previous calls to Server::update() and not yet
    *  received.
    */
-  [[nodiscard]] std::deque<Message> receive();
+    [[nodiscard]] std::deque<Message> receive();
 
-  /**
+    /**
    *  Disconnect the Client specified by the given Connection.
    */
-  void disconnect(Connection connection);
-
+    void disconnect(Connection connection);
 
 
 private:
-  friend class ServerImpl;
+    friend class ServerImpl;
 
-  // Hiding the template parameters of the Server class behind a pointer to
-  // a private interface allows us to refer to an unparameterized Server
-  // object while still having the handlers of connect & disconnect be client
-  // defined types. This is a form of *type erasure*.
-  class ConnectionHandler {
-  public:
-    virtual ~ConnectionHandler() = default;
-    virtual void handleConnect(Connection) = 0;
-    virtual void handleDisconnect(Connection) = 0;
-  };
+    // Hiding the template parameters of the Server class behind a pointer to
+    // a private interface allows us to refer to an unparameterized Server
+    // object while still having the handlers of connect & disconnect be client
+    // defined types. This is a form of *type erasure*.
+    class ConnectionHandler {
+    public:
+        virtual ~ConnectionHandler() = default;
+        virtual void handleConnect(Connection) = 0;
+        virtual void handleDisconnect(Connection) = 0;
+    };
 
-  template <typename C, typename D>
-  class ConnectionHandlerImpl final : public ConnectionHandler {
-  public:
-    ConnectionHandlerImpl(C onConnect, D onDisconnect)
-      : onConnect{std::move(onConnect)},
-        onDisconnect{std::move(onDisconnect)}
-        { }
-    ~ConnectionHandlerImpl() override = default;
-    void handleConnect(Connection c)    override { onConnect(c);    }
-    void handleDisconnect(Connection c) override { onDisconnect(c); }
-  private:
-    C onConnect;
-    D onDisconnect;
-  };
+    template <typename C, typename D>
+    class ConnectionHandlerImpl final : public ConnectionHandler {
+    public:
+        ConnectionHandlerImpl(C onConnect, D onDisconnect)
+            : onConnect { std::move(onConnect) }
+            , onDisconnect { std::move(onDisconnect) } {}
+        ~ConnectionHandlerImpl() override = default;
+        void handleConnect(Connection c) override { onConnect(c); }
+        void handleDisconnect(Connection c) override { onDisconnect(c); }
 
-  static std::unique_ptr<ServerImpl,ServerImplDeleter>
-  buildImpl(Server& server, unsigned short port, std::string httpMessage);
+    private:
+        C onConnect;
+        D onDisconnect;
+    };
 
-  std::unique_ptr<ConnectionHandler> connectionHandler;
-  std::unique_ptr<ServerImpl,ServerImplDeleter> impl;
+    static std::unique_ptr<ServerImpl, ServerImplDeleter>
+    buildImpl(Server& server, unsigned short port, std::string httpMessage);
+
+    std::unique_ptr<ConnectionHandler> connectionHandler;
+    std::unique_ptr<ServerImpl, ServerImplDeleter> impl;
 };
 
 
@@ -167,4 +165,3 @@ private:
 
 
 #endif
-

@@ -60,7 +60,7 @@ protected:
         std::shared_ptr<Container> container;
 
         Deleter(std::shared_ptr<Container> container)
-                : container(container) {}
+            : container(container) {}
 
         void operator()(T* ptr) const {
             this->container->disassociate();
