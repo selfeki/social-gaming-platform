@@ -238,7 +238,7 @@ main(int argc, char* argv[]) {
   if (server_config.err) {
     return 1;
   }
-
+  
   //example
   //g_config game = game_config::load_file("templates/game/rps.json", true);
   //std::cout << game.player_count["min"] << std::endl;
