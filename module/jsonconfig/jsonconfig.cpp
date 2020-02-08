@@ -1,11 +1,12 @@
 #include <iostream>
+#include <fstream>
 #include <unordered_map>
 #include <vector>
 #include <nlohmann/json.hpp>
 #include "jsonconfig.h"
 
 using json = nlohmann::json;
-
+//Game config
 void game_config::from_json(const json& j, game_config::configuration& config) {
         j["configuration"]["name"].get_to(config.name);
         j["configuration"]["player count"].get_to(config.player_count);
@@ -19,6 +20,8 @@ void game_config::from_json(const json& j, game_config::configuration& config) {
         for (const auto& element: j["rules"]) {
             config.rules.push_back(element);
         }
+
+        config.err = false;
 
     }
 
@@ -52,14 +55,77 @@ void game_config::print_config(const game_config::configuration& config) {
     std::cout << "\n";
 }
 
+game_config::configuration game_config::load_file(const std::string& filepath, bool debug) {
+    json temp;
+    game_config::configuration ret;
+    std::ifstream s(filepath);
+    if (s.fail()) {
+        std::cerr << "Error: " << strerror(errno) << std::endl;
+        return ret;
+    }
+    
+    try {
+        temp = json::parse(s);
+        ret = temp.get<game_config::configuration>();
+    }
+    catch (json::parse_error& e) {
+        std::cerr << "Failed to parse JSON.\n in jsonconfig.cpp\n"
+        << "message: " << e.what();
+        return ret;
+    }
+
+    
+    ret.jsonpath = filepath;
+    ret.err = false;
+    if (debug) {
+        game_config::print_config(ret);
+    }
+
+    return ret;
+}
+
+
+
+//Server config
 void server_config::from_json(const json& j, server_config::configuration& config) {
     j["port"].get_to(config.port);
     j["html"].get_to(config.htmlpath);
+    config.err = false;
 }
 
 void server_config::print_config(const server_config::configuration& config) {
-    std::cout << "configuration:\n"
+    std::cout << "configuration: {\n"
     << "html: " << config.htmlpath
     << "\nport: " << config.port
-    << "\n";
+    << "\n}\n";
 }
+
+server_config::configuration server_config::load_file(const std::string& filepath, bool debug) {
+    json temp;
+    server_config::configuration ret;
+    std::ifstream s(filepath);
+    if (s.fail()) {
+        std::cerr << "Error: " << strerror(errno) << std::endl;
+        return ret;
+    }
+    
+    try {
+        temp = json::parse(s);
+        ret = temp.get<server_config::configuration>();
+    }
+    catch (json::parse_error& e) {
+        std::cerr << "Failed to parse JSON.\n in jsonconfig.cpp\n"
+        << "message: " << e.what();
+        return ret;
+    }
+
+    
+    ret.jsonpath = filepath;
+    ret.err = false;
+    if (debug) {
+        server_config::print_config(ret);
+    }
+
+    return ret;
+}
+
