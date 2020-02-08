@@ -1,36 +1,40 @@
-#include <vector>
-#include <string>
-#include <DSLInterpreter.h>
+State Interpreter:: operator()(GlobalMessage const& gM) const{
+      return State(gM.message.getData(), PlayersListPacket<Player>(players));
+}
 
-// TODO either implement Visitor or change Node class to std::variant
-// class NodeVisitor;
+State Interpreter:: operator()(Message<Player> const& m) const{
+      return State(m.message.getData(), m.recipents );
+}
 
-// class InterpretVisitor : public NodeVisitor {
-// public:
-//   void
-//   visit(const RuleNode& rule) {
-      
-//   }
+State Interpreter:: operator()(Scores const& sc) const{ 
+    	std::string info = "" ;
+    	for(auto player : players){
+    		if(sc.playerAttribute.getData() == "wins"){
+    			info.append(player.name + " " + std::to_string(player.wins));
+    		}
+    	}
+    	return State(DataPacket(info), PlayersListPacket<Player>(players));
+  } 
 
-//   void
-//   visit(const ListNode& list) {
-      
-//   }
+  State Interpreter:: operator()( InputText<Player> const& iT) const{
+    	return State(iT.dP.getData(), PlayersListPacket<Player>(iT.player), iT.playerAttribute) ;
+    }
 
-//   void
-//   visit(const ElementNode& elem) {
-      
-//   }
-
-// private:
-//   State& state;
-//   RuleNode& currentRule;
-// };
-
-
-  // interprets current rule
-  // returns new state after interpretation
-  State 
-  DSLInterpreter::interpret(Environment& env, State& state) {
-    // TODO
-  }
+    State Interpreter:: takeInput(int timeout, PlayersListPacket<Player> player, std::string attribute){
+    	int seconds = 0 ;
+    	std::string str = "" ;
+    	if(timeout){
+    		while(seconds <= timeout){
+	    		sleep(1);
+	    		seconds++;
+	    		std::getline(std::cin, str);
+	    		if(str.size() > 0){
+	    			break ;
+	    		}
+	    	}
+    	}
+    	else{
+    		std::getline(std::cin, str);
+    	}
+    	return State(DataPacket(str), player);
+    }

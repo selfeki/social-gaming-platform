@@ -1,137 +1,60 @@
-#include <vector>
-#include <string>
-#include <map>
+#include <iostream>  
+#include <string>    
+#include <sstream>
+#include <iterator>
 #include <optional>
 
-#include <State.h>
-
-
-enum RuleType {
-  FOR_EACH,
-  LOOP,
-  IN_PARALLEL,
-  PARALLEL_FOR,
-  SWITCH,
-  WHEN,
-  EXTEND,
-  REVERSE,
-  SHUFFLE,
-  SORT,
-  DEAL,
-  DISCARD,
-  ADD,
-  TIMER,
-  INPUT_CHOICE,
-  INPUT_TEXT,
-  INPUT_VOTE,
-  MESSAGE,
-  GLOBAL_MESSAGE,
-  SCORES
-};
-
-// this does not compile
-// std::map<RuleType, std::string> RuleTypeMap;
-// RuleTypeMap["for each"] = RuleType.FOR_EACH;
-// RuleTypeMap["loop"] = RuleType.LOOP;
-// RuleTypeMap["inparallel"] = RuleType.IN_PARALLEL;
-
-
-class Node {
-public:
-  Node()
-    : parent{std::nullopt}
+class Player {
+  public:
+  std::string name; 
+  int wins = 0 ;
+  DataPacket command ;
+  Player(std::string name):
+    name{name}
     { }
-
-  Node(Node* parent)
-    : parent{parent}
-      { }
-
-  std::optional<Node*>&
-  getParent() { return parent; }
-
-  void 
-  setParent(Node& node) { parent = &node; }
-
-private:
-  std::optional<Node*> parent;
+  Player(const Player& pl):
+   name{pl.name}
+   {}
+  void setAttribute(DataPacket dp, std::string data){
+  	if(dp.getData() == "wins"){
+  		wins= stoi(data) ;
+  	}
+  	if(dp.getData() == "command"){
+  		command.data = data ;
+  	}
+  }
 };
 
-
-class RuleNode : public Node {
-public:
-	RuleNode(Node& parent, Node& child, RuleType ruleType)
-    : Node(parent),
-      child{&child},
-      type{ruleType}
-      { }
-
-  const Node& 
-  getChild() { return *child; }
-
-  void 
-  setChild(Node& node) { child = &node; }
-
-	RuleType getType() { return type; }
-
-private:
-  Node* child;
-
-	RuleType type;
+class State{
+  public:
+  DataPacket DP ;
+  PlayersListPacket<Player> playersInvolved ;
+  std::string attribute ; 
+  State(DataPacket Dp, PlayersListPacket<Player> players):
+    DP{Dp},
+    playersInvolved{players}
+    { }
+  State(DataPacket Dp, PlayersListPacket<Player> players, std::string attribute):
+    DP{Dp},
+    playersInvolved{players},
+    attribute{attribute}
+    { }
 };
 
+using Rule = boost::variant<GlobalMessage, Message<Player>, Scores, InputText<Player>>;
+class Interpreter : public boost::static_visitor<State> {
+  public:
+	  Interpreter(std::vector<Player> players):
+		  players{players}
+		  { }
+    State operator()(GlobalMessage const& gM) const{}
+    State operator()(Message<Player> const& m) const{}
+    State operator()(Scores const& sc) const{} 
+    State operator()( InputText<Player> const& iT) const{}
+    State takeInput(int timeout, PlayersListPacket<Player> player, std::string attribute){}
 
-class ListNode: public Node {
-	public:
-		ListNode(Node& parent, std::vector<Node>& ch)
-    : Node(parent),
-      children{ch}
-      { }
-
-		const std::vector<Node>&
-    getChildren() { return children; }
-
-		void 
-    addChild(Node& node) { children.emplace_back(node); }
-
-    // TODO
-    void
-    RemoveChild(Node& node);
-
-	private:
-		std::vector<Node>& children;
+  private:
+    std::vector<Player> players ;  
+    std::stringstream outStream ;
 };
 
-
-class ElementNode: public Node {
-public:
-  ElementNode(Node& parent, std::string& data)
-    : Node(parent),
-      data{data}
-      { }
-
-  const std::string&
-  getData() { return data; }
-
-private:
-  std::string& data;
-};
-
-
-// todo: separate rule parsing and interpreting into different components
-// todo: identify end of interpretation inside interpretVisitor
-
-class DSLInterpreter {
-public:
-  DSLInterpreter(Node& rule)
-    : currentRule{&rule}
-      { }
-  
-  void
-  setRule(Node rule) { currentRule = &rule; }
-
-  State
-  interpret(Environment& env, State& state);
-
-private:
-  Node* currentRule;
-};
