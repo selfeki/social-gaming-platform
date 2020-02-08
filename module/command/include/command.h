@@ -2,59 +2,61 @@
 
 #include <string>
 #include <vector>
-#include "Server.h"
+#include <string>
+#include <unordered_map>
 
 
 
 namespace commandSpace {
 
+
+//user input date type for abstraction 
+using input = std::string;
+
+
+
 enum commandType {
-    listMember,
-    listRoom,
-    createRoom,
-    joinRoom,
-    kickUser,   
-    nullCommand,
-    quitFromServer,
-    initGame,
-    shutdownServer,
-    message
+    listMember,     //lists all members that are in lobby/room
+    listRoom,       //lists all rooms created in lobby
+    createRoom,     //creates a room in lobby
+    joinRoom,       //joins a room
+    kickUser,       //kicks a user from room/lobby (maintener/room creater)
+    quitFromServer, //user quits from server
+    initGame,       //start a game
+    shutdownServer, //shutdown server 
+    message,        //regular message 
+    nullCommand     //undefined command. return error
 };
 
-typedef std::string RoomType; 
 
-template <typename IDType>
-struct MessageResult {
-  std::string result;
-  bool shouldShutdown;
-  IDType sentFrom;
-  IDType sendTo;
-  RoomType room;
-  //commandType userCommand;
-};
 
-//template <class T>
 
-template <typename IDType>
+
 class Command{
-
 public:
-    //Command(gameManager);
     Command();
-    std::vector<MessageResult<IDType>> handleCommand(std::string msg_text, IDType sent_from );
+    Command(const input &message);
+
+    void evaluateMessage(const std::string& message);
+    commandType& getCommandType() ;
 
 private:
-    /*
-    * This commands class will have to have access to
-    * the game server state
-    */
-    commandType commandRecieved;
-    std::string userInput;  
-    commandType evaluateMessage(const std::string& message);
-    void requestInfoToServer(const commandType& command);
-    std::string returnCommandNotFoundError();
-    commandType getCommandType() const;
-    std::ostringstream memberCommand();
+        commandType commandRecieved;
+        input userInput;
+        //map to connect user input to command
+        const std::unordered_map <std::string,commandType> commandMap ={
+            {"/member", commandType::listMember},
+            {"/room",   commandType::listRoom},
+            {"/create", commandType::createRoom},
+            {"/join",   commandType::joinRoom},
+            {"/kick",   commandType::kickUser},
+            {"/quit",   commandType::quitFromServer},
+            {"/initgame", commandType::initGame},
+            {"/shutdown", commandType::shutdownServer},
+        };
+
+
+
 };
 
 }

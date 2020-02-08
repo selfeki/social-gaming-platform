@@ -50,6 +50,7 @@ public:
     void gameUpdate();
     std::vector<IDType> returnPlayers();
     void configRoomAndGame(const g_config& game_config);
+    IDType getOwner();
 private:
     std::vector<IDType> players;
     IDType owner;
@@ -72,6 +73,9 @@ public:
     void setUp(const s_config& server_config);
     void removePlayer(IDType player, RoomID room);
     void addPlayer(IDType player, RoomID room);
+    
+
+
     std::vector<IDType> getPlayersInRoom(RoomID room);
     std::vector<messageReturn<IDType>> returnRoomMembersCommand(IDType id);
     std::vector<messageReturn<IDType>> returnRoomCommand(IDType id);
@@ -83,6 +87,7 @@ public:
     std::vector<messageReturn<IDType>> handleGameMessage(std::string msg, IDType player);
     std::vector<messageReturn<IDType>> destroyRoom(IDType id);
     std::vector<messageReturn<IDType>> whisperCommand(IDType id, std::string recipient_id, std::string);
+
 
 private:
 
