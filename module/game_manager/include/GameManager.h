@@ -53,25 +53,12 @@ template <typename IDType>
 class Room {
 public:
     Room(IDType _owner, RoomID room_code);
-
-    void 
-    playerJoin(IDType player);
-
-    void 
-    exitPlayer(IDType player);
-
-    void 
-    gameUpdate();
-
-    IDType 
-    getOwner();
-
-    std::vector<IDType> 
-    returnPlayers();
-
-    void 
-    configRoomAndGame(const g_config& game_config);
-
+    void playerJoin(IDType player);
+    void exitPlayer(IDType player);
+    void gameUpdate();
+    std::vector<IDType> returnPlayers();
+    void configRoomAndGame(const g_config& game_config);
+    IDType getOwner();
 private:
     std::vector<IDType> players;
     IDType owner;
