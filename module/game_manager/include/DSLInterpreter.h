@@ -3,7 +3,7 @@
 #include <map>
 #include <optional>
 
-#include <State.h>
+#include <GameState.h>
 
 
 enum RuleType {
@@ -125,8 +125,8 @@ public:
   void
   setRule(Node rule) { currentRule = &rule; }
 
-  State
-  interpret(Environment& env, State& state);
+  GameState
+  interpret(Environment& env, GameState& state);
 
 private:
   Node* currentRule;
