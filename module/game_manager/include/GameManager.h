@@ -1,9 +1,10 @@
 #pragma once
 
 #include "jsonconfig.h"
-#include "Server.h"
-#include <exception>
 #include "command.h"
+#include "GameInstance.h"
+
+#include <exception>
 #include <algorithm>
 #include <time.h>
 #include <unordered_map>
@@ -26,13 +27,21 @@ struct messageReturn {
     bool shouldShutdown;
 };
 
+
 //Custom error handling might be good for the future?
 class GameManagerException: public std::exception {
 public:
     GameManagerException(std::string _info, int _err_id, std::string _json_field);
-    std::string getInfo() const;
-    int getCode() const;
-    std::string getJsonField() const;
+
+    std::string 
+    getInfo() const;
+
+    int 
+    getCode() const;
+
+    std::string 
+    getJsonField() const;
+
 private:
     std::string info;
     int error_id;
@@ -42,15 +51,27 @@ private:
 
 template <typename IDType>
 class Room {
-
 public:
     Room(IDType _owner, RoomID room_code);
-    void playerJoin(IDType player);
-    void exitPlayer(IDType player);
-    void gameUpdate();
-    IDType getOwner();
-    std::vector<IDType> returnPlayers();
-    void configRoomAndGame(const g_config& game_config);
+
+    void 
+    playerJoin(IDType player);
+
+    void 
+    exitPlayer(IDType player);
+
+    void 
+    gameUpdate();
+
+    IDType 
+    getOwner();
+
+    std::vector<IDType> 
+    returnPlayers();
+
+    void 
+    configRoomAndGame(const g_config& game_config);
+
 private:
     std::vector<IDType> players;
     IDType owner;
@@ -58,35 +79,61 @@ private:
     int player_count;
     time_t born;
     RoomID room_id;
-
     //the game object associated with each room will run the game's DSL interpreter
-    //Game game;
+    // GameInstance game;
 };
 
 
 template <typename IDType>
 class GameManager {
-
 public:
+    using messageReturnList = std::vector<messageReturn<IDType>>;
 
     GameManager();
-    void setUp(const s_config& server_config);
-    void removePlayer(IDType player, RoomID room);
-    void addPlayer(IDType player, RoomID room);
-    std::vector<IDType> getPlayersInRoom(RoomID room);
-    std::vector<messageReturn<IDType>> returnRoomMembersCommand(IDType id);
-    std::vector<messageReturn<IDType>> returnRoomCommand(IDType id);
-    std::vector<messageReturn<IDType>> createRoomCommand(IDType id);
-    std::vector<messageReturn<IDType>> joinRoomCommand(IDType id, std::string room_id);
-    std::vector<messageReturn<IDType>> kickPlayerCommand(IDType id, std::string id_to_kick);
-    std::vector<messageReturn<IDType>> leaveRoomCommand(IDType id);
-    std::vector<messageReturn<IDType>> initRoomCommand(IDType id);
-    std::vector<messageReturn<IDType>> handleGameMessage(std::string msg, IDType player);
-    std::vector<messageReturn<IDType>> destroyRoom(IDType id);
-    std::vector<messageReturn<IDType>> whisperCommand(IDType id, std::string recipient_id, std::string);
+
+    void 
+    setUp(const s_config& server_config);
+
+    void 
+    removePlayer(IDType player, RoomID room);
+
+    void 
+    addPlayer(IDType player, RoomID room);
+
+    std::vector<IDType> 
+    getPlayersInRoom(RoomID room);
+
+    messageReturnList 
+    returnRoomMembersCommand(IDType id);
+
+    messageReturnList 
+    returnRoomCommand(IDType id);
+
+    messageReturnList 
+    createRoomCommand(IDType id);
+
+    messageReturnList 
+    joinRoomCommand(IDType id, std::string room_id);
+
+    messageReturnList 
+    kickPlayerCommand(IDType id, std::string id_to_kick);
+
+    messageReturnList 
+    leaveRoomCommand(IDType id);
+
+    messageReturnList 
+    initRoomCommand(IDType id);
+
+    messageReturnList 
+    handleGameMessage(std::string msg, IDType player);
+
+    messageReturnList 
+    destroyRoom(IDType id);
+
+    messageReturnList 
+    whisperCommand(IDType id, std::string recipient_id, std::string);
 
 private:
-
     //commandSpace::Command<IDType> commands;
     std::vector<IDType> all_players;
 
@@ -103,6 +150,8 @@ private:
     std::unordered_map<IDType, RoomID> player_room_map;
 
     int max_players;
+
     int max_rooms;
+
     IDType admin;
 };
