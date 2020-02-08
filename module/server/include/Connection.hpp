@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ConnectionSocket.hpp"
-#include "Packet.hpp"
+#include "UnstructuredPacket.hpp"
 
 #include <arepa/communication/ChannelMultiQueue.hpp>
 #include <arepa/communication/ChannelSingleQueue.hpp>
@@ -20,7 +20,7 @@ namespace arepa::server {
 class Connection {
 #pragma mark - Types -
 public:
-    typedef std::shared_ptr<arepa::communication::ChannelSingleQueue<Packet>> PacketQueue;
+    typedef std::shared_ptr<arepa::communication::ChannelSingleQueue<UnstructuredPacket>> PacketQueue;
 
 
 #pragma mark - Fields -
@@ -38,7 +38,7 @@ private:
     /**
      * The MPMC message channel.
      */
-    arepa::communication::ChannelMultiQueue<Packet> _channel;
+    arepa::communication::ChannelMultiQueue<UnstructuredPacket> _channel;
 
     decltype(_socket.on_message)::ListenerID _attach_socket_on_message;
 
@@ -109,7 +109,7 @@ public:
 
 #pragma mark - Operators -
 public:
-    Connection& operator<<(const Packet& message);
+    Connection& operator<<(const UnstructuredPacket& message);
     Connection& operator<<(const std::string& message);
     Connection& operator<<(const std::string_view& message);
     Connection& operator<<(const char* message);

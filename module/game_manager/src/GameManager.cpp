@@ -1,7 +1,7 @@
 
 #include "GameManager.h"
 
-#include "Server.h"
+#include <arepa/server/Server.h>
 
 typedef std::string RoomID;
 
@@ -124,21 +124,21 @@ std::vector<IDType> GameManager<IDType>::getPlayersInRoom(RoomID room) {
 }
 
 template <typename IDType>
-std::vector<messageReturn<IDType>> GameManager<IDType>::handleGameMessage(std::string msg, IDType player) {
+std::vector<messageReturn<IDType>> GameManager<IDType>::handleGameMessage(std::string msg, IDType playerId) {
 
     std::vector<messageReturn<IDType>> msg_list;
 
     //If player is not in a room, send this message
-    if (player_room_map.count(player) == 0) {
-        msg_list.push_back(messageReturn<IDType> { { player }, "You are not in a room, please join or create a room.", false });
+    if (player_room_map.count(playerId) == 0) {
+        msg_list.push_back(messageReturn<IDType> { { playerId }, "You are not in a room, please join or create a room.", false });
         return msg_list;
     }
 
     //else, get players room, and send their message to each player in that room
-    RoomID room_id = player_room_map.at(player);
+    RoomID room_id = player_room_map.at(playerId);
     //std::cout << room_id << "\n";
     Room playersroom = id_room_map.at(room_id);
-    std::string text = "Room [" + room_id + "] " + std::to_string(player) + ": " + msg;
+    std::string text = "Room [" + room_id + "] " + std::string(playerId) + ": " + msg;
     std::vector<IDType> player_list = playersroom.returnPlayers();
 
     for (auto& player : player_list) {
@@ -158,10 +158,10 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::returnRoomCommand(IDType
 
 //Creates a new room.
 template <typename IDType>
-std::vector<messageReturn<IDType>> GameManager<IDType>::createRoomCommand(IDType player) {
+std::vector<messageReturn<IDType>> GameManager<IDType>::createRoomCommand(IDType playerId) {
 
     std::vector<messageReturn<IDType>> msg_list;
-    std::vector<IDType> player_list = { player };
+    std::vector<IDType> player_list = { playerId };
 
     RoomID room_code;
 
@@ -170,9 +170,9 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::createRoomCommand(IDType
         room_code = gen_random(5);
     } while (id_room_map.count(room_code) > 0);
 
-    id_room_map.insert({ room_code, Room<IDType>(player, room_code) });
-    id_room_map.at(room_code).playerJoin(player);
-    player_room_map.insert({ player, room_code });
+    id_room_map.insert({ room_code, Room<IDType>(playerId, room_code) });
+    id_room_map.at(room_code).playerJoin(playerId);
+    player_room_map.insert({ playerId, room_code });
 
     for (auto& player : player_list) {
         msg_list.push_back(messageReturn<IDType> { player, "Successfully created room " + room_code, false });
@@ -215,7 +215,7 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::joinRoomCommand(IDType i
         id_room_map.at(room_code).playerJoin(id);
         player_list = id_room_map.at(room_code).returnPlayers();
         player_room_map.insert({ id, room_code });
-        std::string text = std::to_string(id) + " has joined room " + room_code + "!";
+        std::string text = string(id) + " has joined room " + room_code + "!";
         for (auto& player : player_list) {
             msg_list.push_back(messageReturn<IDType> { player, text, false });
         }
@@ -230,9 +230,15 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::kickPlayerCommand(IDType
     std::vector<IDType> player_list;
 
     //TODO: find propper way to change from string to IDTYPE
-    IDType player_to_kick = std::stoul(id_to_kick, nullptr, 0);
+    auto find = std::find(player_list.begin(), player_list.end(), id_to_kick);
 
-    if (id != admin) {
+    if (find == player_list.end()) {
+        std::string msg_text = "Player " + id_to_kick + " is not here.";
+        player_list.push_back(id);
+        for (auto& player : player_list) {
+            msg_list.push_back(messageReturn<IDType> { player, msg_text, false });
+        }
+    } else if (id != admin) {
         std::string msg_text = "Action Prohibited. You are not an admin.";
         player_list.push_back(id);
         for (auto& player : player_list) {
@@ -240,7 +246,7 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::kickPlayerCommand(IDType
         }
     } else {
         //leaveRoomCommand(id_to_kick);
-        leaveRoomCommand(player_to_kick);
+        leaveRoomCommand(*find);
     }
     return msg_list;
 }
@@ -262,7 +268,7 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::leaveRoomCommand(IDType 
         //Room player_room = id_room_map.at(curr_player_room_ID);
         //player_room.exitPlayer(player_id);
         id_room_map.at(curr_player_room_ID).exitPlayer(player_id);
-        std::string text = std::to_string(player_id) + " has left the room.";
+        std::string text = std::string(player_id) + " has left the room.";
         player_list = id_room_map.at(curr_player_room_ID).returnPlayers();
         //place user back into lobby
         for (auto& player : player_list) {
@@ -305,7 +311,7 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::destroyRoom(IDType playe
         } else {
             //TODO: clean up game instance when implemented
             id_room_map.erase(room_to_destroy);
-            std::string text = "Room: " + std::to_string(player_id) + " has been removed.";
+            std::string text = "Room: " + std::string(player_id) + " has been removed.";
             for (auto& player : player_list) {
                 msg_list.push_back(messageReturn<IDType> { player, text, false });
             }
@@ -320,14 +326,14 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::whisperCommand(IDType pl
     //TODO: find propper way to change from string to IDTYPE
 
     if (userName_id_map.count(recipient) == 0) {
-        std::string text = "Player: " + std::to_string(player_id) + " does not exist.";
+        std::string text = "Player: " + std::string(player_id) + " does not exist.";
         for (auto& player : player_list) {
             msg_list.push_back(messageReturn<IDType> { player, text, false });
         }
     } else {
         IDType recip_id = userName_id_map.at(recipient);
         player_list.push_back(recip_id);
-        std::string text = std::to_string(player_id) + " says: " + msg;
+        std::string text = std::string(player_id) + " says: " + msg;
         for (auto& player : player_list) {
             msg_list.push_back(messageReturn<IDType> { player, text, false });
         }
@@ -337,7 +343,7 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::whisperCommand(IDType pl
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`
 
 
-template class GameManager<uintptr_t>;
+template class GameManager<networking::ConnectionId>;
 
 /*
 *Avoids linking error allows us to use a template.

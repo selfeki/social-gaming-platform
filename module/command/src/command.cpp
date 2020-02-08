@@ -1,7 +1,6 @@
 #include "command.h"
 
 #include "GameManager.h"
-#include "Server.h"
 
 //#include "chatserver/chatserver.cpp"
 #include <fstream>
@@ -11,7 +10,7 @@
 //#include "game_manager.h"
 
 
-using networking::Connection;
+using networking::ConnectionId;
 using networking::Message;
 using networking::Server;
 
@@ -111,15 +110,15 @@ Command<IDType>::handleCommand(std::string msg_text, IDType sent_from) {
     std::vector<MessageResult<IDType>> message_queue;
     std::ostringstream result;
     commandType command_recieved = evaluateMessage(msg_text);
-    IDType sendTo;
+    IDType sendTo = sent_from;
     bool quit = false;
 
     switch (command_recieved) {
     case commandType::message:
-        result << sent_from << "> " << msg_text << "\n";
+        result << sent_from.name() << "> " << msg_text << "\n";
         break;
     case commandType::listMember:
-        result << sent_from << "> " << msg_text << "\n";
+        result << sent_from.name() << "> " << msg_text << "\n";
         //result << memberCommand().str();
         break;
     case commandType::quitFromServer:
@@ -130,7 +129,7 @@ Command<IDType>::handleCommand(std::string msg_text, IDType sent_from) {
         quit = true;
         break;
     default:
-        result << sent_from << "> " << msg_text << "\n";
+        result << sent_from.name() << "> " << msg_text << "\n";
         result << "Command not defined.\n";
         break;
     }
@@ -141,7 +140,7 @@ Command<IDType>::handleCommand(std::string msg_text, IDType sent_from) {
     return message_queue;
 }
 
-template class Command<uintptr_t>;
-template struct MessageResult<uintptr_t>;
+template class Command<networking::ConnectionId>;
+template struct MessageResult<networking::ConnectionId>;
 
 }

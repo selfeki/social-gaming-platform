@@ -6,11 +6,16 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #include "GameManager.h"
-#include "Server.h"
 #include "jsonconfig.h"
+
+#include <arepa/server/Server.h>
+
+#include <boost/uuid/uuid_io.hpp>
 
 //#include "dsl_interpreter.h"
 //#include "json_parser.h"
+#include <atomic>
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <iterator>
@@ -19,14 +24,16 @@
 #include <unistd.h>
 #include <vector>
 
-using networking::Connection;
+using networking::ConnectionId;
 using networking::Message;
 using networking::Server;
 
 
-typedef uintptr_t UniqueConnectionID;
+typedef networking::ConnectionId UniqueConnectionID;
 typedef messageReturn<UniqueConnectionID> messageReturnAlias;
 typedef GameManager<UniqueConnectionID> GameManagerAlias;
+
+std::atomic<std::uint64_t> unique_connection_id_counter = 0;
 
 //std::vector<Connection> clients;
 
@@ -34,8 +41,6 @@ std::string default_json = "templates/server/default.json";
 
 GameManagerAlias game_manager;
 
-//map from connectionID to connection object
-std::unordered_map<UniqueConnectionID, Connection> idConnectionMap;
 
 //messages returned from game manager
 std::deque<messageReturnAlias> gameMessageQueue;
@@ -62,10 +67,9 @@ bool gameMessagesToNetworkMessages() {
         }
 
         UniqueConnectionID player = message.sendTo;
-        Connection client = idConnectionMap.at(player);
-        std::cout << client.id << "\n";
+        std::cout << boost::uuids::to_string(player.uuid) << "\n";
         std::cout << log << "\n";
-        networkMessageQueue.push_back({ client, log });
+        networkMessageQueue.push_back({ player, log });
     }
     return quit;
 }
@@ -127,7 +131,7 @@ std::vector<messageReturnAlias> parseCommandAndCollectResponse(const std::string
 
 /*Nikola's code */
 //function to format a message object to a particular client
-std::deque<Message> sendToClient(const Connection& client, const std::string& log) {
+std::deque<Message> sendToClient(const ConnectionId& client, const std::string& log) {
     std::deque<Message> outgoing;
     outgoing.push_back({ client, log });
     return outgoing;
@@ -135,34 +139,32 @@ std::deque<Message> sendToClient(const Connection& client, const std::string& lo
 /*Nikola's code */
 
 //Whenever a client connections, this function is called it inserts connection and connection id into map
-void onConnect(Connection c) {
-    std::cout << "New connection found: " << c.id << "\n";
-    std::pair<UniqueConnectionID, Connection> entry { c.id, c };
-    idConnectionMap.insert(entry);
+
+void onConnect(shared_ptr<Connection> c) {
+    auto id = ++unique_connection_id_counter;
+
+    std::cout << "New connection found: " << c->session_token() << "\n";
 
     //override game manager and send back server welcome message...
-    networkMessageQueue.push_back({ c, "Welcome to the server! Enter a command..." });
+    networkMessageQueue.emplace_back(c->session_id(), "Welcome to the server! Enter a command...");
 }
 
 //Called whenenver a client disconnects. Should handle disconneting player from game room
-void onDisconnect(Connection c) {
-    std::cout << "Connection lost: " << c.id << "\n";
-    idConnectionMap.erase(c.id);
-    //...
+void onDisconnect(shared_ptr<Connection> c) {
+    std::cout << "Connection lost: " << c->session_token() << "\n";
 }
 
 
 void processMessages(Server& server, const std::deque<Message>& incoming) {
-
     for (auto& message : incoming) {
-        Connection sentFrom = message.connection;
+        ConnectionId sentFrom = message.connection;
         MessageType msg_type = getMessageType(message.text);
 
         switch (msg_type) {
         case MessageType::COMMAND: {
             //get response to command from game manager, push responses to gameMessageQueue
-            std::vector<messageReturnAlias> cmd_messages = parseCommandAndCollectResponse(message.text, sentFrom.id);
-            for (auto cmd_message : cmd_messages) {
+            std::vector<messageReturnAlias> cmd_messages = parseCommandAndCollectResponse(message.text, sentFrom);
+            for (const auto& cmd_message : cmd_messages) {
                 gameMessageQueue.push_back(cmd_message);
             }
 
@@ -170,8 +172,8 @@ void processMessages(Server& server, const std::deque<Message>& incoming) {
         }
         case MessageType::NORMAL: {
             //messages with no '/' prefix will be interepreted as gameplay
-            std::vector<messageReturnAlias> game_messages = game_manager.handleGameMessage(message.text, sentFrom.id);
-            for (auto game_message : game_messages) {
+            std::vector<messageReturnAlias> game_messages = game_manager.handleGameMessage(message.text, sentFrom);
+            for (const auto& game_message : game_messages) {
                 gameMessageQueue.push_back(game_message);
             }
             break;
@@ -191,20 +193,6 @@ std::deque<Message> buildOutgoing(const std::string& log) {
   return outgoing;
 }
 */
-
-std::string
-getHTTPMessage(const char* htmlLocation) {
-    if (access(htmlLocation, R_OK) != -1) {
-        std::ifstream infile { htmlLocation };
-        return std::string { std::istreambuf_iterator<char>(infile),
-            std::istreambuf_iterator<char>() };
-    } else {
-        std::cerr << "Unable to open HTML index file:\n"
-                  << htmlLocation << "\n";
-        std::exit(-1);
-    }
-}
-
 
 int main(int argc, char* argv[]) {
 
@@ -237,34 +225,20 @@ int main(int argc, char* argv[]) {
     }
 
     unsigned short port = server_config.port;
+    arepa::networking::websocket::Options opts;
+    opts.bind_port = port;
 
-    //getHTTPMessage takes char array not string, LAME
-    int str_size = server_config.htmlpath.size() + 1;
-    char html[str_size + 1];
-    server_config.htmlpath.copy(html, str_size + 1);
-    html[str_size] = '\0';
-
-    Server server { port, getHTTPMessage(html), onConnect, onDisconnect };
+    Server server(opts, &onConnect, &onDisconnect);
 
     /*
   * Main Game Server Loop
   */
 
     while (true) {
-
-        bool errorWhileUpdating = false;
-
-        try {
-            server.update();
-        } catch (std::exception& e) {
-            std::cerr << "Exception from Server update:\n"
-                      << " " << e.what() << "\n\n";
-            errorWhileUpdating = true;
-        }
         bool shouldQuit = false;
 
 
-        //Get all messages recieved since server.update()
+        //Get all messages.
         auto incoming = server.receive();
 
         //Process messages and put them in gameMessagesQueue (global queue)
@@ -275,10 +249,13 @@ int main(int argc, char* argv[]) {
         server.send(networkMessageQueue);
         networkMessageQueue.clear();
 
-        if (shouldQuit || errorWhileUpdating) {
+        if (shouldQuit) {
             break;
         }
-        sleep(1);
+
+        // Sleep to not burn out the CPU.
+        constexpr int ONE_HUNDRED_MILLISECONDS = 1000 * 100;
+        usleep(ONE_HUNDRED_MILLISECONDS);
     }
     return 0;
 }

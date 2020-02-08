@@ -8,6 +8,7 @@
 #include <exception>
 #include <time.h>
 #include <unordered_map>
+#include <optional>
 
 using g_config = game_config::configuration;
 using s_config = server_config::configuration;
@@ -141,5 +142,5 @@ private:
 
     int max_rooms;
 
-    IDType admin;
+    std::optional<IDType> admin;
 };

@@ -42,7 +42,7 @@ Connection::~Connection() {
 // ---------------------------------------------------------------------------------------------------------------------
 
 void Connection::_attach_signals() {
-    this->_attach_socket_on_message = this->_socket.on_message([this](const Packet& packet) {
+    this->_attach_socket_on_message = this->_socket.on_message([this](const UnstructuredPacket& packet) {
         this->_channel.send(packet);
     });
 }
@@ -56,7 +56,7 @@ Connection::PacketQueue Connection::create_packet_queue() {
     return this->_channel.create_consumer();
 }
 
-Connection::PacketQueue Connection::create_packet_queue(ChannelMultiQueue<Packet>::Filter filter) {
+Connection::PacketQueue Connection::create_packet_queue(ChannelMultiQueue<UnstructuredPacket>::Filter filter) {
     return this->_channel.create_consumer(std::move(filter));
 }
 
@@ -85,16 +85,13 @@ ConnectionSocket& Connection::socket() {
 #pragma mark - Operators -
 // ---------------------------------------------------------------------------------------------------------------------
 
-Connection& Connection::operator<<(const Packet& packet) {
+Connection& Connection::operator<<(const UnstructuredPacket& packet) {
     this->_socket.send(packet);
     return *this;
 }
 
 Connection& Connection::operator<<(const string_view& text) {
-    Message message;
-    message.set_type(Message::SYSTEM);
-    message.set_text(std::string(text));
-    return *this << Packet(message);
+    return *this << UnstructuredPacket(string(text));
 }
 
 Connection& Connection::operator<<(const string& text) {
