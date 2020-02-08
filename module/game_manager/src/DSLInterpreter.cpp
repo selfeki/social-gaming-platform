@@ -8,7 +8,7 @@
 
   // interprets current rule
   // returns new state after interpretation
-  State 
-  DSLInterpreter::interpret(Environment& env, State& state) {
+  GameState 
+  DSLInterpreter::interpret(Environment& env, GameState& state) {
     // TODO
   }
