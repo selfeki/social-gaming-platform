@@ -117,7 +117,7 @@ std::vector<messageReturnAlias> parseCommandAndCollectResponse(const std::string
     }
   }
   else if(tokens[0] == "/kick"){
-    game_manager_message = game_manager.kickPlayerCommand(id, tokens[1]);
+    game_manager_message = game_manager.kickPlayerCommand(id);
   }
   else if(tokens[0] == "/quit"){
     game_manager_message = game_manager.leaveRoomCommand(id);
