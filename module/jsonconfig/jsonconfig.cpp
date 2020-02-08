@@ -7,22 +7,23 @@
 using json = nlohmann::json;
 //Game config
 void game_config::from_json(const json& j, game_config::configuration& config) {
-        j["configuration"]["name"].get_to(config.name);
-        j["configuration"]["player count"].get_to(config.player_count);
-        j["configuration"]["audience"].get_to(config.audience);
-        j["configuration"]["setup"].get_to(config.setup);
-        j["constants"].get_to(config.constants);
-        j["variables"].get_to(config.variables);
-        j["per-player"].get_to(config.per_player);
-        j["per-audience"].get_to(config.per_audience);
+    
+    j["configuration"]["name"].get_to(config.name);
+    j["configuration"]["player count"].get_to(config.player_count);
+    j["configuration"]["audience"].get_to(config.audience);
+    j["configuration"]["setup"].get_to(config.setup);
+    j["constants"].get_to(config.constants);
+    j["variables"].get_to(config.variables);
+    j["per-player"].get_to(config.per_player);
+    j["per-audience"].get_to(config.per_audience);
 
-        for (const auto& element: j["rules"]) {
-            config.rules.push_back(element);
-        }
-
-        config.err = false;
-
+    for (const auto& element: j["rules"]) {
+        config.rules.push_back(element);
     }
+
+    config.err = false;
+
+}
 
 std::vector<json> game_config::find_rule(const std::vector<json>& j, const std::string& rule_name) {
     std::vector<json> ret;
