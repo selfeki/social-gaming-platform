@@ -35,24 +35,55 @@ public:
      * @return True if the packet is of T.
      */
     template <typename T>
-    bool is() {
+    bool is() const {
         std::string type_name;
         google::protobuf::Any::ParseAnyTypeUrl(this->_packet.type_url(), &type_name);
         return type_name == T::GetDescriptor()->full_name();
     };
 
-#pragma mark - Operators -
-
+    /**
+     * Tires to cast the packet to type T.
+     * Technically, this is unpacking the Any.
+     *
+     * @tparam T The protobuf message type.
+     * @return The packet, or nullopt if it's the wrong type.
+     */
     template <typename T>
-    operator T() {    // NOLINT
+    std::optional<T> try_downcast() const noexcept(false) {
         if (!this->is<T>()) {
-            throw PacketException(PacketException::ILLEGAL_CAST);
+            return std::nullopt;
         }
 
         // Unpack the Any.
         T unpacked;
         this->_packet.UnpackTo(&unpacked);
-        return unpacked;
+        return { unpacked };
+    };
+
+    /**
+     * Casts the packet to type T.
+     * Technically, this is unpacking the Any.
+     *
+     * @tparam T The protobuf message type.
+     * @return The packet.
+     * @throws PacketException When T doesn't match the packet type.
+     */
+    template <typename T>
+    T downcast() const noexcept(false) {
+        auto maybe = this->try_downcast<T>();
+        if (!maybe) {
+            throw PacketException(PacketException::ILLEGAL_CAST);
+        }
+
+        return *maybe;
+    };
+
+
+#pragma mark - Operators -
+
+    template <typename T>
+    operator T() {    // NOLINT
+        return this->downcast<T>();
     }
 
 
