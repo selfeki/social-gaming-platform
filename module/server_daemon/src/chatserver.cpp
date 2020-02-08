@@ -137,9 +137,6 @@ std::vector<messageReturnAlias> parseCommandAndCollectResponse(const std::string
 
 
 
-
-
-
 /*Nikola's code */
 //function to format a message object to a particular client
 std::deque<Message> sendToClient(const Connection& client, const std::string& log){
@@ -276,30 +273,22 @@ getHTTPMessage(const char* htmlLocation) {
 
 int
 main(int argc, char* argv[]) {
-
-  json j;
-  std::ifstream s;
+  
   s_config server_config;
 
   if (argc < 2) {
-    s.open(default_json);
+    server_config = server_config::load_file(default_json,true);
   } else {
-    s.open(argv[1]);
+    server_config = server_config::load_file(argv[1],true);
   }
-
-  try {
-    j = json::parse(s);
-    server_config = j.get<s_config>();
-  }
-  catch(json::parse_error& e) {
-    std::cerr << "Your JSON isn't right bro.\n"
-              << "message: " << e.what() << '\n'
-              << "exception id" << e.id << '\n'
-              << "byte position of error: " << e.byte << std::endl;
+  
+  if (server_config.err) {
     return 1;
   }
-
-  server_config::print_config(server_config); // debug
+  
+  //example
+  //g_config game = game_config::load_file("templates/game/rps.json", true);
+  //std::cout << game.player_count["min"] << std::endl;
 
   /*
   Try to configurate game_manager... with custom error handling to give useful
