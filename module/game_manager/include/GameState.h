@@ -70,12 +70,12 @@ using SetupValue = boost::make_recursive_variant<
 
 ////// Player and Audience States
 
-struct Player {
+struct GamePlayer {
   std::string name;
 };
 
 
-struct Audience {
+struct GameAudience {
   std::string name;
 };
 
@@ -96,14 +96,6 @@ struct GameState {
 
   // player exclusive data contained here or in userStates?
   // A user might have game-agnostic data
-  std::vector<Player> players;
-  std::vector<Audience> audience;
-};
-
-
-struct UserState; // todo: Implement
-
-class RoomState {
-  GameState gameState;
-  std::vector<UserState> userStates;
+  std::vector<GamePlayer> players;
+  std::vector<GameAudience> audience;
 };
