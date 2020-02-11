@@ -1,9 +1,9 @@
 #pragma once
 
+#include <arepa/server/Server.h>
+
 #include <string>
 #include <vector>
-#include "Server.h"
-
 
 
 namespace commandSpace {
@@ -13,7 +13,7 @@ enum commandType {
     listRoom,
     createRoom,
     joinRoom,
-    kickUser,   
+    kickUser,
     nullCommand,
     quitFromServer,
     initGame,
@@ -21,27 +21,27 @@ enum commandType {
     message
 };
 
-typedef std::string RoomType; 
+typedef std::string RoomType;
 
 template <typename IDType>
 struct MessageResult {
-  std::string result;
-  bool shouldShutdown;
-  IDType sentFrom;
-  IDType sendTo;
-  RoomType room;
-  //commandType userCommand;
+    std::string result;
+    bool shouldShutdown;
+    IDType sentFrom;
+    IDType sendTo;
+    RoomType room;
+    //commandType userCommand;
 };
 
 //template <class T>
 
 template <typename IDType>
-class Command{
+class Command {
 
 public:
     //Command(gameManager);
     Command();
-    std::vector<MessageResult<IDType>> handleCommand(std::string msg_text, IDType sent_from );
+    std::vector<MessageResult<IDType>> handleCommand(std::string msg_text, IDType sent_from);
 
 private:
     /*
@@ -49,7 +49,7 @@ private:
     * the game server state
     */
     commandType commandRecieved;
-    std::string userInput;  
+    std::string userInput;
     commandType evaluateMessage(const std::string& message);
     void requestInfoToServer(const commandType& command);
     std::string returnCommandNotFoundError();

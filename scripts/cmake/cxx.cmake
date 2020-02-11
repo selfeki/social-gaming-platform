@@ -2,6 +2,7 @@
 # Configuration:
 # ----------------------------------------------------------------------------------------------------------------------
 SET(AREPA_DEFAULT_CXX_STANDARD 17)
+SET(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
 	-pedantic -Wall -Wextra -Wfloat-equal -Wold-style-cast \
 	-Wzero-as-null-pointer-constant -Wshadow -Wnon-virtual-dtor -Wint-to-pointer-cast \

@@ -63,6 +63,7 @@ while [[ "$#" -gt 0 ]]; do
 	arg_value="$(cut -d'=' -f2- <<< "$1")"
 
 	case "$arg_name" in
+		"--dev")          invalidate; OPT_BUILD_DIR="dev";;
 		"--reconfigure")  invalidate; OPT_RECONFIGURE=true;;
 		"--release")      invalidate [ "$OPT_PROFILE" != release ]; OPT_PROFILE=release;;
 		"--debug")        invalidate [ "$OPT_PROFILE" != debug   ]; OPT_PROFILE=debug;;
@@ -129,9 +130,16 @@ if "$VARCACHE_INVALID" || [[ "$VARCACHE_VERSION" != "$EXPECTED_VARCACHE_VERSION"
 	"${HERE}/scripts/build/query_build_info.sh" "${CMAKE_ARGS[@]}"  >> "$VARCACHE_FILE"
 
 	source "$VARCACHE_FILE"
+
+  if [[ -n "$OPT_BUILD_DIR" && "$OPT_BUILD_DIR" != "." ]]; then
+    BUILD_DIR="${HERE}/target/$OPT_BUILD_DIR"
+  else
+    BUILD_DIR="$(sed "s/{{system}}/${SYSTEM_STRING}/; s/{{type}}/${OPT_PROFILE}/" <<< "$PROJECT_TARGET_DIR")"
+  fi
+
 	printf "%s=%q\n" \
 		EXPECTED_VARCACHE_VERSION "$VARCACHE_VERSION" \
-		BUILD_DIR                 "$(sed "s/{{system}}/${SYSTEM_STRING}/; s/{{type}}/${OPT_PROFILE}/" <<< "$PROJECT_TARGET_DIR")" \
+		BUILD_DIR                 "$BUILD_DIR" \
 		OPT_PROFILE               "$OPT_PROFILE" \
 		OPT_TOOLCHAIN             "$OPT_TOOLCHAIN" \
 		OPT_LINT                  "$OPT_LINT" \

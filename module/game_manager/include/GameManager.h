@@ -1,13 +1,14 @@
 #pragma once
 
-#include "jsonconfig.h"
-#include "command.h"
 #include "GameInstance.h"
+#include "command.h"
+#include "jsonconfig.h"
 
-#include <exception>
 #include <algorithm>
+#include <exception>
 #include <time.h>
 #include <unordered_map>
+#include <optional>
 
 using g_config = game_config::configuration;
 using s_config = server_config::configuration;
@@ -29,17 +30,17 @@ struct messageReturn {
 
 
 //Custom error handling might be good for the future?
-class GameManagerException: public std::exception {
+class GameManagerException : public std::exception {
 public:
     GameManagerException(std::string _info, int _err_id, std::string _json_field);
 
-    std::string 
+    std::string
     getInfo() const;
 
-    int 
+    int
     getCode() const;
 
-    std::string 
+    std::string
     getJsonField() const;
 
 private:
@@ -59,6 +60,7 @@ public:
     std::vector<IDType> returnPlayers();
     void configRoomAndGame(const g_config& game_config);
     IDType getOwner();
+
 private:
     std::vector<IDType> players;
     IDType owner;
@@ -78,46 +80,46 @@ public:
 
     GameManager();
 
-    void 
+    void
     setUp(const s_config& server_config);
 
-    void 
+    void
     removePlayer(IDType player, RoomID room);
 
-    void 
+    void
     addPlayer(IDType player, RoomID room);
 
-    std::vector<IDType> 
+    std::vector<IDType>
     getPlayersInRoom(RoomID room);
 
-    messageReturnList 
+    messageReturnList
     returnRoomMembersCommand(IDType id);
 
-    messageReturnList 
+    messageReturnList
     returnRoomCommand(IDType id);
 
-    messageReturnList 
+    messageReturnList
     createRoomCommand(IDType id);
 
-    messageReturnList 
+    messageReturnList
     joinRoomCommand(IDType id, std::string room_id);
 
-    messageReturnList 
+    messageReturnList
     kickPlayerCommand(IDType id, std::string id_to_kick);
 
-    messageReturnList 
+    messageReturnList
     leaveRoomCommand(IDType id);
 
-    messageReturnList 
+    messageReturnList
     initRoomCommand(IDType id);
 
-    messageReturnList 
+    messageReturnList
     handleGameMessage(std::string msg, IDType player);
 
-    messageReturnList 
+    messageReturnList
     destroyRoom(IDType id);
 
-    messageReturnList 
+    messageReturnList
     whisperCommand(IDType id, std::string recipient_id, std::string);
 
 private:
@@ -140,5 +142,5 @@ private:
 
     int max_rooms;
 
-    IDType admin;
+    std::optional<IDType> admin;
 };
