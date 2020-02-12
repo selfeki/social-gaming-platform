@@ -30,6 +30,12 @@ public:
 #pragma mark - Methods -
 public:
     /**
+     * Gets the packet type URL.
+     * @return The packet type URL.
+     */
+    std::string type() const;
+
+    /**
      * Checks to see if this packet is of type T.
      * @tparam T The protobuf message type.
      * @return True if the packet is of T.
@@ -39,7 +45,7 @@ public:
         std::string type_name;
         google::protobuf::Any::ParseAnyTypeUrl(this->_packet.type_url(), &type_name);
         return type_name == T::GetDescriptor()->full_name();
-    };
+    }
 
     /**
      * Tires to cast the packet to type T.
