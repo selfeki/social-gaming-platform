@@ -148,10 +148,9 @@ mv "$TEMPFILE" "$LINEFILE"
   fi
 
   # Perform filter.
-  sed -i "bak" "$(printf '%s; ' "${SED_PATTERNS[@]}")" "$LINEFILE"
+  sed "$(printf '%s; ' "${SED_PATTERNS[@]}")" "$LINEFILE" > "${LINEFILE}.tmp"
+  mv "${LINEFILE}.tmp" "$LINEFILE"
 }
-
-
 
 # Read the linefile.
 "$CLOC_TOOL" "$LINEFILE"
