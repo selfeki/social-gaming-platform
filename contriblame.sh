@@ -105,7 +105,7 @@ mv "$TEMPFILE" "$LINEFILE"
   )
 
   # Print a final newline.
-  printf "\n" 1>&2
+  printf "\x1B[G\x1B[2K\x1B[34m%s\x1B[0m\n" "Done." 1>&2
 }) > "$LINEFILE"
 
 # Filter out lines based on our options.
