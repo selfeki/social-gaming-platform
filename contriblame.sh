@@ -59,7 +59,7 @@ mv "$TEMPFILE" "$LINEFILE"
 
 # Git blame and output the user's unique lines to the temp file.
 ({
-  printf "\x1B[34mScanning \x1B[35m%s\x1B[34m for commits by \x1B[35m%s\x1B[34m.\n" "$TARGET_DIR" "$TARGET_AUTHOR"
+  printf "\x1B[34mScanning \x1B[35m%s\x1B[34m for commits by \x1B[35m%s\x1B[34m.\n" "$TARGET_DIR" "$TARGET_AUTHOR" 1>&2
 
   while read -r file; do
     printstatus "$file"
