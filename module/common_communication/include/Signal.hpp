@@ -79,7 +79,7 @@ public:
         std::unique_lock guard(this->_mutex);
 
         ListenerID id = (this->_next_listener_id++);
-        this->_listeners_once.emplace(id, std::forward<Listener>(listener));
+        this->_listeners_once.push_back(Container(id, listener));
 
         return id;
     }
