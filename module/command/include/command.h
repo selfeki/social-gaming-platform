@@ -1,5 +1,7 @@
 #pragma once
 
+#include <arepa/server/Server.h>
+
 #include <string>
 #include <vector>
 #include <string>
