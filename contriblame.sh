@@ -29,13 +29,17 @@ if [[ "$#" -ne 3 ]] || ! timestamp "$3" &>/dev/null; then
   printf "\x1B[31mInvalid arguments provided.\x1B[0m\n"
   printf "\x1B[31mUsage: \x1B[0m%s" "$0"
   printf " [\x1B[4m%s\x1B[24m%s\x1B[37m%s\x1B[0m]" \
-    "dir" "" "" \
+    "dir"    ""   "" \
     "author" ": " "you@example.com" \
-    "since" ": " "YYYY-MM-DD"
+    "since"  ": " "YYYY-MM-DD"
   printf "\n"
   printf "\x1B[31mEnv:\x1B[0m\n"
-  printf "    \x1B[4m%s\x1B[24m -- %s" \
-    "CLOC_TOOL" "The line counting tool to use."
+  printf "    \x1B[4m%s\x1B[24m\x1B[37m%s\x1B[0m  \x1B[0m-- %s\x1B[0m\n" \
+    "CLOC_TOOL" "       sloccount" "The line counting tool to use." \
+    "SKIP_DIRECTIVES" " true     " "Whether to skip preprocessor directives." \
+    "SKIP_COMMENTS" "   true     " "Whether to skip single-line comments." \
+    "SKIP_TRIVIAL" "    true     " "Whether to skip trivial lines." \
+    "SKIP_EMPTY" "      true     " "Whether to skip empty lines."
   exit 1
 fi
 
@@ -47,6 +51,10 @@ if [[ -z "$CLOC_TOOL" ]]; then
   CLOC_TOOL=sloccount
 fi
 
+if [[ -z "$SKIP_DIRECTIVES" ]]; then SKIP_DIRECTIVES=true; fi
+if [[ -z "$SKIP_COMMENTS" ]];   then SKIP_COMMENTS=true; fi
+if [[ -z "$SKIP_TRIVIAL" ]];    then SKIP_TRIVIAL=true; fi
+if [[ -z "$SKIP_EMPTY" ]];      then SKIP_EMPTY=true; fi
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Main:
@@ -86,7 +94,7 @@ mv "$TEMPFILE" "$LINEFILE"
         continue
       fi
 
-      # If the line is an actual line, we feed it into the FIFO.
+      # If the line is a content line, we print it.
       if [[ "$line" =~ ^[[:space:]] ]]; then
         echo "$line"
       fi
@@ -99,6 +107,51 @@ mv "$TEMPFILE" "$LINEFILE"
   # Print a final newline.
   printf "\n" 1>&2
 }) > "$LINEFILE"
+
+# Filter out lines based on our options.
+{
+  SED_PATTERNS=()
+
+  # Skip preprocessor directives.
+  if [[ "$SKIP_DIRECTIVES" = true ]]; then
+    SED_PATTERNS+=('/^[[:space:]]*#.*$/d')
+  fi
+
+  # Skip single-line comments.
+  if [[ "$SKIP_EMPTY" = true ]]; then
+    SED_PATTERNS+=('/^[[:space:]]*\/\/.*$/d')
+  fi
+
+  # Skip empty lines.
+  if [[ "$SKIP_EMPTY" = true ]]; then
+    SED_PATTERNS+=('/^[[:space:]]*$/d')
+  fi
+
+  # Skip trivial lines.
+  # - `{`
+  # - `}`
+  # - `using ...`
+  # - `namespace ...`
+  # - `public:`
+  # - `private:`
+  # - `protected:`
+  # - `struct ...;`
+  # - `class ...;`
+  if [[ "$SKIP_EMPTY" = true ]]; then
+    SED_PATTERNS+=('/^[[:space:]]*{[[:space:]]*$/d')
+    SED_PATTERNS+=('/^[[:space:]]*}[[:space:]]*$/d')
+    SED_PATTERNS+=('/^[[:space:]]*using[[:space:]].*/d')
+    SED_PATTERNS+=('/^[[:space:]]*namespace[[:space:]].*{/d')
+    SED_PATTERNS+=('/^[[:space:]]*private:[[:space:]]*$/d')
+    SED_PATTERNS+=('/^[[:space:]]*(public|private|protected):[[:space:]]*$/d')
+    SED_PATTERNS+=('/^[[:space:]]*(struct|class|union|enum|enum class).*\;.*$/d')
+  fi
+
+  # Perform filter.
+  sed -i "bak" "$(printf '%s; ' "${SED_PATTERNS[@]}")" "$LINEFILE"
+}
+
+
 
 # Read the linefile.
 "$CLOC_TOOL" "$LINEFILE"
