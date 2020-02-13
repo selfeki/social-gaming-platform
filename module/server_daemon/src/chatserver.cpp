@@ -167,88 +167,55 @@ void onDisconnect(shared_ptr<Connection> c) {
 
 void processMessages(Server& server, const std::deque<Message>& incoming) {
     for (auto& message : incoming) {
-        ConnectionId sentFrom = message.connection;
-        MessageType msg_type = getMessageType(message.text);
-
-        switch (msg_type) {
-        case MessageType::COMMAND: {
-            //get response to command from game manager, push responses to gameMessageQueue
-            std::vector<messageReturnAlias> cmd_messages = parseCommandAndCollectResponse(message.text, sentFrom);
-            for (const auto& cmd_message : cmd_messages) {
-                gameMessageQueue.push_back(cmd_message);
-            }
-
-    Command command(message.text);
-    commandType recieved = command.getCommandType();
-    //variable type input is type alias to string defined in command.h
-    std::vector<input> tokens = command.getTokens();
-    if(recieved==commandType::message)
-    {
-      std::vector<messageReturnAlias> game_messages = game_manager.handleGameMessage(message.text, sentFrom.id);
-        for(auto game_message : game_messages) {
-          gameMessageQueue.push_back(game_message);
-        } 
-    }
-    else {
-      //handle command in game manager
-      std::vector<messageReturnAlias> cmd_messages;
-      switch (recieved){
-        case commandType::listMember :
-          cmd_messages = game_manager.returnRoomMembersCommand(sentFrom.id);
-        break;
-        case commandType::listRoom :
-          cmd_messages = game_manager.returnRoomCommand(sentFrom.id);
-          break;
-        case commandType::createRoom :
-          cmd_messages = game_manager.createRoomCommand(sentFrom.id);
-          break;
-        case commandType::joinRoom:
-          cmd_messages = game_manager.joinRoomCommand(sentFrom.id, tokens[1]);
-          break;
-        case commandType::kickUser:
-          cmd_messages = game_manager.kickPlayerCommand(sentFrom.id, tokens[1]);
-          break;
-        case commandType::quitFromServer:
-          cmd_messages = game_manager.leaveRoomCommand(sentFrom.id);
-          break;
-        case commandType::initGame:
-          cmd_messages = game_manager.initRoomCommand(sentFrom.id);
-          break;
-        case commandType::shutdownServer:
-
-          break;
-        };
-        //create message vector to send out 
-        for(auto cmd_message : cmd_messages) {
-          gameMessageQueue.push_back(cmd_message);
-        }
-      }
-      
-    };
-    /*
-    switch(msg_type) {
-      case MessageType::COMMAND:
+      ConnectionId sentFrom = message.connection;
+      Command command(message.text);
+      commandType recieved = command.getCommandType();
+      //variable type input is type alias to string defined in command.h
+      std::vector<input> tokens = command.getTokens();
+      if(recieved==commandType::message)
       {
-        //get response to command from game manager, push responses to gameMessageQueue
-        std::vector<messageReturnAlias> cmd_messages = parseCommandAndCollectResponse(message.text, sentFrom.id);
-        for(auto cmd_message : cmd_messages) {
-          gameMessageQueue.push_back(cmd_message);
-        }
-        case MessageType::NORMAL: {
-            //messages with no '/' prefix will be interepreted as gameplay
-            std::vector<messageReturnAlias> game_messages = game_manager.handleGameMessage(message.text, sentFrom);
-            for (const auto& game_message : game_messages) {
-                gameMessageQueue.push_back(game_message);
-            }
-            break;
-        }
-        break;
+        std::vector<messageReturnAlias> game_messages = game_manager.handleGameMessage(message.text, sentFrom.uuid);
+          for(auto game_message : game_messages) {
+            gameMessageQueue.push_back(game_message);
+          } 
       }
-      default:
-        break;
-   }
-   */
-  }
+      else {
+        //handle command in game manager
+        std::vector<messageReturnAlias> cmd_messages;
+        switch (recieved){
+          case commandType::listMember :
+            cmd_messages = game_manager.returnRoomMembersCommand(sentFrom.uuid);
+          break;
+          case commandType::listRoom :
+            cmd_messages = game_manager.returnRoomCommand(sentFrom.uuid);
+            break;
+          case commandType::createRoom :
+            cmd_messages = game_manager.createRoomCommand(sentFrom.uuid);
+            break;
+          case commandType::joinRoom:
+            cmd_messages = game_manager.joinRoomCommand(sentFrom.uuid, tokens[1]);
+            break;
+          case commandType::kickUser:
+            cmd_messages = game_manager.kickPlayerCommand(sentFrom.uuid, tokens[1]);
+            break;
+          case commandType::quitFromServer:
+            cmd_messages = game_manager.leaveRoomCommand(sentFrom.uuid);
+            break;
+          case commandType::initGame:
+            cmd_messages = game_manager.initRoomCommand(sentFrom.uuid);
+            break;
+          case commandType::shutdownServer:
+
+            break;
+          };
+          //create message vector to send out 
+          for(auto cmd_message : cmd_messages) {
+            gameMessageQueue.push_back(cmd_message);
+          }
+        }
+        
+      };
+    }
 
 
 /*
