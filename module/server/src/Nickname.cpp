@@ -12,9 +12,6 @@ Nickname::Nickname(std::string name)
 
 Nickname::Nickname(Nickname& other_name)
 	: nickName{other_name.getNickName()}{
-		if (!isAlphaNum(other_name.getNickName())){
-			//some error handling
-		}
 	}
 
 Nickname::Nickname(Nickname&& other_name)
