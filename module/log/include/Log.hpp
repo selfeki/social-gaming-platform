@@ -8,7 +8,7 @@
 #include <sstream>
 
 namespace arepa::log {
-static std::shared_ptr<Adapter> global;
+extern std::shared_ptr<Adapter> global;
 
 template <const char* Module>
 class _Log {    // NOLINT

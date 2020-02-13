@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 project(SocialGaming)
 
 # Configure environment-specific build variables.
@@ -7,9 +7,9 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/.buildenv")
 	include("${CMAKE_CURRENT_LIST_DIR}/.buildenv")
 endif()
 
-SET (BOOST_ROOT "/Users/mehtabsinghgill/Library/boost/boost_1_69_0") 
-SET (BOOST_INCLUDEDIR "/Users/mehtabsinghgill/Library/boost/boost_1_69_0") 
-SET (BOOST_LIBRARYDIR "/Users/mehtabsinghgill/Library/boost/boost_1_69_0/stage/lib")
+SET (BOOST_ROOT "/usr/local/boost-1.72.0") 
+SET (BOOST_INCLUDEDIR "/usr/local/boost-1.72.0/include") 
+SET (BOOST_LIBRARYDIR "/usr/local/boost-1.72.0/lib")
 
 # Configure Arepa build variables.
 set(AREPA_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}")

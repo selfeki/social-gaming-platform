@@ -6,6 +6,8 @@
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
 #include <memory>
+#include <mutex>
+#include <queue>
 
 namespace arepa::networking::websocket {
 
@@ -22,8 +24,12 @@ public:
 #pragma mark - Fields -
 private:
     std::atomic<bool> _connected = true;
+    std::atomic<bool> _write_finished = true;
     std::shared_ptr<BeastSocketConnection> _connection;
-    boost::beast::flat_buffer _buffer;
+    boost::beast::flat_buffer _read_buffer;
+    boost::beast::flat_buffer _write_buffer;
+    std::queue<Data> _write_queue;
+    std::mutex _write_lock;
 
 
 #pragma mark - Methods (Protected) -
@@ -34,15 +40,16 @@ private:
 #pragma mark - Methods (Private) -
 private:
     bool _handle_error(const boost::beast::error_code& ec);
-    void _on_async_write(std::shared_ptr<Data>, boost::beast::error_code ec, std::size_t transferred);
+    void _on_async_write(boost::beast::error_code ec, std::size_t transferred);
     void _on_async_read(boost::beast::error_code ec, std::size_t transferred);
     void _on_async_close(boost::beast::error_code ec);
     void _do_async_read();
+    void _do_async_write();
 
 
 #pragma mark - Constructors -
 public:
-    explicit BeastSocket(std::shared_ptr<BeastSocketConnection> connection) noexcept(false);
+    explicit BeastSocket(std::shared_ptr<BeastSocketConnection> connection);
     ~BeastSocket() override = default;
 
 
