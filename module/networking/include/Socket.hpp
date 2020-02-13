@@ -44,7 +44,7 @@ public:
 private:
 #pragma mark - Constructors -
 public:
-    Socket() noexcept(false) = default;
+    Socket() = default;
     virtual ~Socket() = default;
 
 #pragma mark - Methods -

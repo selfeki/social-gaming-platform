@@ -49,7 +49,7 @@ private:
 
 #pragma mark - Constructors -
 public:
-    explicit BeastSocket(std::shared_ptr<BeastSocketConnection> connection) noexcept(false);
+    explicit BeastSocket(std::shared_ptr<BeastSocketConnection> connection);
     ~BeastSocket() override = default;
 
 
