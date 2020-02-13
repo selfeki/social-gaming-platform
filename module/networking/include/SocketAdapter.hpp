@@ -15,9 +15,9 @@ class SocketAdapter {
 #pragma mark - Fields -
 private:
     std::shared_ptr<Socket> _socket;
-    decltype(_socket->on_data)::ListenerID _attach_socket_on_data;
-    decltype(_socket->on_error)::ListenerID _attach_socket_on_error;
-    decltype(_socket->on_close)::ListenerID _attach_socket_on_close;
+    typename decltype(_socket->on_data)::ListenerID _attach_socket_on_data;
+    typename decltype(_socket->on_error)::ListenerID _attach_socket_on_error;
+    typename decltype(_socket->on_close)::ListenerID _attach_socket_on_close;
 
 
 #pragma mark - Signals -
