@@ -12,7 +12,7 @@ public:                                                                         
     __type__() = default;                                                                        \
     constexpr __type__(Value value)                                                              \
         : _value(value) {}                                                                       \
-    [[nodiscard]] operator Value() const { return this->_value; }                                \
+    [[nodiscard]] constexpr operator Value() const { return this->_value; }                      \
     explicit operator bool() = delete;                                                           \
     [[nodiscard]] constexpr bool operator==(__type__ rhs) { return this->_value == rhs._value; } \
-    [[nodiscard]] constexpr bool operator!=(__type__ rhs) { return this->_value != rhs._value; }\
+    [[nodiscard]] constexpr bool operator!=(__type__ rhs) { return this->_value != rhs._value; }
