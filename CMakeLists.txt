@@ -7,9 +7,9 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/.buildenv")
 	include("${CMAKE_CURRENT_LIST_DIR}/.buildenv")
 endif()
 
-SET (BOOST_ROOT "/usr/local/boost-1.69.0") 
-SET (BOOST_INCLUDEDIR "/usr/local/boost-1.69.0/include") 
-SET (BOOST_LIBRARYDIR "/usr/local/boost-1.69.0/lib")
+SET (BOOST_ROOT "/Users/mehtabsinghgill/Library/boost/boost_1_69_0") 
+SET (BOOST_INCLUDEDIR "/Users/mehtabsinghgill/Library/boost/boost_1_69_0") 
+SET (BOOST_LIBRARYDIR "/Users/mehtabsinghgill/Library/boost/boost_1_69_0/stage/lib")
 
 # Configure Arepa build variables.
 set(AREPA_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}")
