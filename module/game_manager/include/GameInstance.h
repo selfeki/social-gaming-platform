@@ -1,43 +1,26 @@
-#include <vector>
-#include <string>
 #include "DSLInterpreter.h"
 
+#include <string>
+#include <vector>
 
-using IDType = std::string;
+struct Rules;    // todo: implement this
 
 
 class GameInstance {
 public:
-  GameInstance(State& state)
-    // use singleton  to generate unique ids?
-    : IDType{id},
-      Interpreter{},
-      environments{extractEnvironments(state)},
-      rules{extractRules(state)}
-      { }
+    GameInstance(GameState& initGameState, Rules& rules);
 
-  // interprets rules until requires user interaction
-  // updates passed in state based upon iterpretation of rule
-  State
-  updateState(State& state);
+    // interprets rules until requires user interaction
+    // updates passed in state based upon iterpretation of rule
+    GameState
+    updateState(GameState& gameState);
 
-  // Possible duplication?
-  // Have the environment be part of passed in state?
-  Environments
-  extractEnvironments(const State& state);
-
-  // Also possible duplication?
-  // Have access to rules from within state instead of extracting?
-  std::vector<Node>
-  extractRules(const State& state);
-
-  IDType
-  getGameID() { return gameID; }
+    // todo: move this method to different component
+    std::vector<Node>
+    parseRules(const Rules& rules);
 
 private:
-  IDType gameID;
-  DSLInterpreter interpreter;
-  std::vector<Node> rules;
-  Environment environment;
-  
+    // TODO
+    // GameState gameState;
+    // DSLInterpreter interpreter;
 };

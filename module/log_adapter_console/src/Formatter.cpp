@@ -67,6 +67,8 @@ string Formatter::format_level(const Entry::Level& level) const {
         return "CRIT ";
     case Entry::Level::ERROR:
         return "ERROR";
+    default:
+        return "?????";
     }
 }
 

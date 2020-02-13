@@ -3,10 +3,13 @@ Checks: >-
   *,
   readability-identifier-naming,
   -google-build-using-namespace,
+  -google-runtime-references,
   -llvm-namespace-comment,
   -fuchsia-*,
   -modernize-use-trailing-return-type,
-  -misc-unused-using-decls
+  -readability-convert-member-functions-to-static,
+  -misc-unused-using-decls,
+  -misc-unused-parameters
 
 # Notes:
 # - misc-unused-using-decls <-- Disabled because of false positives.
@@ -31,7 +34,7 @@ CheckOptions:
   - { key: readability-identifier-naming.GlobalConstantPointerCase,     value: UPPER_CASE  }
   - { key: readability-identifier-naming.GlobalFunctionCase,            value: lower_case  }
   - { key: readability-identifier-naming.GlobalVariableCase,            value: lower_case  }
-  - { key: readability-identifier-naming.InlineNamespaceCase,           value: CamelCase   }
+  - { key: readability-identifier-naming.InlineNamespaceCase,           value: lower_case  }
   - { key: readability-identifier-naming.LocalConstantCase,             value: UPPER_CASE  }
   - { key: readability-identifier-naming.LocalConstantPointerCase,      value: UPPER_CASE  }
   - { key: readability-identifier-naming.LocalPointerCase,              value: camelBack   }
@@ -53,7 +56,7 @@ CheckOptions:
   - { key: readability-identifier-naming.StructCase,                    value: CamelCase   }
   - { key: readability-identifier-naming.TemplateParameterCase,         value: CamelCase   }
   - { key: readability-identifier-naming.TemplateTemplateParameterCase, value: CamelCase   }
-  - { key: readability-identifier-naming.TypeAliasCase,                 value: CamelCase   }
+#  - { key: readability-identifier-naming.TypeAliasCase,                 value: CamelCase   } # Just keep it consistent.
 #  - { key: readability-identifier-naming.TypedefCase,                   value: CamelCase   } # Just keep it consistent.
   - { key: readability-identifier-naming.TypeTemplateParameterCase,     value: CamelCase   }
   - { key: readability-identifier-naming.UnionCase,                     value: CamelCase   }

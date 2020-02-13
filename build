@@ -18,8 +18,10 @@ OPT_LINT=true
 OPT_PROFILE=""
 OPT_TOOLCHAIN=""
 OPT_CORES="$(nproc 2>/dev/null || true)"
+OPT_RUN_BIN=""
 CMAKE_ARGS=()
 MAKE_ARGS=()
+RUN_ARGS=()
 
 # Cache:
 if [[ -f "$VARCACHE_FILE" ]]; then source "$VARCACHE_FILE" || VARCACHE_INVALID=1; fi
@@ -63,17 +65,20 @@ while [[ "$#" -gt 0 ]]; do
 	arg_value="$(cut -d'=' -f2- <<< "$1")"
 
 	case "$arg_name" in
+		"--dev")          invalidate; OPT_BUILD_DIR="dev";;
 		"--reconfigure")  invalidate; OPT_RECONFIGURE=true;;
 		"--release")      invalidate [ "$OPT_PROFILE" != release ]; OPT_PROFILE=release;;
 		"--debug")        invalidate [ "$OPT_PROFILE" != debug   ]; OPT_PROFILE=debug;;
 		"--toolchain")    invalidate [ "$OPT_TOOLCHAIN" != "$arg_value" ]; OPT_TOOLCHAIN="$arg_value";;
+		"--run")          INVOKE="main_run"; OPT_RUN_BIN="$arg_value";;
 		"--no-lint")      invalidate [ "$OPT_LINT" = "true" ]; OPT_LINT=false;;
 		"--lint")         invalidate [ "$OPT_LINT" = "false" ]; OPT_LINT=true;;
 		"--print-info")   INVOKE="main_project_info"; msg_status() { :; };;
+		"--print-dir")    INVOKE="main_project_dir";  msg_status() { :; };;
 		"--help")         INVOKE="main_help";         msg_status() { :; };;
     "--cores")        OPT_CORES="$arg_value";;
 		-*)               invalidate; add_cmake_arg "$1" "$2" || shift;;
-		*)                add_make_arg "$1";;
+		*)                add_make_arg "$1"; RUN_ARGS+=("$1");;
 	esac
 	shift || true
 done
@@ -129,9 +134,16 @@ if "$VARCACHE_INVALID" || [[ "$VARCACHE_VERSION" != "$EXPECTED_VARCACHE_VERSION"
 	"${HERE}/scripts/build/query_build_info.sh" "${CMAKE_ARGS[@]}"  >> "$VARCACHE_FILE"
 
 	source "$VARCACHE_FILE"
+
+  if [[ -n "$OPT_BUILD_DIR" && "$OPT_BUILD_DIR" != "." ]]; then
+    BUILD_DIR="${HERE}/target/$OPT_BUILD_DIR"
+  else
+    BUILD_DIR="$(sed "s/{{system}}/${SYSTEM_STRING}/; s/{{type}}/${OPT_PROFILE}/" <<< "$PROJECT_TARGET_DIR")"
+  fi
+
 	printf "%s=%q\n" \
 		EXPECTED_VARCACHE_VERSION "$VARCACHE_VERSION" \
-		BUILD_DIR                 "$(sed "s/{{system}}/${SYSTEM_STRING}/; s/{{type}}/${OPT_PROFILE}/" <<< "$PROJECT_TARGET_DIR")" \
+		BUILD_DIR                 "$BUILD_DIR" \
 		OPT_PROFILE               "$OPT_PROFILE" \
 		OPT_TOOLCHAIN             "$OPT_TOOLCHAIN" \
 		OPT_LINT                  "$OPT_LINT" \
@@ -160,6 +172,38 @@ main_project_info() {
 	printf "\x1B[33m%-18s \x1B[35m=> \x1B[0m%s\n" \
 		"cmake" "cmake ${CMAKE_ARGS[*]}" \
 		"make"  "${BUILD_COMMAND+make} ${MAKE_ARGS[*]}"
+}
+
+main_project_dir() {
+  echo "$BUILD_DIR"
+}
+
+main_run() {
+  cd "$HERE"
+
+  local executable="${BUILD_DIR}/${OPT_RUN_BIN}"
+  if ! [[ -f "$executable" ]]; then
+    # Find the executable by name.
+    executable=''
+    while read -r file; do
+      if [[ -n "$executable" ]]; then
+        printf "\x1B[31mMultiple executable files by that name were found.\x1B[0m\n" 1>&2
+        printf "\x1B[31mPlease specify it by relative path.\x1B[0m\n" 1>&2
+        exit 2
+      fi
+      executable="$file"
+    done < <(find "${BUILD_DIR}" -name "${OPT_RUN_BIN}")
+  fi
+
+  # Make sure we have an executable.
+  if [[ -z "$executable" ]]; then
+    printf "\x1B[31mNo executable files by that name were found.\x1B[0m\n" 1>&2
+    printf "\x1B[31mHas the project been built yet?\x1B[0m\n" 1>&2
+    exit 2
+  fi
+
+  # Run the executable.
+  exec "$executable" "${RUN_ARGS[@]}"
 }
 
 main_help() {
