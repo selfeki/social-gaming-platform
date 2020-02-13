@@ -9,6 +9,10 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
 	-Wno-unused -Wno-unused-parameter"
 )
 
+if(CMAKE_COMPILER_IS_GNUCC)
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-shadow -Wno-subobject-linkage -Wno-zero-as-null-pointer-constant")
+endif()
+
 if(NOT AREPA_SKIP_LINTING)
 	SET(CMAKE_CXX_CLANG_TIDY clang-tidy)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")

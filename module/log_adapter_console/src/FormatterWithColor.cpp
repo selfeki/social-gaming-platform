@@ -34,6 +34,8 @@ string FormatterWithColor::format_level(const Entry::Level& level) const {
         return "\x1B[1;31mCRIT \x1B[0m";
     case Entry::Level::ERROR:
         return "\x1B[31mERROR\x1B[0m";
+    default:
+        return "\x1B[31m?????\x1B[0m";
     }
 }
 

@@ -9,7 +9,7 @@ Spring 2020, Group Arepa
 A wrapper around `cmake` and `make` is provided for convenience.
 
 ```bash
-./build all
+./build --no-lint
 ls target/[platform string]/[build type]
 ```
 
@@ -26,7 +26,19 @@ The `--debug`, `--release`, and `--toolchain` options will be automatically appl
 
 ### Dependencies
 
-- Boost `1.66.0`
+- Cmake `3.14` or newer
+- Clang `10` or newer
+- Boost `1.72.0`
+- `nlohmann_json`
+
+
+## Running
+
+To the run the server:
+
+```bash
+./build --no-lint && ./build --run=chatserver
+```
 
 
 ## License / Contributing
