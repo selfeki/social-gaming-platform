@@ -20,7 +20,7 @@ using BeastSocketConnection = BeastSocket::BeastSocketConnection;
 #pragma mark - Constructors -
 // ---------------------------------------------------------------------------------------------------------------------
 
-BeastSocket::BeastSocket(shared_ptr<BeastSocketConnection> connection) noexcept(false)
+BeastSocket::BeastSocket(shared_ptr<BeastSocketConnection> connection)
     : _connection(std::move(connection)) {
 }
 
