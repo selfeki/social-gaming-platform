@@ -16,13 +16,12 @@ void game_config::from_json(const json& j, game_config::configuration& config) {
     j["variables"].get_to(config.variables);
     j["per-player"].get_to(config.per_player);
     j["per-audience"].get_to(config.per_audience);
-
+    
     for (const auto& element: j["rules"]) {
         config.rules.push_back(element);
     }
 
     config.err = false;
-
 }
 
 std::vector<json> game_config::find_rule(const std::vector<json>& j, const std::string& rule_name) {
@@ -34,6 +33,18 @@ std::vector<json> game_config::find_rule(const std::vector<json>& j, const std::
         }
     }
     return ret;
+}
+
+json game_config::first_rule(const json& j, const int i) {
+    if (j.find("rules") == j.end()) {
+        return j;
+    } else {
+        return j["rules"][i];
+    }
+}
+
+bool game_config::has_rules(const json& j) {
+    return j.find("rules") != j.end();
 }
 
 void game_config::print_config(const game_config::configuration& config) { 
@@ -84,7 +95,15 @@ game_config::configuration game_config::load_file(const std::string& filepath, b
     return ret;
 }
 
-
+bool game_config::valid(const json& j) {
+    json temp = j.flatten();
+    for (auto element: game_config::enum_to_str) {
+        if (temp[element.second] == NULL) {
+            return false;
+        }
+    }
+    return true;
+}
 
 //Server config
 void server_config::from_json(const json& j, server_config::configuration& config) {
@@ -127,5 +146,15 @@ server_config::configuration server_config::load_file(const std::string& filepat
     }
 
     return ret;
+}
+
+bool server_config::valid(const json& j) {
+    json temp = j.flatten();
+    for (auto element: server_config::enum_to_str) {
+        if (temp[element.second] == NULL) {
+            return false;
+        }
+    }
+    return true;
 }
 

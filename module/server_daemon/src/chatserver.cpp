@@ -236,9 +236,11 @@ main(int argc, char* argv[]) {
     return 1;
   }
   
-  //example
-  //g_config game = game_config::load_file("templates/game/rps.json", true);
-  //std::cout << game.player_count["min"] << std::endl;
+    //example
+    //g_config game = game_config::load_file("templates/game/rps.json", true);
+    //std::cout << game.player_count["min"] << std::endl;
+    //std::cout << game_config::first_rule(game.rules[0]) << std::endl;
+
 
   /*
   Try to configurate game_manager... with custom error handling to give useful
