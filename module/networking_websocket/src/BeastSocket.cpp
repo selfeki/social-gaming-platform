@@ -8,6 +8,7 @@ namespace beast = boost::beast;
 namespace asio = boost::asio;
 using boost::beast::error_code;
 using boost::beast::websocket::close_reason;
+using std::lock_guard;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
@@ -51,9 +52,29 @@ arepa::networking::NetworkException BeastSocket::convert_error(boost::beast::err
 // ---------------------------------------------------------------------------------------------------------------------
 
 void BeastSocket::_do_async_read() {
-    this->_connection->async_read(this->_buffer,
+    this->_connection->async_read(this->_read_buffer,
         beast::bind_front_handler(&BeastSocket::_on_async_read,
             shared_from_this()));
+}
+
+void BeastSocket::_do_async_write() {
+    {
+        std::lock_guard guard(this->_write_lock);
+
+        // Copy the data from the front of the queue to the buffer.
+        Data& data = this->_write_queue.front();
+        auto dataBytes = data.size() * sizeof(Data::value_type);
+
+        this->_write_buffer.clear();
+        boost::asio::buffer_copy(this->_write_buffer.prepare(dataBytes), boost::asio::buffer(data));
+        this->_write_buffer.commit(dataBytes);
+
+        // Pop the front of the queue.
+        this->_write_queue.pop();
+    }
+
+    // Write the data to the socket.
+    this->_connection->async_write(this->_write_buffer.data(), beast::bind_front_handler(&BeastSocket::_on_async_write, shared_from_this()));
 }
 
 void BeastSocket::_on_async_read(error_code ec, std::size_t transferred) {
@@ -62,11 +83,11 @@ void BeastSocket::_on_async_read(error_code ec, std::size_t transferred) {
     }
 
     // Covert to data.
-    auto buffer = static_cast<const uint8_t*>(this->_buffer.data().data());
+    auto buffer = static_cast<const uint8_t*>(this->_read_buffer.data().data());
     auto data = Data();
     data.reserve(transferred);
     std::copy(buffer, buffer + transferred, std::back_inserter(data));
-    this->_buffer.clear();
+    this->_read_buffer.clear();
 
     // Read next packet.
     this->_do_async_read();
@@ -75,9 +96,24 @@ void BeastSocket::_on_async_read(error_code ec, std::size_t transferred) {
     this->on_data.emit(data);
 }
 
-void BeastSocket::_on_async_write(shared_ptr<Data>, error_code ec, std::size_t transferred) {
+void BeastSocket::_on_async_write(error_code ec, std::size_t transferred) {
     if (this->_handle_error(ec)) {
         return;
+    }
+
+    // Do another write?
+    bool doWrite = false;
+    {
+        std::lock_guard guard(this->_write_lock);
+        doWrite = !this->_write_queue.empty();
+
+        if (!doWrite) {
+            this->_write_finished = true;
+        }
+    }
+
+    if (doWrite) {
+        this->_do_async_write();
     }
 }
 
@@ -113,10 +149,15 @@ bool BeastSocket::_handle_error(const error_code& ec) {
 // ---------------------------------------------------------------------------------------------------------------------
 
 void BeastSocket::send(Data data) {
-    // NOTE(ethan): We create a pointer and bind it to the callback so the buffer's underlying memory isn't freed until
-    //              the callback has fired.
-    auto buffer = make_shared<Data>(data);
-    this->_connection->async_write(asio::buffer(*buffer), beast::bind_front_handler(&BeastSocket::_on_async_write, shared_from_this(), buffer));
+    {
+        std::lock_guard guard(this->_write_lock);
+        this->_write_queue.push(std::move(data));
+    }
+
+    bool expected = true;
+    if (this->_write_finished.compare_exchange_weak(expected, false)) {
+        this->_do_async_write();
+    }
 }
 
 void BeastSocket::close() {
