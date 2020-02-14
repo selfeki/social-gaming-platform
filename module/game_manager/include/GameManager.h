@@ -133,6 +133,7 @@ public:
     messageReturnList
     whisperCommand(IDType id, std::string recipient_id, std::string);
 
+<<<<<<< HEAD
     //takes player id and return Room instance
     Room<IDType> playerIDtoRoom(IDType& id);
 
@@ -143,6 +144,10 @@ public:
     messageReturnList
     formMessageToEveryone(std::string& message, bool shouldShutdown);
     
+=======
+    messageReturnList
+    clearCommand(IDType playerId);
+>>>>>>> master
 
 private:
     //commandSpace::Command<IDType> commands;
