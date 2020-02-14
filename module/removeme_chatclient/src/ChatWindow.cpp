@@ -38,6 +38,8 @@ public:
 
   void displayText(const std::string& text);
 
+  void chatWindowClear();
+
 private:
   std::function<void(std::string)> onTextEntry;
 
@@ -176,6 +178,11 @@ ChatWindowImpl::getFieldString() const {
   return std::string{field_buffer(entryField, 0), getFieldSize()};
 }
 
+void
+ChatWindowImpl::chatWindowClear() {
+  werase(stdscr);
+  wborder(entry, ' ', ' ', '-', ' ', '+', '+', ' ', ' ');
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // ChatWindow API
@@ -202,6 +209,11 @@ ChatWindow::update() {
 void
 ChatWindow::displayText(const std::string& text) {
   impl->displayText(text);
+}
+
+void
+ChatWindow::chatWindowClear() {
+  impl->chatWindowClear();
 }
 
 

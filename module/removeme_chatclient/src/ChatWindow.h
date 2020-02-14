@@ -34,6 +34,8 @@ public:
 
   void displayText(const std::string& text);
 
+  void chatWindowClear();
+
 private:
   std::unique_ptr<ChatWindowImpl> impl;
 };
