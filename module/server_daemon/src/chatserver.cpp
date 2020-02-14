@@ -207,7 +207,7 @@ void processMessages(Server& server, const std::deque<Message>& incoming) {
             cmd_messages = game_manager.initRoomCommand(sentFrom.uuid);
             break;
           case commandType::shutdownServer:
-
+            cmd_messages = game_manager.shutdownServerCommand(sentFrom.uuid);
             break;
           };
           //create message vector to send out 

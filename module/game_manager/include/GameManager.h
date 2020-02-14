@@ -117,6 +117,9 @@ public:
     messageReturnList
     quitFromServerCommand(IDType id);
 
+    messageReturnList
+    shutdownServerCommand(IDType id);
+
 
     messageReturnList
     initRoomCommand(IDType id);

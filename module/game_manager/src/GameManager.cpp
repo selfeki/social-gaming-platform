@@ -320,6 +320,21 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::quitFromServerCommand(ID
     */
 }
 
+template <typename IDType>
+std::vector<messageReturn<IDType>> GameManager<IDType>::shutdownServerCommand(IDType id){
+    if(admin!=id){
+        std::string text = "Action Prohibited. You are not the admin of the server.\n";
+        return std::vector<messageReturn<IDType>>{messageReturn<IDType>{id,text,false}};
+    }
+    else{
+        std::string text = "Shutting down server...";
+        std::vector<messageReturn<IDType>> msg_list;
+        for (auto player : all_players){
+            msg_list.push_back(messageReturn<IDType>{player,text,false});
+        }
+        return msg_list;
+    }
+}
 
 template <typename IDType>
 std::vector<messageReturn<IDType>> GameManager<IDType>::initRoomCommand(IDType id) {
