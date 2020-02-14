@@ -1,4 +1,6 @@
 #include<utility>
+#include <numeric>
+#include <string>
 #include "DSLInterpreter.h"
 
 State Interpreter:: operator()(GlobalMessage const& gM) const{
@@ -8,7 +10,7 @@ State Interpreter:: operator()(GlobalMessage const& gM) const{
     if(variable.getData().length() > 0){
         dataMap.insertNew(DataPacket("variable"), variable);
     }
-    return State(dataMap, players);
+    return State(dataMap, players, state.arithmeticVarMap);
 }
 
 State Interpreter:: operator()(MessageRule const& m) const{
@@ -18,7 +20,7 @@ State Interpreter:: operator()(MessageRule const& m) const{
     if(variable.getData().length()>0){
         dataMap.insertNew(DataPacket("variable"), variable);
     }
-    return State(dataMap, m.recipents);
+    return State(dataMap, m.recipents, state.arithmeticVarMap);
 }
 
 State Interpreter:: operator()(Scores const& sc) const{
@@ -36,34 +38,82 @@ State Interpreter:: operator()(Scores const& sc) const{
     }
     dataMap.insertNew(DataPacket("to_display"), DataPacket("player_id"));
     dataMap.insertNew(DataPacket("display_with"), variable);
-    return State(dataMap, players);
+    return State(dataMap, players, state.arithmeticVarMap);
 }
 
+State Interpreter:: operator()(Add const& add) const{
+    MapOfArithmeticVariables arithMap(state.arithmeticVarMap);
+    ArithmeticValue ar(arithMap.getDataMap().find(add.variable)->second);
+    ar.setData(ar.getData() + add.value.getData());
+    arithMap.getDataMap()[add.variable] = ar;
+    return State(state.stateMap, players, arithMap);
+}
+
+State Interpreter:: operator()(InputVote const& inputVote) const{ // To change to consider Time Out
+    if(State(state).stateMap.getDataMap()[DataPacket("input_recieved")].getData().compare("true") != 0){
+        Rule promptMessage((MessageRule(inputVote.messageTosend, inputVote.players)));
+        State st = boost::apply_visitor(Interpreter(players.getPlayers(), state), promptMessage);
+        std::vector<std::string> vectorOfChoices;
+        for(DataPacket choice: inputVote.choices){
+            vectorOfChoices.push_back(choice.getData());
+        }
+        std::string choicesString = std::accumulate(vectorOfChoices.begin(), vectorOfChoices.end(), std::string(" "));
+        Rule promptChoices((MessageRule(DataPacket(choicesString), inputVote.players)));
+        st = boost::apply_visitor(Interpreter(players.getPlayers(), state), promptChoices);
+        return State(st);
+    }
+    MapOfArithmeticVariables choicesMap(std::pair<DataPacket, ArithmeticValue>(DataPacket("None"), ArithmeticValue(0)));
+    for(Player p1: players.getPlayers()){
+        DataPacket choice = State(state).stateMap.getDataMap().find(p1.name)->second;
+        if(choicesMap.getDataMap().find(choice) == choicesMap.getDataMap().end()){
+            choicesMap.insertNew(choice, ArithmeticValue(1));
+        }else{
+            choicesMap.getDataMap()[choice]= choicesMap.getDataMap()[choice].getData() + 1;
+        }
+    }
+    DataPacket bestChoice = std::max_element(choicesMap.getDataMap().begin(), choicesMap.getDataMap().end(),
+                                             [](const std::pair<DataPacket, ArithmeticValue> pair1, const std::pair<DataPacket, ArithmeticValue> pair2){
+                                                 return pair1.second.getData() < pair2.second.getData() ;
+                                             })->first;
+    State st(state);
+    st.stateMap.insertNew(inputVote.resultVariable, bestChoice) ;
+    st.stateMap.getDataMap()[DataPacket("input_recieved")] = DataPacket("false");
+    return st;
+    
+}
 State Interpreter:: operator()( InputText const& iT) const{
-    // return State(iT.dP.getData(), PlayersListPacket(iT.player), std::nullopt) ;
+    if(State(state).stateMap.getDataMap()[DataPacket("input_recieved")].getData().compare("true") != 0){
+        Rule promptMessage((MessageRule(iT.messageTosend, iT.player)));
+        State st = boost::apply_visitor(Interpreter(players.getPlayers(), state), promptMessage);
+        return st;
+    }
+    State st(state);
+    DataPacket dataRecieved = st.stateMap.getDataMap()[DataPacket("input_recieved")] ;
+    st.stateMap.insertNew(iT.resultVariable, dataRecieved);
+    st.stateMap.getDataMap()[DataPacket("input_recieved")] = DataPacket("false");
+    return st ;
 }
 
 State Interpreter:: takeInput(int timeout, PlayersListPacket player, std::string attribute){
-    // int seconds = 0 ;
-    // std::string str = "" ;
-    // if(timeout){
-    //     while(seconds <= timeout){
-    //         sleep(1);
-    //         seconds++;
-    //         std::getline(std::cin, str);
-    //         if(str.size() > 0){
-    //             break ;
-    //         }
-    //     }
-    // }
-    // else{
-    //     std::getline(std::cin, str);
-    // }
-    // return State(DataPacket(str), player, std::nullopt);
+    int seconds = 0 ;
+    std::string str = "" ;
+    if(timeout){
+        while(seconds <= timeout){
+            sleep(1);
+            seconds++;
+            std::getline(std::cin, str);
+            if(str.size() > 0){
+                break ;
+            }
+        }
+    }
+    else{
+        std::getline(std::cin, str);
+    }
+    return state;
 }
 
 DataPacket Interpreter::getVariablesInvolved(DataPacket dp) const{
-    std::cout<<"HAHA"<<std::endl;
     std::string variable = "";
     std::size_t openingBracketIndex = dp.getData().find("{");
     std::size_t closingBracketIndex = dp.getData().find("}") ;
@@ -72,46 +122,3 @@ DataPacket Interpreter::getVariablesInvolved(DataPacket dp) const{
 }
 
 // Main function for sample testing
-int main(){
-//    std::vector<Player> players ;
-//    std::vector<Player> pl2;
-//    
-//    Player p1("p1") ;
-//    Player p2("p2") ;
-//
-//    p1.wins = 2 ;
-//    p2.wins = 3 ;
-//    players.push_back(p1);
-//    players.push_back(p2);
-//    pl2.push_back(p2) ;
-//
-//
-//    DataPacket dpMe ("Good Job! {player.name}") ;
-//    DataPacket dpGM("Welcome {player.Mehtab}") ;
-//    DataPacket vari("{player.wins}");
-//    DataPacket so("False");
-//    // DataPacket dpScores("wins");
-//    // DataPacket dpAttr("command") ;
-//    MessageRule m(dpMe, pl2) ;
-//    GlobalMessage gM(dpGM) ;
-//    Scores scores(vari, so);
-//    // Scores scores(dpScores) ;
-//    // InputText<Player> iT (DataPacket("Please Enter :"), {p1}, 0, "command" );
-//    //std::cout<<gM.message.getData(e)<<std::endl;
-//
-//    Rule ruleM(m);
-//    Rule ruleGM ((gM));
-//    Rule ruleSc ((scores));
-//    // Rule ruleM ((m));
-//    // Rule ruleS ((scores));
-//    // Rule ruleIn ((iT)) ;
-//
-//    State dp = boost::apply_visitor(Interpreter(players), ruleSc);
-//    std::map<DataPacket, DataPacket, classMapComp>::iterator it = dp.stateMap.getDataMap().begin() ;
-//
-//    for(; it != dp.stateMap.getDataMap().end(); it++){
-//        std::cout<<it->first.getData()<< " :: "<<it->second.getData()<<std::endl;
-//    }
-//
-//    return 0 ;
-    }
