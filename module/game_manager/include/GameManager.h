@@ -89,6 +89,9 @@ public:
     void
     addPlayer(IDType player, RoomID room);
 
+    std::vector<IDType> 
+    getRoomOfPlayer(IDType player);
+
     std::vector<IDType>
     getPlayersInRoom(RoomID room);
 
