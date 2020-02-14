@@ -8,7 +8,7 @@
 #include<utility>
 
 
-struct DataPacket{    // wrapper around string values
+struct DataPacket{   // String data wrapper
     std::string data ;
     DataPacket():
     data{""}
@@ -90,11 +90,11 @@ public:                                           // 2. Take the message and get
     { }
 };
 
-class Message{                                    // Message requires 'Message' as String & 'Receipents' as Player
+class MessageRule{                                    // Message requires 'Message' as String & 'Receipents' as Player
 public:
     DataPacket message ;
     PlayersListPacket recipents;
-    Message(DataPacket message, PlayersListPacket recipents):
+    MessageRule(DataPacket message, PlayersListPacket recipents):
     message{message},
     recipents{recipents}
     { }

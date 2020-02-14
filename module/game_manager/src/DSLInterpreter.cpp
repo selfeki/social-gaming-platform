@@ -11,7 +11,7 @@ State Interpreter:: operator()(GlobalMessage const& gM) const{
     return State(dataMap, players);
 }
 
-State Interpreter:: operator()(Message const& m) const{
+State Interpreter:: operator()(MessageRule const& m) const{
     DataPacket variable = getVariablesInvolved(m.message.getData());
     MapOfDataPackets dataMap(std::pair<DataPacket, DataPacket>(DataPacket("type"), DataPacket("to_recipents")));
     dataMap.insertNew(DataPacket("message"), m.message);
@@ -72,46 +72,46 @@ DataPacket Interpreter::getVariablesInvolved(DataPacket dp) const{
 }
 
 // Main function for sample testing
-// int main(){
-//     std::vector<Player> players ;
-//     std::vector<Player> pl2;
-
-//     Player p1("p1") ;
-//     Player p2("p2") ;
-
-//     p1.wins = 2 ;
-//     p2.wins = 3 ;
-//     players.push_back(p1);
-//     players.push_back(p2);
-//     pl2.push_back(p2) ;
-
-
-//     DataPacket dpMe ("Good Job! {player.name}") ;
-//     DataPacket dpGM("Welcome {player.Mehtab}") ;
-//     DataPacket vari("{player.wins}");
-//     DataPacket so("False");
-//     // DataPacket dpScores("wins");
-//     // DataPacket dpAttr("command") ;
-//     Message m(dpMe, pl2) ;
-//     GlobalMessage gM(dpGM) ;
-//     Scores scores(vari, so);
-//     // Scores scores(dpScores) ;
-//     // InputText<Player> iT (DataPacket("Please Enter :"), {p1}, 0, "command" );
-//     //std::cout<<gM.message.getData()<<std::endl;
-
-//     Rule ruleM(m);
-//     Rule ruleGM ((gM));
-//     Rule ruleSc ((scores));
-//     // Rule ruleM ((m));
-//     // Rule ruleS ((scores));
-//     // Rule ruleIn ((iT)) ;
-
-//     State dp = boost::apply_visitor(Interpreter(players), ruleSc);
-//     std::map<DataPacket, DataPacket, classMapComp>::iterator it = dp.stateMap.getDataMap().begin() ;
-
-//     for(; it != dp.stateMap.getDataMap().end(); it++){
-//             std::cout<<it->first.getData()<< " :: "<<it->second.getData()<<std::endl;
-//         }
-
-//     return 0 ;
-// }
+int main(){
+//    std::vector<Player> players ;
+//    std::vector<Player> pl2;
+//    
+//    Player p1("p1") ;
+//    Player p2("p2") ;
+//
+//    p1.wins = 2 ;
+//    p2.wins = 3 ;
+//    players.push_back(p1);
+//    players.push_back(p2);
+//    pl2.push_back(p2) ;
+//
+//
+//    DataPacket dpMe ("Good Job! {player.name}") ;
+//    DataPacket dpGM("Welcome {player.Mehtab}") ;
+//    DataPacket vari("{player.wins}");
+//    DataPacket so("False");
+//    // DataPacket dpScores("wins");
+//    // DataPacket dpAttr("command") ;
+//    MessageRule m(dpMe, pl2) ;
+//    GlobalMessage gM(dpGM) ;
+//    Scores scores(vari, so);
+//    // Scores scores(dpScores) ;
+//    // InputText<Player> iT (DataPacket("Please Enter :"), {p1}, 0, "command" );
+//    //std::cout<<gM.message.getData(e)<<std::endl;
+//
+//    Rule ruleM(m);
+//    Rule ruleGM ((gM));
+//    Rule ruleSc ((scores));
+//    // Rule ruleM ((m));
+//    // Rule ruleS ((scores));
+//    // Rule ruleIn ((iT)) ;
+//
+//    State dp = boost::apply_visitor(Interpreter(players), ruleSc);
+//    std::map<DataPacket, DataPacket, classMapComp>::iterator it = dp.stateMap.getDataMap().begin() ;
+//
+//    for(; it != dp.stateMap.getDataMap().end(); it++){
+//        std::cout<<it->first.getData()<< " :: "<<it->second.getData()<<std::endl;
+//    }
+//
+//    return 0 ;
+    }
