@@ -394,7 +394,6 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::whisperCommand(IDType pl
     return msg_list;
 }
 
-<<<<<<< HEAD
 template <typename IDType>
 Room<IDType> GameManager<IDType>::playerIDtoRoom(IDType& id){
     auto room_id = player_room_map.at(id);
@@ -423,7 +422,20 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::formMessageToEveryone(st
 }
 
 
-=======
+template <typename IDType>
+std::vector<messageReturn<IDType>> GameManager<IDType>::formMessageTo (std::string& message, IDType& recipient)  {
+    std::vector<messageReturn<IDType>> msg_list = { messageReturn<IDType>{recipient,message,false} };
+    return msg_list;
+}
+
+template <typename IDType>
+std::vector<messageReturn<IDType>> GameManager<IDType>::formMessageTo (std::string& message, std::vector<IDType>& recipient)  {
+    std::vector<messageReturn<IDType>> msg_list; 
+    for(auto& id : recipient){
+        msg_list.push_back(messageReturn<IDType>{id, message, false});
+    }
+    return msg_list;
+}
 //Issues command to client to clear chat history. Will be useful for initiating a game instance
 template <typename IDType>
 std::vector<messageReturn<IDType>> GameManager<IDType>::clearCommand(IDType playerId) {
@@ -438,7 +450,6 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::clearCommand(IDType play
     return msg_list;
 }
 
->>>>>>> master
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`
 
 
