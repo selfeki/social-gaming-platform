@@ -157,6 +157,8 @@ void onConnect(shared_ptr<Connection> c) {
 
     //override game manager and send back server welcome message...
     networkMessageQueue.emplace_back(c->session_id(), "Welcome to the server! Enter a command...");
+    //put player in a room 
+    //game_manager.createRoomCommand();
 }
 
 //Called whenenver a client disconnects. Should handle disconneting player from game room
@@ -264,7 +266,7 @@ int main(int argc, char* argv[]) {
 
     Server server(opts, &onConnect, &onDisconnect);
 
-    /*
+  /*
   * Main Game Server Loop
   */
 

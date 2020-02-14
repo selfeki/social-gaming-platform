@@ -150,6 +150,17 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::handleGameMessage(std::s
 
 template <typename IDType>
 std::vector<messageReturn<IDType>> GameManager<IDType>::returnRoomMembersCommand(IDType id) {
+    auto room_id = player_room_map.at(id);
+    auto room = id_room_map.at(room_id);
+    std::vector<IDType> memberList = room.returnPlayers();
+    std::string text = "Member List...\n";
+    int memberNumber = 1;
+    std::vector<messageReturn<IDType>> msg_list;
+    for(auto member : memberList){
+        text.append(member);
+    }
+
+    msg_list.push_back(messageReturn<IDType>{id,text,false});
 }
 
 template <typename IDType>
