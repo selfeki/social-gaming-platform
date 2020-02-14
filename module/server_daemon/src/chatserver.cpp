@@ -130,6 +130,9 @@ std::vector<messageReturnAlias> parseCommandAndCollectResponse(const std::string
     case commandType::initGame:
       game_manager_message = game_manager.initRoomCommand(id);
       break;
+    case commandType::clear:
+      game_manager_message = game_manager.clearCommand(id);
+      break;
     case commandType::shutdownServer:
 
       break;
@@ -199,6 +202,9 @@ void processMessages(Server& server, const std::deque<Message>& incoming) {
             break;
           case commandType::kickUser:
             cmd_messages = game_manager.kickPlayerCommand(sentFrom.uuid, tokens[1]);
+            break;
+          case commandType::clear:
+            cmd_messages = game_manager.clearCommand(sentFrom.uuid);
             break;
           case commandType::quitFromServer:
             cmd_messages = game_manager.leaveRoomCommand(sentFrom.uuid);

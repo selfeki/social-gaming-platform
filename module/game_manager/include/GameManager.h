@@ -125,6 +125,9 @@ public:
     messageReturnList
     whisperCommand(IDType id, std::string recipient_id, std::string);
 
+    messageReturnList
+    clearCommand(IDType playerId);
+
 private:
     //commandSpace::Command<IDType> commands;
     std::vector<IDType> all_players;

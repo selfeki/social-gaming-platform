@@ -76,7 +76,7 @@ void Server::send(const std::deque<Message>& messages) {
     for (auto& message : messages) {
         auto connection = this->connection(message.connection);
         if (connection) {
-            *connection << message.text;
+            *connection << message.text << "\n";
         }
     }
 }

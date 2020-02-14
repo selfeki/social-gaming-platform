@@ -372,6 +372,21 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::whisperCommand(IDType pl
     }
     return msg_list;
 }
+
+//Issues command to client to clear chat history. Will be useful for initiating a game instance
+template <typename IDType>
+std::vector<messageReturn<IDType>> GameManager<IDType>::clearCommand(IDType playerId) {
+
+    std::vector<messageReturn<IDType>> msg_list;
+    std::vector<IDType> player_list = { playerId };
+
+    for (auto& player : player_list) {
+        msg_list.push_back(messageReturn<IDType> { player, "/clear", false });
+    }
+
+    return msg_list;
+}
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`
 
 
