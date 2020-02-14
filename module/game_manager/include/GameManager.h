@@ -96,10 +96,10 @@ public:
     getPlayersInRoom(RoomID room);
 
     messageReturnList
-    returnRoomMembersCommand(IDType id);
+    returnRoomMembersCommand(IDType player_id);
 
     messageReturnList
-    returnRoomCommand(IDType id);
+    returnRoomCommand(IDType player_id);
 
     messageReturnList
     createRoomCommand(IDType id);

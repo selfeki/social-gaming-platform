@@ -149,22 +149,43 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::handleGameMessage(std::s
 }
 
 template <typename IDType>
-std::vector<messageReturn<IDType>> GameManager<IDType>::returnRoomMembersCommand(IDType id) {
-    auto room_id = player_room_map.at(id);
-    auto room = id_room_map.at(room_id);
-    std::vector<IDType> memberList = room.returnPlayers();
-    std::string text = "Member List...\n";
-    int memberNumber = 1;
+std::vector<messageReturn<IDType>> GameManager<IDType>::returnRoomMembersCommand(IDType player_id){
     std::vector<messageReturn<IDType>> msg_list;
-    for(auto member : memberList){
-        text.append(member);
-    }
+    std::vector<IDType> player_list;
 
-    msg_list.push_back(messageReturn<IDType>{id,text,false});
+    player_list.push_back(player_id);
+    RoomID player_room_id = player_room_map.at(player_id);
+    if (id_room_map.count(player_room_id) == 0) {
+        std::string text = "Room: " + player_room_id + " does not exist.";
+        for (auto& player : player_list) {
+            msg_list.push_back(messageReturn<IDType> { player, text, false });
+        }
+    } else{
+        Room player_room = id_room_map.at(player_room_id);
+        std::vector<IDType> players_in_room = player_room.returnPlayers();
+        std::string text = "";
+        for(auto& player : players_in_room){
+            text = text + std::string(player) + "\n";
+        }
+        msg_list.push_back(messageReturn<IDType> { player_id, text, false });
+    }
+    return msg_list;
 }
 
 template <typename IDType>
-std::vector<messageReturn<IDType>> GameManager<IDType>::returnRoomCommand(IDType id) {
+std::vector<messageReturn<IDType>> GameManager<IDType>::returnRoomCommand(IDType player_id) {
+    std::vector<messageReturn<IDType>> msg_list;
+    std::vector<IDType> player_list;
+    player_list.push_back(player_id);
+    if (player_room_map.count(player_id) == 0) {
+        std::string text = "You are not in a room.";
+        for (auto& player : player_list) {
+            msg_list.push_back(messageReturn<IDType> { player, text, false });
+        }
+    } else {
+        RoomID player_room_id = player_room_map.at(player_id);
+        std::string text = "Room ID: " + std::string();
+    }
 }
 
 //Creates a new room.
