@@ -134,7 +134,15 @@ public:
     whisperCommand(IDType id, std::string recipient_id, std::string);
 
     //takes player id and return Room instance
-    std::unique_ptr<Room<IDType>> playerIDtoRoom(IDType& id);
+    Room<IDType> playerIDtoRoom(IDType& id);
+
+    //forms message return to send a message everyone in the room
+    messageReturnList
+    formMessageToRoomMembers(std::string& message, IDType& sentFrom, bool shouldShutdown);
+    
+    messageReturnList
+    formMessageToEveryone(std::string& message, bool shouldShutdown);
+    
 
 private:
     //commandSpace::Command<IDType> commands;

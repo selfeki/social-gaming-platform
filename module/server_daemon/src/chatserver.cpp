@@ -139,14 +139,12 @@ std::vector<messageReturnAlias> parseCommandAndCollectResponse(const std::string
 }
 
 
-/*Nikola's code */
 //function to format a message object to a particular client
 std::deque<Message> sendToClient(const ConnectionId& client, const std::string& log) {
     std::deque<Message> outgoing;
     outgoing.push_back({ client, log });
     return outgoing;
 }
-/*Nikola's code */
 
 //Whenever a client connections, this function is called it inserts connection and connection id into map
 

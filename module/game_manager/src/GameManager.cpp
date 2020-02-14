@@ -312,24 +312,20 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::leaveRoomCommand(IDType 
 
 template <typename IDType>
 std::vector<messageReturn<IDType>> GameManager<IDType>::quitFromServerCommand(IDType player_id){
-    //std::string text = "Player " + player_id +" is leaving the server \n";
-    /*
-    for(){
 
-    }
-    */
 }
 
 template <typename IDType>
 std::vector<messageReturn<IDType>> GameManager<IDType>::shutdownServerCommand(IDType id){
-    if(admin!=id){
+    if(false){
         std::string text = "Action Prohibited. You are not the admin of the server.\n";
         return std::vector<messageReturn<IDType>>{messageReturn<IDType>{id,text,false}};
     }
     else{
-        std::string text = "Shutting down server...";
-        std::vector<messageReturn<IDType>> msg_list;
-        for (auto player : all_players){
+        std::string text = "Shutting down server...\n";
+        std::vector<messageReturn<IDType>> msg_list; //= formMessageToEveryone(text,true);
+        
+        for (auto& player : all_players){
             msg_list.push_back(messageReturn<IDType>{player,text,false});
         }
         return msg_list;
@@ -399,11 +395,32 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::whisperCommand(IDType pl
 }
 
 template <typename IDType>
-std::unique_ptr<Room<IDType>> GameManager<IDType>::playerIDtoRoom(IDType& id){
+Room<IDType> GameManager<IDType>::playerIDtoRoom(IDType& id){
     auto room_id = player_room_map.at(id);
-    std::unique_ptr<Room<IDType>> room = std::make_unique<Room<IDType>>(id_room_map.at(room_id));
+    Room<IDType> room = id_room_map.at(room_id);
     return room;
 }
+
+template <typename IDType>
+std::vector<messageReturn<IDType>> GameManager<IDType>::formMessageToRoomMembers(std::string& message, IDType& sentFrom, bool shouldShutdown){
+    auto room = playerIDtoRoom(sentFrom);
+    std::vector<IDType> members = room.returnPlayers();
+    std::vector<messageReturn<IDType>> msg_list;
+    for(auto member : members){
+        msg_list.push_back(messageReturn<IDType>{member, message,shouldShutdown});
+    }
+    return msg_list;
+}
+
+template <typename IDType>
+std::vector<messageReturn<IDType>> GameManager<IDType>::formMessageToEveryone(std::string& message, bool shouldShutdown){
+    std::vector<messageReturn<IDType>> msg_list;
+    for(auto member : all_players){
+        msg_list.push_back(messageReturn<IDType>{member, message, false});
+    }
+    return msg_list;
+}
+
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`
 
