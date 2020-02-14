@@ -26,7 +26,8 @@ enum commandType {
     kickUser,       //kicks a user from room/lobby (maintener/room creater)
     quitFromServer, //user quits from server
     initGame,       //start a game
-    shutdownServer, //shutdown server 
+    shutdownServer, //shutdown server
+    clear,          //command issued to client to clear view
     message,        //regular message 
     nullCommand     //undefined command. return error
 };
@@ -53,6 +54,7 @@ private:
             {"/kick",   commandType::kickUser},
             {"/quit",   commandType::quitFromServer},
             {"/initgame", commandType::initGame},
+            {"/clear", commandType::clear},
             {"/shutdown", commandType::shutdownServer},
         };
 

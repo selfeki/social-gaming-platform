@@ -7,11 +7,58 @@
 
 
 #include <iostream>
+#include <iterator>
+#include <sstream>
 #include <unistd.h>
 
 #include "ChatWindow.h"
 #include "Client.h"
 
+enum MessageType { COMMAND,
+    GAME_CONFIG,
+    NORMAL };
+
+void clearCommand(ChatWindow& CW) {
+  CW.chatWindowClear();
+}
+
+MessageType getMessageType(const std::string& message) {
+    if (message[0] == '/') {    //it is a command
+        return MessageType::COMMAND;
+    } else {    //it is a regular message
+        return MessageType::NORMAL;
+    }
+}
+
+std::vector<std::string> parseCommandAndCollectResponse(const std::string& message) {
+  std::vector<std::string> tokens;
+  std::istringstream iss(message);
+  std::copy(std::istream_iterator<std::string>(iss),
+      std::istream_iterator<std::string>(),
+      std::back_inserter(tokens));
+  return tokens;
+}
+
+void processMessage(ChatWindow& CW, const std::string& message) {
+  MessageType msg_type = getMessageType(message);
+    switch (msg_type) {
+      case MessageType::COMMAND: {
+          std::vector<std::string> tokens = parseCommandAndCollectResponse(message);
+          if (tokens[0] == "/clear") {
+            //clear command found
+            clearCommand(CW);
+          }
+          //if additional commands are added that are to be handled by chat client, add here 
+          break;
+      }
+      case MessageType::NORMAL: {
+          CW.displayText(message);
+          break;
+      }
+      default:
+          break;
+    }
+}
 
 int
 main(int argc, char* argv[]) {
@@ -44,7 +91,7 @@ main(int argc, char* argv[]) {
 
     auto response = client.receive();
     if (!response.empty()) {
-      chatWindow.displayText(response);
+      processMessage(chatWindow, response);
     }
     chatWindow.update();
   }
