@@ -110,8 +110,13 @@ public:
     messageReturnList
     kickPlayerCommand(IDType id, std::string id_to_kick);
 
+    //refactoring leave room command to quit from server...
     messageReturnList
     leaveRoomCommand(IDType id);
+
+    messageReturnList
+    quitFromServerCommand(IDType id);
+
 
     messageReturnList
     initRoomCommand(IDType id);
@@ -124,6 +129,9 @@ public:
 
     messageReturnList
     whisperCommand(IDType id, std::string recipient_id, std::string);
+
+    //takes player id and return Room instance
+    std::unique_ptr<Room<IDType>> playerIDtoRoom(IDType& id);
 
 private:
     //commandSpace::Command<IDType> commands;

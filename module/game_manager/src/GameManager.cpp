@@ -310,6 +310,16 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::leaveRoomCommand(IDType 
     return msg_list;
 }
 
+template <typename IDType>
+std::vector<messageReturn<IDType>> GameManager<IDType>::quitFromServerCommand(IDType player_id){
+    //std::string text = "Player " + player_id +" is leaving the server \n";
+    /*
+    for(){
+
+    }
+    */
+}
+
 
 template <typename IDType>
 std::vector<messageReturn<IDType>> GameManager<IDType>::initRoomCommand(IDType id) {
@@ -372,6 +382,14 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::whisperCommand(IDType pl
     }
     return msg_list;
 }
+
+template <typename IDType>
+std::unique_ptr<Room<IDType>> GameManager<IDType>::playerIDtoRoom(IDType& id){
+    auto room_id = player_room_map.at(id);
+    std::unique_ptr<Room<IDType>> room = std::make_unique<Room<IDType>>(id_room_map.at(room_id));
+    return room;
+}
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`
 
 
