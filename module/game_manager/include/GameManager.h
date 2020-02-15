@@ -154,11 +154,17 @@ public:
     messageReturnList
     formMessageTo (std::string& message, std::vector<IDType>& recipent);
 
+    messageReturnList
+    clearCommand(IDType playerId);
+
     void 
     createRoom (IDType creator, RoomID room_id);
 
-    messageReturnList
-    clearCommand(IDType playerId);
+    void 
+    addPlayerToRoom (IDType player_id, RoomID room_id);
+
+    void
+    removePlayerFromRoom (IDType player_id);
 
 
 private:

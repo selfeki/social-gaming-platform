@@ -383,7 +383,6 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::formMessageTo (std::stri
 //Issues command to client to clear chat history. Will be useful for initiating a game instance
 template <typename IDType>
 std::vector<messageReturn<IDType>> GameManager<IDType>::clearCommand(IDType playerId) {
-
     std::vector<messageReturn<IDType>> msg_list;
     std::string text = "/clear";
     msg_list = formMessageTo(text,playerId);
@@ -396,6 +395,28 @@ void GameManager<IDType>::createRoom (IDType creator, RoomID room_id){
     id_room_map.at(room_id).playerJoin(creator);
     player_room_map.insert({ creator, room_id });
 }
+
+template <typename IDType>
+void GameManager<IDType>::addPlayerToRoom (IDType player_id, RoomID room_id){
+    if(true /*satisfies all conditions eg. room capacity*/){
+        Room<IDType> room = id_room_map.at(room_id);
+        room.playerJoin(player_id);
+        player_room_map.insert({ player_id, room_id });
+    }
+}
+
+template <typename IDType>
+void GameManager<IDType>::removePlayerFromRoom (IDType player_id){
+    if(true/*if action is allowed*/){
+        RoomID room_id = player_room_map.at(player_id);
+        Room<IDType> room = id_room_map.at(room_id);
+        room.exitPlayer(player_id);
+        player_room_map.erase(player_id);
+    }
+}
+
+
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`
 
 
