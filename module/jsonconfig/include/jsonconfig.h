@@ -9,7 +9,7 @@ using json = nlohmann::json;
 //MASTER PLAN: Change all formats into json and throw it into here
 
 namespace game_config {
-    
+
     enum FIELDS {
         CONF,
         NAME,
@@ -36,18 +36,43 @@ namespace game_config {
         {RULES, "/rules"}
     });
 
+    struct config_player_count{
+        int min;
+        int max;
+    };
+    struct config_setup{
+        int rounds;
+    };
+    struct config_per_player{
+        int wins;
+    };
+    struct constants_weapon{
+        std::string name;
+        std::string beats;
+    };
+    struct config_constants{
+        //TODO: discuss if vector of structs is a reasonable way  to store list of weapons
+        std::vector<constants_weapon> weapons;
+    };
+
     struct configuration {
         std::string name;
-        std::unordered_map<std::string, json> player_count;
+        //std::unordered_map<std::string, json> player_count;
         bool audience;
-        std::unordered_map<std::string, json> setup;
-        std::unordered_map<std::string, json> constants;
+        //std::unordered_map<std::string, json> setup;
+        //std::unordered_map<std::string, json> constants;
         std::unordered_map<std::string, json> variables;
-        std::unordered_map<std::string, json> per_player;
+        //std::unordered_map<std::string, json> per_player;
         std::unordered_map<std::string, json> per_audience;
         std::vector<json> rules;
         std::string jsonpath;
-        bool err = true; //default true, set only to false when all fields are assigned to values
+        bool err = true;
+
+        config_player_count player_count_s;
+        config_per_player per_player_s;
+        config_setup setup_s;
+        config_constants constants_s;
+        //default true, set only to false when all fields are assigned to values
     };
 
     void from_json(const json&, configuration&);

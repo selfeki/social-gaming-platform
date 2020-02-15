@@ -149,11 +149,43 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::handleGameMessage(std::s
 }
 
 template <typename IDType>
-std::vector<messageReturn<IDType>> GameManager<IDType>::returnRoomMembersCommand(IDType id) {
+std::vector<messageReturn<IDType>> GameManager<IDType>::returnRoomMembersCommand(IDType player_id){
+    std::vector<messageReturn<IDType>> msg_list;
+    std::vector<IDType> player_list;
+
+    player_list.push_back(player_id);
+    RoomID player_room_id = player_room_map.at(player_id);
+    if (id_room_map.count(player_room_id) == 0) {
+        std::string text = "Room: " + player_room_id + " does not exist.";
+        for (auto& player : player_list) {
+            msg_list.push_back(messageReturn<IDType> { player, text, false });
+        }
+    } else{
+        Room player_room = id_room_map.at(player_room_id);
+        std::vector<IDType> players_in_room = player_room.returnPlayers();
+        std::string text = "";
+        for(auto& player : players_in_room){
+            text = text + std::string(player) + "\n";
+        }
+        msg_list.push_back(messageReturn<IDType> { player_id, text, false });
+    }
+    return msg_list;
 }
 
 template <typename IDType>
-std::vector<messageReturn<IDType>> GameManager<IDType>::returnRoomCommand(IDType id) {
+std::vector<messageReturn<IDType>> GameManager<IDType>::returnRoomCommand(IDType player_id) {
+    std::vector<messageReturn<IDType>> msg_list;
+    std::vector<IDType> player_list;
+    player_list.push_back(player_id);
+    if (player_room_map.count(player_id) == 0) {
+        std::string text = "You are not in a room.";
+        for (auto& player : player_list) {
+            msg_list.push_back(messageReturn<IDType> { player, text, false });
+        }
+    } else {
+        RoomID player_room_id = player_room_map.at(player_id);
+        std::string text = "Room ID: " + std::string();
+    }
 }
 
 //Creates a new room.
@@ -278,6 +310,27 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::leaveRoomCommand(IDType 
     return msg_list;
 }
 
+template <typename IDType>
+std::vector<messageReturn<IDType>> GameManager<IDType>::quitFromServerCommand(IDType player_id){
+
+}
+
+template <typename IDType>
+std::vector<messageReturn<IDType>> GameManager<IDType>::shutdownServerCommand(IDType id){
+    if(false){
+        std::string text = "Action Prohibited. You are not the admin of the server.\n";
+        return std::vector<messageReturn<IDType>>{messageReturn<IDType>{id,text,false}};
+    }
+    else{
+        std::string text = "Shutting down server...\n";
+        std::vector<messageReturn<IDType>> msg_list; //= formMessageToEveryone(text,true);
+        
+        for (auto& player : all_players){
+            msg_list.push_back(messageReturn<IDType>{player,text,false});
+        }
+        return msg_list;
+    }
+}
 
 template <typename IDType>
 std::vector<messageReturn<IDType>> GameManager<IDType>::initRoomCommand(IDType id) {
@@ -340,6 +393,52 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::whisperCommand(IDType pl
     }
     return msg_list;
 }
+
+<<<<<<< HEAD
+template <typename IDType>
+Room<IDType> GameManager<IDType>::playerIDtoRoom(IDType& id){
+    auto room_id = player_room_map.at(id);
+    Room<IDType> room = id_room_map.at(room_id);
+    return room;
+}
+
+template <typename IDType>
+std::vector<messageReturn<IDType>> GameManager<IDType>::formMessageToRoomMembers(std::string& message, IDType& sentFrom, bool shouldShutdown){
+    auto room = playerIDtoRoom(sentFrom);
+    std::vector<IDType> members = room.returnPlayers();
+    std::vector<messageReturn<IDType>> msg_list;
+    for(auto member : members){
+        msg_list.push_back(messageReturn<IDType>{member, message,shouldShutdown});
+    }
+    return msg_list;
+}
+
+template <typename IDType>
+std::vector<messageReturn<IDType>> GameManager<IDType>::formMessageToEveryone(std::string& message, bool shouldShutdown){
+    std::vector<messageReturn<IDType>> msg_list;
+    for(auto member : all_players){
+        msg_list.push_back(messageReturn<IDType>{member, message, false});
+    }
+    return msg_list;
+}
+
+
+=======
+//Issues command to client to clear chat history. Will be useful for initiating a game instance
+template <typename IDType>
+std::vector<messageReturn<IDType>> GameManager<IDType>::clearCommand(IDType playerId) {
+
+    std::vector<messageReturn<IDType>> msg_list;
+    std::vector<IDType> player_list = { playerId };
+
+    for (auto& player : player_list) {
+        msg_list.push_back(messageReturn<IDType> { player, "/clear", false });
+    }
+
+    return msg_list;
+}
+
+>>>>>>> master
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`
 
 
