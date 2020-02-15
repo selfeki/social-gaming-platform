@@ -148,12 +148,14 @@ public:
     
     //forms message to a single recipient
     messageReturnList
-    formMessageTo (std::string& message, IDType& recipent) ;
+    formMessageTo (std::string& message, IDType& recipent);
     
     //forms message to multiple recipients
     messageReturnList
-    formMessageTo (std::string& message, std::vector<IDType>& recipent) ;
+    formMessageTo (std::string& message, std::vector<IDType>& recipent);
 
+    void 
+    createRoom (IDType creator, RoomID room_id);
 
     messageReturnList
     clearCommand(IDType playerId);

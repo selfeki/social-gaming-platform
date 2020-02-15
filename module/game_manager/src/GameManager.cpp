@@ -146,7 +146,7 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::returnRoomMembersCommand
 
     RoomID player_room_id = player_room_map.at(player_id);
     if (id_room_map.count(player_room_id) == 0) {
-        std::string text = "Room " + player_room_id + " does not exist.";
+        std::string text = "Room " + player_room_id + " does not exist.\n";
         msg_list = formMessageTo(text,player_id);
     } else{
         Room player_room = id_room_map.at(player_room_id);
@@ -165,7 +165,7 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::returnRoomCommand(IDType
     std::vector<messageReturn<IDType>> msg_list;
 
     if (player_room_map.count(player_id) == 0) {
-        std::string text = "You are not in a room.";
+        std::string text = "You are not in a room.\n";
         msg_list = formMessageTo(text,player_id); 
     } else {
         RoomID player_room_id = player_room_map.at(player_id);
@@ -187,9 +187,7 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::createRoomCommand(IDType
         room_code = gen_random(5);
     } while (id_room_map.count(room_code) > 0);
 
-    id_room_map.insert({ room_code, Room<IDType>(playerId, room_code) });
-    id_room_map.at(room_code).playerJoin(playerId);
-    player_room_map.insert({ playerId, room_code });
+    createRoom(playerId, room_code);
 
     std::string text = "Successfully created room " + room_code + "\n";
     msg_list = formMessageTo(text,playerId);
@@ -206,12 +204,12 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::joinRoomCommand(IDType i
     //if room does not exist, send error msg
     if (id_room_map.count(room_code) == 0) {
         player_list.push_back(id);
-        std::string text = "room " + room_code + " does not exist...";
+        std::string text = "room " + room_code + " does not exist...\n";
         msg_list = formMessageTo(text, id);
     }else if (player_room_map.count(id) > 0) {
         if (player_room_map.at(id) == room_code) {
             player_list.push_back(id);
-            std::string text = "You're alread in room " + room_code + "!";
+            std::string text = "You're alread in room " + room_code + "!\n";
             msg_list = formMessageTo(text,id);
             //if player is in a different room, leave that room and join this room
         } else {
@@ -275,7 +273,7 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::quitFromServerCommand(ID
 
 template <typename IDType>
 std::vector<messageReturn<IDType>> GameManager<IDType>::shutdownServerCommand(IDType id){
-    if(false){
+    if(id != admin){
         std::string text = "Action Prohibited. You are not the admin of the server.\n";
         std::vector<messageReturn<IDType>> msg_list = formMessageTo(text,id);
         return msg_list;
@@ -306,15 +304,15 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::destroyRoom(IDType playe
         int peopleInRoom = player_room.returnPlayers().size();
         //if room still has people in it
         if (peopleInRoom > 1) {
-            std::string text = "Action Prohibited. There are still people in the room";
+            std::string text = "Action Prohibited. There are still people in the room\n";
             msg_list = formMessageTo(text,player_id);
         } else if (player_room.getOwner() != player_id) {
-            std::string text = "Action Prohibited. You are not the owner of this room.";
+            std::string text = "Action Prohibited. You are not the owner of this room.\n";
             msg_list = formMessageTo(text,player_id);
         } else {
             //TODO: clean up game instance when implemented
             id_room_map.erase(room_to_destroy);
-            std::string text = "Room: " + std::string(player_id) + " has been removed.";
+            std::string text = "Room: " + std::string(player_id) + " has been removed.\n";
             msg_list = formMessageTo(text,player_id);
         }
     }
@@ -392,6 +390,12 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::clearCommand(IDType play
     return msg_list;
 }
 
+template <typename IDType>
+void GameManager<IDType>::createRoom (IDType creator, RoomID room_id){
+    id_room_map.insert({ room_id, Room<IDType>(creator, room_id) });
+    id_room_map.at(room_id).playerJoin(creator);
+    player_room_map.insert({ creator, room_id });
+}
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`
 
 
