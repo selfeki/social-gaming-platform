@@ -140,12 +140,16 @@ public:
     messageReturnList
     formMessageToRoomMembers(std::string& message, IDType& sentFrom, bool shouldShutdown);
     
-    //forms message to all_players
+    /* forms message to all_players
+    *  note: all_players variable not implemented, so it doesn't send message to anyone
+    */
     messageReturnList
     formMessageToEveryone(std::string& message, bool shouldShutdown);
+    
     //forms message to a single recipient
     messageReturnList
     formMessageTo (std::string& message, IDType& recipent) ;
+    
     //forms message to multiple recipients
     messageReturnList
     formMessageTo (std::string& message, std::vector<IDType>& recipent) ;
