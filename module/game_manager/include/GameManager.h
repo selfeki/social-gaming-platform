@@ -168,6 +168,12 @@ public:
 
 
 private:
+    // Specification of games offered by the game engine
+    std::vector<gameSpecification> game_specs;
+
+    // Currently running game instances
+    std::vector<GameInstance> live_games;
+
     //commandSpace::Command<IDType> commands;
     std::vector<IDType> all_players;
 
