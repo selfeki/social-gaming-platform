@@ -10,6 +10,7 @@
 #include <iterator>
 #include <sstream>
 #include <unistd.h>
+#include <vector>
 
 #include "ChatWindow.h"
 #include "Client.h"
