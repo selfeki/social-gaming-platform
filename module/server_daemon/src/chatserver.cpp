@@ -32,8 +32,8 @@ using networking::Server;
 
 
 typedef networking::ConnectionId UniqueConnectionID;
-typedef messageReturn<UniqueConnectionID> messageReturnAlias;
-typedef GameManager<UniqueConnectionID> GameManagerAlias;
+//typedef MessageReturn<UniqueConnectionID> GameManager::MessageReturn;
+//typedef GameManager<UniqueConnectionID> GameManagerAlias;
 
 std::atomic<std::uint64_t> unique_connection_id_counter = 0;
 
@@ -41,11 +41,11 @@ std::atomic<std::uint64_t> unique_connection_id_counter = 0;
 
 std::string default_json = "templates/server/default.json";
 
-GameManagerAlias game_manager;
+GameManager game_manager;
 
 
 //messages returned from game manager
-std::deque<messageReturnAlias> gameMessageQueue;
+std::deque<GameManager::MessageReturn> gameMessageQueue;
 
 //messages ready to be sent to networking
 std::deque<Message> networkMessageQueue;
@@ -60,7 +60,7 @@ bool gameMessagesToNetworkMessages() {
     bool quit = false;
     while (!gameMessageQueue.empty()) {
 
-        messageReturnAlias message = gameMessageQueue.front();
+        GameManager::MessageReturn message = gameMessageQueue.front();
         gameMessageQueue.pop_front();
         std::string log = message.message;
 
@@ -95,9 +95,9 @@ MessageType getMessageType(const std::string& _message) {
 /*
 * Interpret command and call appropriate game_manager api function (there might be a better way to do this)
 */
-std::vector<messageReturnAlias> parseCommandAndCollectResponse(const std::string& message, UniqueConnectionID id){
+std::vector<GameManager::MessageReturn> parseCommandAndCollectResponse(const std::string& message, UniqueConnectionID id){
 
-  std::vector<messageReturnAlias> game_manager_message;
+  std::vector<GameManager::MessageReturn> game_manager_message;
 
   //tokenize the string, split by ' '
   std::vector<std::string> tokens;
@@ -177,14 +177,14 @@ void processMessages(Server& server, const std::deque<Message>& incoming) {
       std::vector<input> tokens = command.getTokens();
       if(recieved==commandType::message)
       {
-        std::vector<messageReturnAlias> game_messages = game_manager.handleGameMessage(message.text, sentFrom.uuid);
+        std::vector<GameManager::MessageReturn> game_messages = game_manager.handleGameMessage(message.text, sentFrom.uuid);
           for(auto game_message : game_messages) {
             gameMessageQueue.push_back(game_message);
           } 
       }
       else {
         //handle command in game manager
-        std::vector<messageReturnAlias> cmd_messages;
+        std::vector<GameManager::MessageReturn> cmd_messages;
         switch (recieved){
           case commandType::listMember :
             cmd_messages = game_manager.returnRoomMembersCommand(sentFrom.uuid);

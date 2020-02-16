@@ -18,15 +18,11 @@ using s_config = server_config::configuration;
 
 //uniquely identifying room id
 typedef std::string RoomID;
+typedef networking::ConnectionId PlayerID;
 
 //message return struct, game_manager returns a vector of these to the daemon,
 //on for each client that is to be sent a message
-template <typename IDType>
-struct messageReturn {
-    IDType sendTo;
-    std::string message;
-    bool shouldShutdown;
-};
+
 
 
 //Custom error handling might be good for the future?
@@ -50,20 +46,20 @@ private:
 };
 
 
-template <typename IDType>
+
 class Room {
 public:
-    Room(IDType _owner, RoomID room_code);
-    void playerJoin(IDType player);
-    void exitPlayer(IDType player);
+    Room(PlayerID _owner, RoomID room_code);
+    void playerJoin(PlayerID player);
+    void exitPlayer(PlayerID player);
     void gameUpdate();
-    std::vector<IDType> returnPlayers();
+    std::vector<PlayerID> returnPlayers();
     void configRoomAndGame(const g_config& game_config);
-    IDType getOwner();
+    PlayerID getOwner();
 
 private:
-    std::vector<IDType> players;
-    IDType owner;
+    std::vector<PlayerID> players;
+    PlayerID owner;
     int max_players;
     int player_count;
     time_t born;
@@ -73,119 +69,129 @@ private:
 };
 
 
-template <typename IDType>
+
 class GameManager {
 public:
-    using messageReturnList = std::vector<messageReturn<IDType>>;
+
+    struct MessageReturn {
+        PlayerID sendTo;
+        std::string message;
+        bool shouldShutdown;
+    };
+
+
+    using MessageReturn = GameManager::MessageReturn;
+    using MessageReturnList = std::vector<MessageReturn>;
 
     GameManager();
+
 
     void
     setUp(const s_config& server_config);
 
     void
-    removePlayer(IDType player, RoomID room);
+    removePlayer(PlayerID player, RoomID room);
 
     void
-    addPlayer(IDType player, RoomID room);
+    addPlayer(PlayerID player, RoomID room);
 
-    std::vector<IDType> 
-    getRoomOfPlayer(IDType player);
+    std::vector<PlayerID> 
+    getRoomOfPlayer(PlayerID player);
 
-    std::vector<IDType>
+    std::vector<PlayerID>
     getPlayersInRoom(RoomID room);
 
-    messageReturnList
-    returnRoomMembersCommand(IDType player_id);
+    MessageReturnList
+    returnRoomMembersCommand(PlayerID player_id);
 
-    messageReturnList
-    returnRoomCommand(IDType player_id);
+    MessageReturnList
+    returnRoomCommand(PlayerID player_id);
 
-    messageReturnList
-    createRoomCommand(IDType id);
+    MessageReturnList
+    createRoomCommand(PlayerID id);
 
-    messageReturnList
-    joinRoomCommand(IDType id, std::string room_id);
+    MessageReturnList
+    joinRoomCommand(PlayerID id, std::string room_id);
 
-    messageReturnList
-    kickPlayerCommand(IDType id, std::string id_to_kick);
+    MessageReturnList
+    kickPlayerCommand(PlayerID id, std::string id_to_kick);
 
     //refactoring leave room command to quit from server...
-    messageReturnList
-    leaveRoomCommand(IDType id);
+    MessageReturnList
+    leaveRoomCommand(PlayerID id);
 
-    messageReturnList
-    quitFromServerCommand(IDType id);
+    MessageReturnList
+    quitFromServerCommand(PlayerID id);
 
-    messageReturnList
-    shutdownServerCommand(IDType id);
+    MessageReturnList
+    shutdownServerCommand(PlayerID id);
 
 
-    messageReturnList
-    initRoomCommand(IDType id);
+    MessageReturnList
+    initRoomCommand(PlayerID id);
 
-    messageReturnList
-    handleGameMessage(std::string msg, IDType player);
+    MessageReturnList
+    handleGameMessage(std::string msg, PlayerID player);
 
-    messageReturnList
-    destroyRoom(IDType id);
+    MessageReturnList
+    destroyRoom(PlayerID id);
 
-    messageReturnList
-    whisperCommand(IDType id, std::string recipient_id, std::string);
+    MessageReturnList
+    whisperCommand(PlayerID id, std::string recipient_id, std::string);
 
     //takes player id and return Room instance
-    Room<IDType> playerIDtoRoom(IDType& id);
+    Room playerIDtoRoom(PlayerID& id);
 
     //forms message return to send a message everyone in the room
-    messageReturnList
-    formMessageToRoomMembers(std::string& message, IDType& sentFrom, bool shouldShutdown);
+    MessageReturnList
+    formMessageToRoomMembers(std::string& message, PlayerID& sentFrom, bool shouldShutdown);
     
     /* forms message to all_players
     *  note: all_players variable not implemented, so it doesn't send message to anyone
     */
-    messageReturnList
+    MessageReturnList
     formMessageToEveryone(std::string& message, bool shouldShutdown);
     
     //forms message to a single recipient
-    messageReturnList
-    formMessageTo (std::string& message, IDType& recipent);
+    MessageReturnList
+    formMessageTo (std::string& message, PlayerID& recipent);
     
     //forms message to multiple recipients
-    messageReturnList
-    formMessageTo (std::string& message, std::vector<IDType>& recipent);
+    MessageReturnList
+    formMessageTo (std::string& message, std::vector<PlayerID>& recipent);
 
-    messageReturnList
-    clearCommand(IDType playerId);
-
-    void 
-    createRoom (IDType creator, RoomID room_id);
+    MessageReturnList
+    clearCommand(PlayerID playerId);
 
     void 
-    addPlayerToRoom (IDType player_id, RoomID room_id);
+    createRoom (PlayerID creator, RoomID room_id);
+
+    void 
+    addPlayerToRoom (PlayerID player_id, RoomID room_id);
 
     void
-    removePlayerFromRoom (IDType player_id);
+    removePlayerFromRoom (PlayerID player_id);
 
 
 private:
-    //commandSpace::Command<IDType> commands;
-    std::vector<IDType> all_players;
+    //commandSpace::Command<PlayerID> commands;
+    std::vector<PlayerID> all_players;
 
     //roomID to room object map
-    std::unordered_map<RoomID, Room<IDType>> id_room_map;
+    std::unordered_map<RoomID, Room> id_room_map;
 
     //player ID to username map?
-    //std::unordered_map<IDType, std::string> id_player_map;
+    //std::unordered_map<PlayerID, std::string> id_player_map;
 
     //username to player ID
-    std::unordered_map<std::string, IDType> userName_id_map;
+    std::unordered_map<std::string, PlayerID> userName_id_map;
 
     //player ID to roomID map
-    std::unordered_map<IDType, RoomID> player_room_map;
+    std::unordered_map<PlayerID, RoomID> player_room_map;
 
     int max_players;
 
     int max_rooms;
 
-    std::optional<IDType> admin;
+    std::optional<PlayerID> admin;
 };
