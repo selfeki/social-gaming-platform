@@ -233,7 +233,7 @@ std::vector<MessageReturn> GameManager::joinRoomCommand(PlayerID id, std::string
 }
 
 
-std::vector<MessageReturn> GameManager::kickPlayerCommand(PlayerID id, std::string id_to_kick) {
+std::vector<MessageReturn> GameManager::kickPlayerCommand(PlayerID player_id, std::string id_to_kick) {
     std::vector<MessageReturn> msg_list;
     std::vector<PlayerID> player_list;
 
@@ -242,10 +242,10 @@ std::vector<MessageReturn> GameManager::kickPlayerCommand(PlayerID id, std::stri
 
     if (find == player_list.end()) {
         std::string text = "Player " + id_to_kick + " is not here.\n";
-        msg_list = formMessageTo(text,id);
-    } else if (id != admin) {
+        msg_list = formMessageTo(text,player_id);
+    } else if (player_id != admin) {
         std::string text = "Action Prohibited. You are not an admin.\n";
-        msg_list = formMessageTo(text,id);
+        msg_list = formMessageTo(text,player_id);
     } else {
         //leaveRoomCommand(id_to_kick);
         leaveRoomCommand(*find);
