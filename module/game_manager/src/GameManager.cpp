@@ -65,7 +65,7 @@ std::vector<PlayerID> Room::returnPlayers() {
 }
 
 
-void Room::playerJoin(PlayerID player) {    //todo: should deal with some error handling
+void Room::playerJoin(PlayerID player_id) {    //todo: should deal with some error handling
     /*
     Add player to the game, if DSL interpeter returns an error,
     do something (send back error message).
@@ -75,17 +75,17 @@ void Room::playerJoin(PlayerID player) {    //todo: should deal with some error 
     } catch (... /* DSL_interpreter error */) {
     }
 
-    players.push_back(player);
+    players.push_back(player_id);
 }
 
 
-void Room::exitPlayer(PlayerID player) {
+void Room::playerLeave(PlayerID player_id) {
     try {
         //game.playerQuit(player);
     } catch (... /* DSL_interpreter error */) {
     }
 
-    players.erase(std::remove(players.begin(), players.end(), player));
+    players.erase(std::remove(players.begin(), players.end(), player_id));
 }
 
 //update the game's DSL interpreter
@@ -115,31 +115,31 @@ void GameManager::setUp(const s_config& server_config) {
 }
 
 
-void GameManager::removePlayer(PlayerID player, RoomID room) {
+void GameManager::removePlayer(PlayerID player_id, RoomID room_id) {
 }
 
 
-void GameManager::addPlayer(PlayerID player, RoomID room) {
+void GameManager::addPlayer(PlayerID player_id, RoomID room_id) {
 }
 
 
-std::vector<PlayerID> GameManager::getPlayersInRoom(RoomID room) {
+std::vector<PlayerID> GameManager::getPlayersInRoom(RoomID room_id) {
     std::vector<PlayerID> players;
 }
 
 
-std::vector<MessageReturn> GameManager::handleGameMessage(std::string msg, PlayerID playerId) {
+std::vector<MessageReturn> GameManager::handleGameMessage(std::string msg, PlayerID player_id) {
 
     std::vector<MessageReturn> msg_list;
     //If player is not in a room, send this message
-    if (player_room_map.count(playerId) == 0) {
+    if (playerid_to_roomid_map.count(player_id) == 0) {
         std::string text = "You are not in a room, please join or create a room.\n";
-        msg_list = formMessageTo(text,playerId);
+        msg_list = formMessageTo(text,player_id);
     }
     else {
-        RoomID room_id = player_room_map.at(playerId);
-        std::string text = "Room [" + room_id + "] " + std::string(playerId) + ": " + msg;
-        msg_list = formMessageToRoomMembers(text, playerId, false);
+        RoomID room_id = playerid_to_roomid_map.at(player_id);
+        std::string text = "Room [" + room_id + "] " + std::string(player_id) + ": " + msg;
+        msg_list = formMessageToRoomMembers(text, player_id, false);
     }
     return msg_list;
 }
@@ -148,12 +148,12 @@ std::vector<MessageReturn> GameManager::handleGameMessage(std::string msg, Playe
 std::vector<MessageReturn> GameManager::returnRoomMembersCommand(PlayerID player_id){
     std::vector<MessageReturn> msg_list;
 
-    RoomID player_room_id = player_room_map.at(player_id);
-    if (id_room_map.count(player_room_id) == 0) {
+    RoomID player_room_id = playerid_to_roomid_map.at(player_id);
+    if (roomid_to_room_map.count(player_room_id) == 0) {
         std::string text = "Room " + player_room_id + " does not exist.\n";
         msg_list = formMessageTo(text,player_id);
     } else{
-        Room player_room = id_room_map.at(player_room_id);
+        Room player_room = roomid_to_room_map.at(player_room_id);
         std::vector<PlayerID> players_in_room = player_room.returnPlayers();
         std::string text = "";
         for(auto& player : players_in_room){
@@ -168,11 +168,11 @@ std::vector<MessageReturn> GameManager::returnRoomMembersCommand(PlayerID player
 std::vector<MessageReturn> GameManager::returnRoomCommand(PlayerID player_id) {
     std::vector<MessageReturn> msg_list;
 
-    if (player_room_map.count(player_id) == 0) {
+    if (playerid_to_roomid_map.count(player_id) == 0) {
         std::string text = "You are not in a room.\n";
         msg_list = formMessageTo(text,player_id); 
     } else {
-        RoomID player_room_id = player_room_map.at(player_id);
+        RoomID player_room_id = playerid_to_roomid_map.at(player_id);
         std::string text = "Room ID: " + std::string();
         msg_list = formMessageTo(text,player_id); 
     }
@@ -181,7 +181,7 @@ std::vector<MessageReturn> GameManager::returnRoomCommand(PlayerID player_id) {
 
 //Creates a new room.
 
-std::vector<MessageReturn> GameManager::createRoomCommand(PlayerID playerId) {
+std::vector<MessageReturn> GameManager::createRoomCommand(PlayerID player_id) {
 
     std::vector<MessageReturn> msg_list;
     RoomID room_code;
@@ -189,12 +189,12 @@ std::vector<MessageReturn> GameManager::createRoomCommand(PlayerID playerId) {
     //Generate random key, while that key does not already exist in the map
     do {
         room_code = gen_random(5);
-    } while (id_room_map.count(room_code) > 0);
+    } while (roomid_to_room_map.count(room_code) > 0);
 
-    createRoom(playerId, room_code);
+    createRoom(player_id, room_code);
 
     std::string text = "Successfully created room " + room_code + "\n";
-    msg_list = formMessageTo(text,playerId);
+    msg_list = formMessageTo(text,player_id);
 
     return msg_list;
 }
@@ -206,12 +206,12 @@ std::vector<MessageReturn> GameManager::joinRoomCommand(PlayerID id, std::string
     std::vector<PlayerID> player_list;
 
     //if room does not exist, send error msg
-    if (id_room_map.count(room_code) == 0) {
+    if (roomid_to_room_map.count(room_code) == 0) {
         player_list.push_back(id);
         std::string text = "room " + room_code + " does not exist...\n";
         msg_list = formMessageTo(text, id);
-    }else if (player_room_map.count(id) > 0) {
-        if (player_room_map.at(id) == room_code) {
+    }else if (playerid_to_roomid_map.count(id) > 0) {
+        if (playerid_to_roomid_map.at(id) == room_code) {
             player_list.push_back(id);
             std::string text = "You're alread in room " + room_code + "!\n";
             msg_list = formMessageTo(text,id);
@@ -223,8 +223,8 @@ std::vector<MessageReturn> GameManager::joinRoomCommand(PlayerID id, std::string
         //If player is not in a room, join this room, send message to every player in room that
         //a new player has joined
     }else {
-        id_room_map.at(room_code).playerJoin(id);
-        player_room_map.insert({ id, room_code });
+        roomid_to_room_map.at(room_code).playerJoin(id);
+        playerid_to_roomid_map.insert({ id, room_code });
         std::string text = string(id) + " has joined room " + room_code + "!\n";
         msg_list = formMessageToRoomMembers(text,id,false);
     }
@@ -258,12 +258,12 @@ std::vector<MessageReturn> GameManager::leaveRoomCommand(PlayerID player_id) {
     std::vector<MessageReturn> msg_list;
     std::vector<PlayerID> player_list;
     //player is not in a room
-    if (player_room_map.count(player_id) == 0) {
+    if (playerid_to_roomid_map.count(player_id) == 0) {
         std::string text = "You are not in a room!\n";
         msg_list = formMessageTo(text,player_id);
     } else {
-        RoomID curr_player_room_ID = player_room_map.at(player_id);
-        id_room_map.at(curr_player_room_ID).exitPlayer(player_id);
+        RoomID curr_player_room_ID = playerid_to_roomid_map.at(player_id);
+        roomid_to_room_map.at(curr_player_room_ID).playerLeave(player_id);
         std::string text = std::string(player_id) + " has left the room.\n";
         msg_list = formMessageToRoomMembers(text,player_id,false);
     }
@@ -298,13 +298,13 @@ std::vector<MessageReturn> GameManager::destroyRoom(PlayerID player_id) {
     std::vector<MessageReturn> msg_list;
     std::vector<PlayerID> player_list;
     //player is not in room
-    if (player_room_map.count(player_id) == 0) {
+    if (playerid_to_roomid_map.count(player_id) == 0) {
         std::string text = "Action Prohibited. You are not in a room.\n";
         msg_list = formMessageTo(text,player_id);
 
     } else {
-        RoomID room_to_destroy = player_room_map.at(player_id);
-        Room player_room = id_room_map.at(room_to_destroy);
+        RoomID room_to_destroy = playerid_to_roomid_map.at(player_id);
+        Room player_room = roomid_to_room_map.at(room_to_destroy);
         int peopleInRoom = player_room.returnPlayers().size();
         //if room still has people in it
         if (peopleInRoom > 1) {
@@ -315,7 +315,7 @@ std::vector<MessageReturn> GameManager::destroyRoom(PlayerID player_id) {
             msg_list = formMessageTo(text,player_id);
         } else {
             //TODO: clean up game instance when implemented
-            id_room_map.erase(room_to_destroy);
+            roomid_to_room_map.erase(room_to_destroy);
             std::string text = "Room: " + std::string(player_id) + " has been removed.\n";
             msg_list = formMessageTo(text,player_id);
         }
@@ -327,12 +327,12 @@ std::vector<MessageReturn> GameManager::destroyRoom(PlayerID player_id) {
 std::vector<MessageReturn> GameManager::whisperCommand(PlayerID player_id, std::string recipient, std::string msg) {
     std::vector<MessageReturn> msg_list;
     std::vector<PlayerID> player_list;
-    //TODO: find propper way to change from string to PlayerID
-    if (userName_id_map.count(recipient) == 0) {
+    //TODO: find proper way to change from string to PlayerID
+    if (username_to_playerid_map.count(recipient) == 0) {
         std::string text = "Player: " + std::string(player_id) + " does not exist.\n";
         msg_list = formMessageTo(text,player_id);
     } else {
-      PlayerID recip_id = userName_id_map.at(recipient);
+      PlayerID recip_id = username_to_playerid_map.at(recipient);
         player_list.push_back(recip_id);
         std::string text = std::string(player_id) + " says: " + msg;
         for (auto& player : player_list) {
@@ -344,8 +344,8 @@ std::vector<MessageReturn> GameManager::whisperCommand(PlayerID player_id, std::
 
 
 Room GameManager::playerIDtoRoom(PlayerID& id){
-    auto room_id = player_room_map.at(id);
-    Room room = id_room_map.at(room_id);
+    auto room_id = playerid_to_roomid_map.at(id);
+    Room room = roomid_to_room_map.at(room_id);
     return room;
 }
 
@@ -372,8 +372,7 @@ std::vector<MessageReturn> GameManager::formMessageToEveryone(std::string& messa
 
 
 std::vector<MessageReturn> GameManager::formMessageTo (std::string& message, PlayerID& recipient)  {
-    std::vector<MessageReturn> msg_list = { MessageReturn{recipient,message,false} };
-    return msg_list;
+    return { MessageReturn{recipient,message,false} }; 
 }
 
 
@@ -395,27 +394,27 @@ std::vector<MessageReturn> GameManager::clearCommand(PlayerID playerId) {
 
 
 void GameManager::createRoom (PlayerID creator, RoomID room_id){
-    id_room_map.insert({ room_id, Room(creator, room_id) });
-    id_room_map.at(room_id).playerJoin(creator);
-    player_room_map.insert({ creator, room_id });
+    roomid_to_room_map.insert({ room_id, Room(creator, room_id) });
+    roomid_to_room_map.at(room_id).playerJoin(creator);
+    playerid_to_roomid_map.insert({ creator, room_id });
 }
 
 
 void GameManager::addPlayerToRoom (PlayerID player_id, RoomID room_id){
     if(true /*satisfies all conditions eg. room capacity*/){
-        Room room = id_room_map.at(room_id);
+        Room room = roomid_to_room_map.at(room_id);
         room.playerJoin(player_id);
-        player_room_map.insert({ player_id, room_id });
+        playerid_to_roomid_map.insert({ player_id, room_id });
     }
 }
 
 
 void GameManager::removePlayerFromRoom (PlayerID player_id){
     if(true/*if action is allowed*/){
-        RoomID room_id = player_room_map.at(player_id);
-        Room room = id_room_map.at(room_id);
-        room.exitPlayer(player_id);
-        player_room_map.erase(player_id);
+        RoomID room_id = playerid_to_roomid_map.at(player_id);
+        Room room = roomid_to_room_map.at(room_id);
+        room.playerLeave(player_id);
+        playerid_to_roomid_map.erase(player_id);
     }
 }
 

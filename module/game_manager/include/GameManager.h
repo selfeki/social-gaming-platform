@@ -49,9 +49,9 @@ private:
 
 class Room {
 public:
-    Room(PlayerID _owner, RoomID room_code);
-    void playerJoin(PlayerID player);
-    void exitPlayer(PlayerID player);
+    Room(PlayerID _owner, RoomID room_id);
+    void playerJoin(PlayerID player_id);
+    void playerLeave(PlayerID player_id);
     void gameUpdate();
     std::vector<PlayerID> returnPlayers();
     void configRoomAndGame(const g_config& game_config);
@@ -61,8 +61,7 @@ private:
     std::vector<PlayerID> players;
     PlayerID owner;
     int max_players;
-    int player_count;
-    time_t born;
+    time_t created_at;
     RoomID room_id;
     //the game object associated with each room will run the game's DSL interpreter
     // GameInstance game;
@@ -90,16 +89,16 @@ public:
     setUp(const s_config& server_config);
 
     void
-    removePlayer(PlayerID player, RoomID room);
+    removePlayer(PlayerID player_id, RoomID room_id);
 
     void
-    addPlayer(PlayerID player, RoomID room);
+    addPlayer(PlayerID player_id, RoomID room_id);
 
     std::vector<PlayerID> 
-    getRoomOfPlayer(PlayerID player);
+    getRoomOfPlayer(PlayerID player_id);
 
     std::vector<PlayerID>
-    getPlayersInRoom(RoomID room);
+    getPlayersInRoom(RoomID player_id);
 
     MessageReturnList
     returnRoomMembersCommand(PlayerID player_id);
@@ -108,39 +107,38 @@ public:
     returnRoomCommand(PlayerID player_id);
 
     MessageReturnList
-    createRoomCommand(PlayerID id);
+    createRoomCommand(PlayerID player_id);
 
     MessageReturnList
-    joinRoomCommand(PlayerID id, std::string room_id);
+    joinRoomCommand(PlayerID player_id, std::string room_id);
 
     MessageReturnList
-    kickPlayerCommand(PlayerID id, std::string id_to_kick);
+    kickPlayerCommand(PlayerID player_id, std::string id_to_kick);
 
     //refactoring leave room command to quit from server...
     MessageReturnList
-    leaveRoomCommand(PlayerID id);
+    leaveRoomCommand(PlayerID player_id);
 
     MessageReturnList
-    quitFromServerCommand(PlayerID id);
+    quitFromServerCommand(PlayerID player_id);
 
     MessageReturnList
-    shutdownServerCommand(PlayerID id);
-
-
-    MessageReturnList
-    initRoomCommand(PlayerID id);
+    shutdownServerCommand(PlayerID player_id);
 
     MessageReturnList
-    handleGameMessage(std::string msg, PlayerID player);
+    initRoomCommand(PlayerID player_id);
 
     MessageReturnList
-    destroyRoom(PlayerID id);
+    handleGameMessage(std::string msg, PlayerID player_id);
 
     MessageReturnList
-    whisperCommand(PlayerID id, std::string recipient_id, std::string);
+    destroyRoom(PlayerID player_id);
+
+    MessageReturnList
+    whisperCommand(PlayerID player_id, std::string recipient_id, std::string msg);
 
     //takes player id and return Room instance
-    Room playerIDtoRoom(PlayerID& id);
+    Room playerIDtoRoom(PlayerID& player_id);
 
     //forms message return to send a message everyone in the room
     MessageReturnList
@@ -161,10 +159,10 @@ public:
     formMessageTo (std::string& message, std::vector<PlayerID>& recipent);
 
     MessageReturnList
-    clearCommand(PlayerID playerId);
+    clearCommand(PlayerID player_id);
 
     void 
-    createRoom (PlayerID creator, RoomID room_id);
+    createRoom (PlayerID owner, RoomID room_id);
 
     void 
     addPlayerToRoom (PlayerID player_id, RoomID room_id);
@@ -178,16 +176,16 @@ private:
     std::vector<PlayerID> all_players;
 
     //roomID to room object map
-    std::unordered_map<RoomID, Room> id_room_map;
+    std::unordered_map<RoomID, Room> roomid_to_room_map;
 
     //player ID to username map?
     //std::unordered_map<PlayerID, std::string> id_player_map;
 
     //username to player ID
-    std::unordered_map<std::string, PlayerID> userName_id_map;
+    std::unordered_map<std::string, PlayerID> username_to_playerid_map;
 
     //player ID to roomID map
-    std::unordered_map<PlayerID, RoomID> player_room_map;
+    std::unordered_map<PlayerID, RoomID> playerid_to_roomid_map;
 
     int max_players;
 
