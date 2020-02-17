@@ -212,6 +212,9 @@ void processMessages(Server& server, const std::deque<Message>& incoming) {
             break;
           case commandType::shutdownServer:
             cmd_messages = game_manager.shutdownServerCommand(sentFrom.uuid);
+            break; 
+          case commandType::nullCommand:
+            cmd_messages = {{sentFrom.uuid, tokens[0]+" is not a command." , false}};
             break;
           };
           //create message vector to send out 
