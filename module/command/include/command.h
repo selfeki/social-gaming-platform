@@ -46,7 +46,6 @@ public:
     output kickPlayer(PlayerID player_id, input username_to_kick);
     output createRoom(PlayerID player_id, input username_to_kick);
     output joinRoom(PlayerID player_id, input username_to_kick);
-    output normalMessage(PlayerID player_id, input username_to_kick);
     output destroyRoom(PlayerID player_id, input username_to_kick);
     output listRoomMembers(PlayerID player_id, input username_to_kick);
     output leaveRoom(PlayerID player_id, input username_to_kick);

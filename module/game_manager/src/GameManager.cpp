@@ -555,7 +555,11 @@ GameManager::getPlayerIDFromRoomUsername(const std::string& username, RoomID roo
     return {player_id, GameManager::ReturnCode::SUCCESS};
 }
 
+std::vector<PlayerID>& getPlayersInRoom(RoomID room_id) {
+    
 
+
+}
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`
 

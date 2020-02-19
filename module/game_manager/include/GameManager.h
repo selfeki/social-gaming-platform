@@ -197,6 +197,7 @@ public:
     std::pair<std::optional<PlayerID>, ReturnCode> 
     getPlayerIDFromRoomUsername(const std::string& username, RoomID room_id);
 
+    std::vector<PlayerID>& getPlayersInRoom(RoomID room_id);
 
 private:
     //commandSpace::Command<PlayerID> commands;

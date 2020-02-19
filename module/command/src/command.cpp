@@ -54,29 +54,39 @@ namespace commandSpace{
         return userInput;
     }
 
-    output Command::kickPlayer(PlayerID player_id, input username_to_kick){
+    output Command::kickPlayer(PlayerID player_id, input username_to_kick, std::vector<PlayerID>& sendTo){
         
         std::optional<RoomID> room_id = gameManager.getRoomIDOfPlayer(player_id);
-        if(!room_id) return messageMap.at(GameManager::ReturnCode::PLAYER_NOT_EXIST);
+        if(!room_id) return messageMap.at(GameManager::ReturnCode::PLAYER_NOT_EXIST) {
+            sendTo = {player_id};
+            return messageMap.at(GameManager::ReturnCode::PLAYER_NOT_EXIST);
+        }
 
         std::pair<std::optional<PlayerID>, GameManager::ReturnCode> player_id_res = gameManager.getPlayerIDFromRoomUsername(username_to_kick, *room_id);     
-        if(player_id_res.second != GameManager::ReturnCode::SUCCESS) return messageMap.at(player_id_res.second);
+        if(player_id_res.second != GameManager::ReturnCode::SUCCESS) {
+            sendTo = {player_id};
+            return messageMap.at(player_id_res.second)
+        }
         
         GameManager::ReturnCode res = gameManager.removePlayerFromRoom(player_id, *(player_id_res.first));
-        if(res != GameManager::ReturnCode::SUCCESS) return messageMap.at(res);
+        if(res != GameManager::ReturnCode::SUCCESS) {
+            sendTo = {player_id};
+            return messageMap.at(res);
+        } 
         
-        return "Kicked player" + username_to_kick;
+        sendTo = 
+        return username_to_kick + " has been kicked."
 
     }
     output Command::createRoom(PlayerID player_id, input username_to_kick){
+
+
 
     }
     output Command::joinRoom(PlayerID player_id, input username_to_kick){
 
     }
-    output Command::normalMessage(PlayerID player_id, input username_to_kick){
 
-    }
     output Command::destroyRoom(PlayerID player_id, input username_to_kick){
 
     }
