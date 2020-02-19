@@ -16,6 +16,7 @@ namespace commandSpace {
 
 //user input date type for abstraction 
 using input = std::string;
+using output = std::string;
 
 
 
@@ -42,6 +43,16 @@ public:
     commandType& getCommandType();
     std::vector<input> getTokens() const;
 
+    output kickPlayer(PlayerID player_id, input username_to_kick);
+    output createRoom(PlayerID player_id, input username_to_kick);
+    output joinRoom(PlayerID player_id, input username_to_kick);
+    output normalMessage(PlayerID player_id, input username_to_kick);
+    output destroyRoom(PlayerID player_id, input username_to_kick);
+    output listRoomMembers(PlayerID player_id, input username_to_kick);
+    output leaveRoom(PlayerID player_id, input username_to_kick);
+    output whisperToPlayer(PlayerID player_id, input username_to_kick);
+
+
 private:
         commandType commandRecieved;
         //tokenized user input 
@@ -60,6 +71,14 @@ private:
             {"/initgame", commandType::initGame},
             {"/clear", commandType::clear},
             {"/shutdown", commandType::shutdownServer},
+        };
+
+        const std::unordered_map <GameManager::ReturnCode,std::string> messageMap = {
+            {GameManager::ReturnCode::NO_PERMISSION, "Error: Permission denied"},
+            {GameManager::ReturnCode::ROOM_NOT_EXIST, "Error: room does not exist"},
+            {GameManager::ReturnCode::PLAYER_NOT_EXIST, "Error: player does not exist"},
+            {GameManager::ReturnCode::ROOM_FULL, "Error: room full"},
+            {GameManager::ReturnCode::FAILURE, "Error"},
         };
 
 };

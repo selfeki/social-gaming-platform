@@ -50,6 +50,13 @@ private:
 
 class Room {
 public:
+
+    enum ReturnCode {
+        SUCCESS = 0,
+        ROOM_FULL
+    };
+
+
     Room(PlayerID _owner, RoomID room_id);
     std::optional<PlayerID> addPlayer(PlayerID player_id, std::string (*random_name_generator)());
     std::optional<PlayerID> removePlayer(PlayerID player_id);
@@ -77,6 +84,16 @@ private:
 class GameManager {
 public:
 
+    enum ReturnCode {
+        SUCCESS = 0,
+        PLAYER_NOT_EXIST,
+        ROOM_NOT_EXIST,
+        NO_PERMISSION,
+        FAILURE, 
+        ROOM_FULL
+    };
+
+
     struct MessageReturn {
         PlayerID sendTo;
         std::string message;
@@ -93,8 +110,8 @@ public:
     void
     setUp(const s_config& server_config);
 
-    RoomID
-    getRoomOfPlayer(PlayerID player_id);
+    std::optional<RoomID>
+    getRoomIDOfPlayer(PlayerID player_id);
 
     //std::vector<PlayerID>
     //getPlayersInRoom(RoomID player_id);
@@ -138,7 +155,7 @@ public:
     MessageReturnList
     handleGameMessage(std::string msg, PlayerID player_id);
 
-    std::optional<RoomID>
+    ReturnCode
     destroyRoom(PlayerID player_id);
 
     //takes player id and return Room instance
@@ -165,19 +182,19 @@ public:
     //MessageReturnList
     //clearCommand(PlayerID player_id);
 
-    void 
+    ReturnCode 
     createRoom (PlayerID owner, RoomID room_id);
 
-    std::optional<RoomID> 
+    ReturnCode
     addPlayerToRoom (PlayerID player_id, RoomID room_id);
 
-    std::optional<PlayerID>
-    removePlayerFromRoom (PlayerID player_id);
+    ReturnCode
+    removePlayerFromRoom (PlayerID kicking_player_id, PlayerID player_id);
 
-    std::string 
-    getRoomUsernameOfPlayer(PlayerID player_id, RoomID room_id);
+    std::pair<std::optional<std::string>, GameManager::ReturnCode>
+    getRoomUsernameOfPlayer(PlayerID player_id);
 
-    PlayerID 
+    std::pair<std::optional<PlayerID>, ReturnCode> 
     getPlayerIDFromRoomUsername(const std::string& username, RoomID room_id);
 
 
