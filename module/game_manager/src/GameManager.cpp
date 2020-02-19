@@ -64,27 +64,46 @@ const std::vector<PlayerID> &Room::returnPlayers() const {
     return players;
 }
 
-void Room::addPlayer(PlayerID player_id) {    //todo: should deal with some error handling
-    /*
-    Add player to the game, if DSL interpeter returns an error,
-    do something (send back error message).
-    */
-    try {
-        //game.addPlayer(player);
-    } catch (... /* DSL_interpreter error */) {
-    }
+//if success, return ID of player added, else return nullopt
+std::optional<PlayerID> Room::addPlayer(PlayerID player_id, std::string (*random_name_generator)()) {    //todo: should deal with some error handling
 
+    auto find = player_id_to_username_map.find(player_id);
+    if (find != player_id_to_username_map.end()) return std::nullopt;
+
+    std::string username;
+    do { 
+       username = random_name_generator();
+    } while(username_to_player_id_map.find(username) != username_to_player_id_map.end());
+
+    username_to_player_id_map.insert({username, player_id});
+    player_id_to_username_map.insert({player_id, username});
     players.push_back(player_id);
+
+    assert(username_to_player_id_map.size() == player_id_to_username_map.size());
+    assert(player_id_to_username_map.size() == player.size());
+    assert(username_to_player_id_map.at(username) == player_id);
+    assert(player_id_to_username_map.at(player_id) == username);
+
+    return find->first;
 }
 
 
-void Room::removePlayer(PlayerID player_id) {
-    try {
-        //game.playerQuit(player);
-    } catch (... /* DSL_interpreter error */) {
-    }
+//if success, return ID of player removed, else return nullopt
+std::optional<PlayerID> Room::removePlayer(PlayerID player_id) {
+
+    auto find = player_id_to_username_map.find(player_id);
+    if (find == player_id_to_username_map.end()) return std::nullopt;
 
     players.erase(std::remove(players.begin(), players.end(), player_id));
+    username_to_player_id_map.erase(find->second);
+    player_id_to_username_map.erase(player_id);
+
+    assert(username_to_player_id_map.size() == player_id_to_username_map.size());
+    assert(player_id_to_username_map.size() == player.size());
+    assert(username_to_player_id_map.count(find->second) == 0);
+    assert(player_id_to_username_map.count(player_id) == 0);
+
+    return player_id;
 }
 
 //update the game's DSL interpreter
@@ -97,14 +116,16 @@ PlayerID Room::getOwner() {
     return owner;
 }
 
-std::optional<std::string> getUsernameFromPlayerID(PlayerID) {
-
-
+std::optional<std::string> Room::getUsernameFromPlayerID(PlayerID player_id) {
+    auto find = player_id_to_username_map.find(player_id);
+    if (find == player_id_to_username_map.end()) return std::nullopt;
+    return {find->second};
 }
 
-std::optional<PlayerID> getPlayerIDFromUsername(const std::string& username) {
-
-
+std::optional<PlayerID> Room::getPlayerIDFromUsername(const std::string& username) {
+    auto find = username_to_player_id_map.find(username);
+    if (find == username_to_player_id_map.end()) return std::nullopt;
+    return {find->second};
 }
 
 
@@ -127,9 +148,9 @@ void GameManager::setUp(const s_config& server_config) {
 
 
 
-std::vector<PlayerID> &GameManager::getPlayersInRoom(RoomID room_id) const {
-    return 
-}
+//std::vector<PlayerID> &GameManager::getPlayersInRoom(RoomID room_id) const {
+//    return  
+//}
 
 std::vector<MessageReturn> GameManager::handleGameMessage(std::string msg, PlayerID player_id) {
 
@@ -140,12 +161,12 @@ std::vector<MessageReturn> GameManager::handleGameMessage(std::string msg, Playe
     //If player is not in a room, send this message
     if (playerid_to_roomid_map.count(player_id) == 0) {
         std::string text = "You are not in a room, please join or create a room.\n";
-        msg_list = formMessageTo(text,player_id);
+        //msg_list = formMessageTo(text,player_id);
     }
     else {
         RoomID room_id = playerid_to_roomid_map.at(player_id);
         std::string text = "Room [" + room_id + "] " + std::string(player_id) + ": " + msg;
-        msg_list = formMessageToRoomMembers(text, player_id, false);
+        //msg_list = formMessageToRoomMembers(text, player_id, false);
     }
     return msg_list;
 }
@@ -307,7 +328,7 @@ std::vector<MessageReturn> GameManager::destroyRoom(PlayerID player_id) {
     //player is not in room
     if (playerid_to_roomid_map.count(player_id) == 0) {
         std::string text = "Action Prohibited. You are not in a room.\n";
-        msg_list = formMessageTo(text,player_id);
+        //msg_list = formMessageTo(text,player_id);
 
     } else {
         RoomID room_to_destroy = playerid_to_roomid_map.at(player_id);
@@ -316,15 +337,15 @@ std::vector<MessageReturn> GameManager::destroyRoom(PlayerID player_id) {
         //if room still has people in it
         if (peopleInRoom > 1) {
             std::string text = "Action Prohibited. There are still people in the room\n";
-            msg_list = formMessageTo(text,player_id);
+            //msg_list = formMessageTo(text,player_id);
         } else if (player_room.getOwner() != player_id) {
             std::string text = "Action Prohibited. You are not the owner of this room.\n";
-            msg_list = formMessageTo(text,player_id);
+            //msg_list = formMessageTo(text,player_id);
         } else {
             //TODO: clean up game instance when implemented
             roomid_to_room_map.erase(room_to_destroy);
             std::string text = "Room: " + std::string(player_id) + " has been removed.\n";
-            msg_list = formMessageTo(text,player_id);
+            //msg_list = formMessageTo(text,player_id);
         }
     }
     return msg_list;
@@ -357,7 +378,7 @@ Room &GameManager::getRoomFromPlayerID(PlayerID id){
 }
 
 
-
+/*
 std::vector<MessageReturn> GameManager::formMessageToRoomMembers(std::string& message, PlayerID& sentFrom, bool shouldShutdown){
     auto room = playerIDtoRoom(sentFrom);
     std::vector<PlayerID> members = room.returnPlayers();
@@ -391,6 +412,8 @@ std::vector<MessageReturn> GameManager::formMessageTo (std::string& message, std
     }
     return msg_list;
 }
+
+
 //Issues command to client to clear chat history. Will be useful for initiating a game instance
 
 
@@ -406,18 +429,22 @@ std::vector<MessageReturn> GameManager::clearCommand(PlayerID playerId) {
 
 void GameManager::createRoom (PlayerID creator, RoomID room_id){
     roomid_to_room_map.insert({ room_id, Room(creator, room_id) });
-    //roomid_to_room_map.at(room_id).addPlayer(creator);
     playerid_to_roomid_map.insert({ creator, room_id });
 }
 
-/* 
-Delegating addPlayerToRoom and removePlayerToRoom responsibilities solely to Room class...
 
-void GameManager::addPlayerToRoom (PlayerID player_id, RoomID room_id){
+//Delegating addPlayerToRoom and removePlayerToRoom responsibilities solely to Room class...
+
+
+std::optional<RoomID> GameManager::addPlayerToRoom (PlayerID player_id, RoomID room_id){
+
+    auto find = roomid_to_room_map.find(room_id);
+    if (find == roomid_to_room_map.end()) return std::nullopt;
+
     if(true){  //satisfies all conditions eg. room capacity
-        Room room = roomid_to_room_map.at(room_id);
-        room.addPlayer(player_id);
+        if(!roomid_to_room_map.at(room_id).addPlayer(player_id, name_generator)) return std::nullopt;
         playerid_to_roomid_map.insert({ player_id, room_id });
+        return room_id;
     }
 }
 
@@ -430,7 +457,7 @@ void GameManager::removePlayerFromRoom (PlayerID player_id){
         playerid_to_roomid_map.erase(player_id);
     }
 }
-*/
+
 /*
 std::string GameManager::getRoomUsernameOfPlayer(PlayerID player_id, RoomID room_id) {
 

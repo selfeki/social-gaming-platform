@@ -50,13 +50,13 @@ private:
 class Room {
 public:
     Room(PlayerID _owner, RoomID room_id);
-    void addPlayer(PlayerID player_id);
-    void removePlayer(PlayerID player_id);
+    std::optional<PlayerID> addPlayer(PlayerID player_id, std::string (*random_name_generator)());
+    std::optional<PlayerID> removePlayer(PlayerID player_id);
     void gameUpdate();
     const std::vector<PlayerID> &returnPlayers() const;
     void configRoomAndGame(const g_config& game_config);
-    std::string getUsernameFromPlayerID(PlayerID);
-    PlayerID getPlayerIDFromUsername(const std::string& username);
+    std::optional<std::string> getUsernameFromPlayerID(PlayerID);
+    std::optional<PlayerID> getPlayerIDFromUsername(const std::string& username);
     PlayerID getOwner();
 
 private:
@@ -95,8 +95,8 @@ public:
     RoomID
     getRoomOfPlayer(PlayerID player_id);
 
-    std::vector<PlayerID>
-    getPlayersInRoom(RoomID player_id);
+    //std::vector<PlayerID>
+    //getPlayersInRoom(RoomID player_id);
 
     /*
 
@@ -167,7 +167,7 @@ public:
     void 
     createRoom (PlayerID owner, RoomID room_id);
 
-    void 
+    std::optional<RoomID> 
     addPlayerToRoom (PlayerID player_id, RoomID room_id);
 
     void

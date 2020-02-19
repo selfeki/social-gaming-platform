@@ -110,28 +110,28 @@ std::vector<GameManager::MessageReturn> parseCommandAndCollectResponse(const std
   Command command(tokens[0]);
   switch (command.getCommandType()){
     case commandType::listMember :
-      game_manager_message = game_manager.returnRoomMembersCommand(id);
+      //game_manager_message = game_manager.returnRoomMembersCommand(id);
       break;
     case commandType::listRoom :
-      game_manager_message = game_manager.returnRoomCommand(id);
+      //game_manager_message = game_manager.returnRoomCommand(id);
       break;
     case commandType::createRoom :
-      game_manager_message = game_manager.createRoomCommand(id);
+      //game_manager_message = game_manager.createRoomCommand(id);
       break;
     case commandType::joinRoom:
-      game_manager_message = game_manager.joinRoomCommand(id, tokens[1]);
+      //game_manager_message = game_manager.joinRoomCommand(id, tokens[1]);
       break;
     case commandType::kickUser:
-      game_manager_message = game_manager.kickPlayerCommand(id, tokens[1]);
+      //game_manager_message = game_manager.kickPlayerCommand(id, tokens[1]);
       break;
     case commandType::quitFromServer:
-      game_manager_message = game_manager.leaveRoomCommand(id);
+      //game_manager_message = game_manager.leaveRoomCommand(id);
       break;
     case commandType::initGame:
-      game_manager_message = game_manager.initRoomCommand(id);
+      //game_manager_message = game_manager.initRoomCommand(id);
       break;
     case commandType::clear:
-      game_manager_message = game_manager.clearCommand(id);
+      //game_manager_message = game_manager.clearCommand(id);
       break;
     case commandType::shutdownServer:
 
@@ -187,34 +187,34 @@ void processMessages(Server& server, const std::deque<Message>& incoming) {
         std::vector<GameManager::MessageReturn> cmd_messages;
         switch (recieved){
           case commandType::listMember :
-            cmd_messages = game_manager.returnRoomMembersCommand(sentFrom.uuid);
+            //cmd_messages = game_manager.returnRoomMembersCommand(sentFrom.uuid);
           break;
           case commandType::listRoom :
-            cmd_messages = game_manager.returnRoomCommand(sentFrom.uuid);
+            //cmd_messages = game_manager.returnRoomCommand(sentFrom.uuid);
             break;
           case commandType::createRoom :
-            cmd_messages = game_manager.createRoomCommand(sentFrom.uuid);
+            //cmd_messages = game_manager.createRoomCommand(sentFrom.uuid);
             break;
           case commandType::joinRoom:
-            cmd_messages = game_manager.joinRoomCommand(sentFrom.uuid, tokens[1]);
+            //cmd_messages = game_manager.joinRoomCommand(sentFrom.uuid, tokens[1]);
             break;
           case commandType::kickUser:
-            cmd_messages = game_manager.kickPlayerCommand(sentFrom.uuid, tokens[1]);
+            //cmd_messages = game_manager.kickPlayerCommand(sentFrom.uuid, tokens[1]);
             break;
           case commandType::clear:
-            cmd_messages = game_manager.clearCommand(sentFrom.uuid);
+            //cmd_messages = game_manager.clearCommand(sentFrom.uuid);
             break;
           case commandType::quitFromServer:
-            cmd_messages = game_manager.leaveRoomCommand(sentFrom.uuid);
+            //cmd_messages = game_manager.leaveRoomCommand(sentFrom.uuid);
             break;
           case commandType::initGame:
-            cmd_messages = game_manager.initRoomCommand(sentFrom.uuid);
+            //cmd_messages = game_manager.initRoomCommand(sentFrom.uuid);
             break;
           case commandType::shutdownServer:
-            cmd_messages = game_manager.shutdownServerCommand(sentFrom.uuid);
+            //cmd_messages = game_manager.shutdownServerCommand(sentFrom.uuid);
             break; 
           case commandType::nullCommand:
-            cmd_messages = {{sentFrom.uuid, tokens[0]+" is not a command." , false}};
+            //cmd_messages = {{sentFrom.uuid, tokens[0]+" is not a command." , false}};
             break;
           };
           //create message vector to send out 
