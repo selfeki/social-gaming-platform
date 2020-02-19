@@ -53,12 +53,16 @@ public:
     void addPlayer(PlayerID player_id);
     void removePlayer(PlayerID player_id);
     void gameUpdate();
-    std::vector<PlayerID> returnPlayers();
+    const std::vector<PlayerID> &returnPlayers() const;
     void configRoomAndGame(const g_config& game_config);
+    std::string getUsernameFromPlayerID(PlayerID);
+    PlayerID getPlayerIDFromUsername(const std::string& username);
     PlayerID getOwner();
 
 private:
     std::vector<PlayerID> players;
+    std::unordered_map<PlayerID, std::string> player_id_to_username_map;
+    std::unordered_map<std::string, PlayerID> username_to_player_id_map;
     PlayerID owner;
     int max_players;
     time_t created_at;
@@ -137,7 +141,7 @@ public:
     destroyRoom(PlayerID player_id);
 
     //takes player id and return Room instance
-    //Room playerIDtoRoom(PlayerID& player_id);
+    Room &getRoomFromPlayerID(PlayerID player_id);
 
     //forms message return to send a message everyone in the room
     //MessageReturnList

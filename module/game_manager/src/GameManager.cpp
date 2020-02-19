@@ -60,10 +60,9 @@ void Room::configRoomAndGame(const g_config& game_config) {
 }
 
 
-std::vector<PlayerID> Room::returnPlayers() {
+const std::vector<PlayerID> &Room::returnPlayers() const {
     return players;
 }
-
 
 void Room::addPlayer(PlayerID player_id) {    //todo: should deal with some error handling
     /*
@@ -97,6 +96,18 @@ void Room::gameUpdate() {
 PlayerID Room::getOwner() {
     return owner;
 }
+
+std::optional<std::string> getUsernameFromPlayerID(PlayerID) {
+
+
+}
+
+std::optional<PlayerID> getPlayerIDFromUsername(const std::string& username) {
+
+
+}
+
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
@@ -116,8 +127,8 @@ void GameManager::setUp(const s_config& server_config) {
 
 
 
-std::vector<PlayerID> GameManager::getPlayersInRoom(RoomID room_id) {
-    std::vector<PlayerID> players;
+std::vector<PlayerID> &GameManager::getPlayersInRoom(RoomID room_id) const {
+    return 
 }
 
 std::vector<MessageReturn> GameManager::handleGameMessage(std::string msg, PlayerID player_id) {
@@ -339,11 +350,10 @@ std::vector<MessageReturn> GameManager::whisperCommand(PlayerID player_id, std::
 }
 */
 
-/*
-Room GameManager::playerIDtoRoom(PlayerID& id){
+
+Room &GameManager::getRoomFromPlayerID(PlayerID id){
     auto room_id = playerid_to_roomid_map.at(id);
-    Room room = roomid_to_room_map.at(room_id);
-    return room;
+    return roomid_to_room_map.at(room_id);
 }
 
 
@@ -396,13 +406,15 @@ std::vector<MessageReturn> GameManager::clearCommand(PlayerID playerId) {
 
 void GameManager::createRoom (PlayerID creator, RoomID room_id){
     roomid_to_room_map.insert({ room_id, Room(creator, room_id) });
-    roomid_to_room_map.at(room_id).addPlayer(creator);
+    //roomid_to_room_map.at(room_id).addPlayer(creator);
     playerid_to_roomid_map.insert({ creator, room_id });
 }
 
+/* 
+Delegating addPlayerToRoom and removePlayerToRoom responsibilities solely to Room class...
 
 void GameManager::addPlayerToRoom (PlayerID player_id, RoomID room_id){
-    if(true /*satisfies all conditions eg. room capacity*/){
+    if(true){  //satisfies all conditions eg. room capacity
         Room room = roomid_to_room_map.at(room_id);
         room.addPlayer(player_id);
         playerid_to_roomid_map.insert({ player_id, room_id });
@@ -411,14 +423,15 @@ void GameManager::addPlayerToRoom (PlayerID player_id, RoomID room_id){
 
 
 void GameManager::removePlayerFromRoom (PlayerID player_id){
-    if(true/*if action is allowed*/){
+    if(true){ //if action is allowed
         RoomID room_id = playerid_to_roomid_map.at(player_id);
         Room room = roomid_to_room_map.at(room_id);
         room.removePlayer(player_id);
         playerid_to_roomid_map.erase(player_id);
     }
 }
-
+*/
+/*
 std::string GameManager::getRoomUsernameOfPlayer(PlayerID player_id, RoomID room_id) {
 
 }
@@ -426,7 +439,7 @@ std::string GameManager::getRoomUsernameOfPlayer(PlayerID player_id, RoomID room
 PlayerID GameManager::getPlayerIDFromRoomUsername(const std::string& username, RoomID room_id) {
 
 }
-
+*/
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`
