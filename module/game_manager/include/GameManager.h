@@ -1,8 +1,9 @@
 #pragma once
 
 #include "GameInstance.h"
-#include "command.h"
 #include "jsonconfig.h"
+#include <arepa/server/Server.h>
+
 
 #include <algorithm>
 #include <exception>
@@ -137,11 +138,11 @@ public:
     MessageReturnList
     handleGameMessage(std::string msg, PlayerID player_id);
 
-    MessageReturnList
+    std::optional<RoomID>
     destroyRoom(PlayerID player_id);
 
     //takes player id and return Room instance
-    Room &getRoomFromPlayerID(PlayerID player_id);
+    Room& getRoomFromPlayerID(PlayerID player_id);
 
     //forms message return to send a message everyone in the room
     //MessageReturnList
@@ -170,7 +171,7 @@ public:
     std::optional<RoomID> 
     addPlayerToRoom (PlayerID player_id, RoomID room_id);
 
-    void
+    std::optional<PlayerID>
     removePlayerFromRoom (PlayerID player_id);
 
     std::string 
@@ -201,4 +202,5 @@ private:
     int max_rooms;
 
     std::optional<PlayerID> admin;
+
 };

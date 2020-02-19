@@ -107,7 +107,7 @@ std::vector<GameManager::MessageReturn> parseCommandAndCollectResponse(const std
               std::back_inserter(tokens));
 
   //command class to translate to enumerator 
-  Command command(tokens[0]);
+  Command command(tokens[0], game_manager);
   switch (command.getCommandType()){
     case commandType::listMember :
       //game_manager_message = game_manager.returnRoomMembersCommand(id);
@@ -171,7 +171,7 @@ void onDisconnect(shared_ptr<Connection> c) {
 void processMessages(Server& server, const std::deque<Message>& incoming) {
     for (auto& message : incoming) {
       ConnectionId sentFrom = message.connection;
-      Command command(message.text);
+      Command command(message.text, game_manager);
       commandType recieved = command.getCommandType();
       //variable type input is type alias to string defined in command.h
       std::vector<input> tokens = command.getTokens();

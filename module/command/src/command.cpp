@@ -1,3 +1,5 @@
+
+
 #include "command.h"
 #include <fstream>
 #include <iostream>
@@ -12,10 +14,10 @@
 */
 
 namespace commandSpace{
-    Command::Command() : commandRecieved(commandType::message),userInput(std::vector<input>{" "}){}
+    Command::Command(GameManager &gm) : commandRecieved(commandType::message),userInput(std::vector<input>{" "}),gameManager(gm){}
     
     //Initializes userInput and commandRecieved according to messageRecieved
-    Command::Command(const input &message){
+    Command::Command(const input &message, GameManager &gm) : gameManager(gm) {
         std::istringstream iss(message);
         std::copy(std::istream_iterator<std::string>(iss),
               std::istream_iterator<std::string>(),
@@ -23,6 +25,8 @@ namespace commandSpace{
         
         evaluateMessage(message);
     }
+
+
 
     //sets commandRecieved depending on the messeage recived
     void Command::evaluateMessage(const std::string& message){

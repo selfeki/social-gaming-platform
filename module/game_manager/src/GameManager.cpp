@@ -8,8 +8,20 @@ typedef networking::ConnectionId PlayerID;
 
 using MessageReturn = GameManager::MessageReturn;
 
+static std::string gen_random_username() {
+    std::string name;
+    static const std::vector<std::string> name_pool = {"aardwolf", "beaver", "lemming", "fox", "baboon", "dragon", "elephant", "sloth"};
+    static const std::vector<std::string> adjective_pool = {"super", "iridescent", "bittersweet", "euphoric", "golden", "temporary", "melancholy"};
 
-std::string gen_random(const int len) {
+    name += name_pool[rand() % (name_pool.size()-1)];
+    name += "_";
+    name += adjective_pool[rand() % (adjective_pool.size()-1)];
+    name += std::to_string(rand());
+
+    return name;
+}
+
+static std::string gen_random(const int len) {
     std::string code = "";
 
     static const char alphanum[] = "0123456789"
@@ -322,7 +334,28 @@ std::vector<MessageReturn> GameManager::initRoomCommand(PlayerID id) {
 
 */
 
-std::vector<MessageReturn> GameManager::destroyRoom(PlayerID player_id) {
+std::optional<RoomID> GameManager::destroyRoom(PlayerID player_id) {
+
+    auto find_room_id = playerid_to_roomid_map.find(player_id);
+    if (find_room_id == playerid_to_roomid_map.end()) return std::nullopt;
+
+    auto find_room = roomid_to_room_map.find(find_room_id->second);
+    if (find_room == roomid_to_room_map.end()) return std::nullopt;
+
+    if((find_room->second).getOwner() != player_id) return std::nullopt;
+
+    roomid_to_room_map.erase(find_room_id->second);
+
+    for( auto it = playerid_to_roomid_map.begin(); it != playerid_to_roomid_map.end(); ) {
+        if (it->second == find_room_id->second) {
+            it = playerid_to_roomid_map.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    return find_room_id->second;
+    /*
     std::vector<MessageReturn> msg_list;
     std::vector<PlayerID> player_list;
     //player is not in room
@@ -349,6 +382,7 @@ std::vector<MessageReturn> GameManager::destroyRoom(PlayerID player_id) {
         }
     }
     return msg_list;
+    */
 }
 
 /*
@@ -372,9 +406,10 @@ std::vector<MessageReturn> GameManager::whisperCommand(PlayerID player_id, std::
 */
 
 
-Room &GameManager::getRoomFromPlayerID(PlayerID id){
-    auto room_id = playerid_to_roomid_map.at(id);
-    return roomid_to_room_map.at(room_id);
+Room& GameManager::getRoomFromPlayerID(PlayerID id){
+
+    //auto room_id = playerid_to_roomid_map.at(id);
+    //return roomid_to_room_map.at(room_id);
 }
 
 
@@ -442,21 +477,30 @@ std::optional<RoomID> GameManager::addPlayerToRoom (PlayerID player_id, RoomID r
     if (find == roomid_to_room_map.end()) return std::nullopt;
 
     if(true){  //satisfies all conditions eg. room capacity
-        if(!roomid_to_room_map.at(room_id).addPlayer(player_id, name_generator)) return std::nullopt;
+        if(!roomid_to_room_map.at(room_id).addPlayer(player_id,gen_random_username)) return std::nullopt;
         playerid_to_roomid_map.insert({ player_id, room_id });
         return room_id;
     }
 }
 
 
-void GameManager::removePlayerFromRoom (PlayerID player_id){
+std::optional<PlayerID> GameManager::removePlayerFromRoom (PlayerID player_id){
+
+    auto find_room_id = playerid_to_roomid_map.find(player_id);
+    if (find_room_id == playerid_to_roomid_map.end()) return std::nullopt;
+
     if(true){ //if action is allowed
-        RoomID room_id = playerid_to_roomid_map.at(player_id);
-        Room room = roomid_to_room_map.at(room_id);
-        room.removePlayer(player_id);
+
+        auto find_room = roomid_to_room_map.find(find_room_id->second);
+        if (find_room == roomid_to_room_map.end()) return std::nullopt;
+
+        if(!(find_room->second).removePlayer(player_id)) return std::nullopt;
+
         playerid_to_roomid_map.erase(player_id);
+        return player_id;
     }
 }
+
 
 /*
 std::string GameManager::getRoomUsernameOfPlayer(PlayerID player_id, RoomID room_id) {

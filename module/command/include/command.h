@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GameManager.h"
 #include <arepa/server/Server.h>
 
 #include <string>
@@ -8,7 +9,7 @@
 #include <unordered_map>
 #include <iterator>
 
-
+class GameManager;
 
 namespace commandSpace {
 
@@ -34,8 +35,8 @@ enum commandType {
 
 class Command{
 public:
-    Command();
-    Command(const input &message);
+    Command(GameManager &gm);
+    Command(const input &message, GameManager &gm);
 
     void evaluateMessage(const std::string& message);
     commandType& getCommandType();
@@ -46,6 +47,9 @@ private:
         //tokenized user input 
         std::vector<input> userInput;
         //map to connect user input to command
+
+        GameManager& gameManager;
+
         const std::unordered_map <std::string,commandType> commandMap ={
             {"/member", commandType::listMember},
             {"/room",   commandType::listRoom},
