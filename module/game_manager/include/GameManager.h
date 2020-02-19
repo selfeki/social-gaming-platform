@@ -50,8 +50,8 @@ private:
 class Room {
 public:
     Room(PlayerID _owner, RoomID room_id);
-    void playerJoin(PlayerID player_id);
-    void playerLeave(PlayerID player_id);
+    void addPlayer(PlayerID player_id);
+    void removePlayer(PlayerID player_id);
     void gameUpdate();
     std::vector<PlayerID> returnPlayers();
     void configRoomAndGame(const g_config& game_config);
@@ -88,17 +88,14 @@ public:
     void
     setUp(const s_config& server_config);
 
-    void
-    removePlayer(PlayerID player_id, RoomID room_id);
-
-    void
-    addPlayer(PlayerID player_id, RoomID room_id);
-
-    std::vector<PlayerID> 
+    RoomID
     getRoomOfPlayer(PlayerID player_id);
 
     std::vector<PlayerID>
     getPlayersInRoom(RoomID player_id);
+
+    /*
+
 
     MessageReturnList
     returnRoomMembersCommand(PlayerID player_id);
@@ -129,37 +126,39 @@ public:
     initRoomCommand(PlayerID player_id);
 
     MessageReturnList
+    whisperCommand(PlayerID player_id, std::string recipient_id, std::string msg);
+
+    */
+
+    MessageReturnList
     handleGameMessage(std::string msg, PlayerID player_id);
 
     MessageReturnList
     destroyRoom(PlayerID player_id);
 
-    MessageReturnList
-    whisperCommand(PlayerID player_id, std::string recipient_id, std::string msg);
-
     //takes player id and return Room instance
-    Room playerIDtoRoom(PlayerID& player_id);
+    //Room playerIDtoRoom(PlayerID& player_id);
 
     //forms message return to send a message everyone in the room
-    MessageReturnList
-    formMessageToRoomMembers(std::string& message, PlayerID& sentFrom, bool shouldShutdown);
+    //MessageReturnList
+    //formMessageToRoomMembers(std::string& message, PlayerID& sentFrom, bool shouldShutdown);
     
     /* forms message to all_players
     *  note: all_players variable not implemented, so it doesn't send message to anyone
     */
-    MessageReturnList
-    formMessageToEveryone(std::string& message, bool shouldShutdown);
+    //MessageReturnList
+    //formMessageToEveryone(std::string& message, bool shouldShutdown);
     
     //forms message to a single recipient
-    MessageReturnList
-    formMessageTo (std::string& message, PlayerID& recipent);
+    //MessageReturnList
+    //formMessageTo (std::string& message, PlayerID& recipent);
     
     //forms message to multiple recipients
-    MessageReturnList
-    formMessageTo (std::string& message, std::vector<PlayerID>& recipent);
+    //MessageReturnList
+    //formMessageTo (std::string& message, std::vector<PlayerID>& recipent);
 
-    MessageReturnList
-    clearCommand(PlayerID player_id);
+    //MessageReturnList
+    //clearCommand(PlayerID player_id);
 
     void 
     createRoom (PlayerID owner, RoomID room_id);
@@ -169,6 +168,12 @@ public:
 
     void
     removePlayerFromRoom (PlayerID player_id);
+
+    std::string 
+    getRoomUsernameOfPlayer(PlayerID player_id, RoomID room_id);
+
+    PlayerID 
+    getPlayerIDFromRoomUsername(const std::string& username, RoomID room_id);
 
 
 private:
@@ -182,7 +187,7 @@ private:
     //std::unordered_map<PlayerID, std::string> id_player_map;
 
     //username to player ID
-    std::unordered_map<std::string, PlayerID> username_to_playerid_map;
+    //std::unordered_map<std::string, PlayerID> username_to_playerid_map;
 
     //player ID to roomID map
     std::unordered_map<PlayerID, RoomID> playerid_to_roomid_map;

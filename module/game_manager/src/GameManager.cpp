@@ -65,7 +65,7 @@ std::vector<PlayerID> Room::returnPlayers() {
 }
 
 
-void Room::playerJoin(PlayerID player_id) {    //todo: should deal with some error handling
+void Room::addPlayer(PlayerID player_id) {    //todo: should deal with some error handling
     /*
     Add player to the game, if DSL interpeter returns an error,
     do something (send back error message).
@@ -79,7 +79,7 @@ void Room::playerJoin(PlayerID player_id) {    //todo: should deal with some err
 }
 
 
-void Room::playerLeave(PlayerID player_id) {
+void Room::removePlayer(PlayerID player_id) {
     try {
         //game.playerQuit(player);
     } catch (... /* DSL_interpreter error */) {
@@ -115,20 +115,15 @@ void GameManager::setUp(const s_config& server_config) {
 }
 
 
-void GameManager::removePlayer(PlayerID player_id, RoomID room_id) {
-}
-
-
-void GameManager::addPlayer(PlayerID player_id, RoomID room_id) {
-}
-
 
 std::vector<PlayerID> GameManager::getPlayersInRoom(RoomID room_id) {
     std::vector<PlayerID> players;
 }
 
-
 std::vector<MessageReturn> GameManager::handleGameMessage(std::string msg, PlayerID player_id) {
+
+
+    //Subject to change, we don't have an interpreter working yet.
 
     std::vector<MessageReturn> msg_list;
     //If player is not in a room, send this message
@@ -144,7 +139,7 @@ std::vector<MessageReturn> GameManager::handleGameMessage(std::string msg, Playe
     return msg_list;
 }
 
-
+/*
 std::vector<MessageReturn> GameManager::returnRoomMembersCommand(PlayerID player_id){
     std::vector<MessageReturn> msg_list;
 
@@ -293,6 +288,7 @@ std::vector<MessageReturn> GameManager::shutdownServerCommand(PlayerID id){
 std::vector<MessageReturn> GameManager::initRoomCommand(PlayerID id) {
 }
 
+*/
 
 std::vector<MessageReturn> GameManager::destroyRoom(PlayerID player_id) {
     std::vector<MessageReturn> msg_list;
@@ -323,7 +319,7 @@ std::vector<MessageReturn> GameManager::destroyRoom(PlayerID player_id) {
     return msg_list;
 }
 
-
+/*
 std::vector<MessageReturn> GameManager::whisperCommand(PlayerID player_id, std::string recipient, std::string msg) {
     std::vector<MessageReturn> msg_list;
     std::vector<PlayerID> player_list;
@@ -341,13 +337,15 @@ std::vector<MessageReturn> GameManager::whisperCommand(PlayerID player_id, std::
     }
     return msg_list;
 }
+*/
 
-
+/*
 Room GameManager::playerIDtoRoom(PlayerID& id){
     auto room_id = playerid_to_roomid_map.at(id);
     Room room = roomid_to_room_map.at(room_id);
     return room;
 }
+
 
 
 std::vector<MessageReturn> GameManager::formMessageToRoomMembers(std::string& message, PlayerID& sentFrom, bool shouldShutdown){
@@ -385,6 +383,8 @@ std::vector<MessageReturn> GameManager::formMessageTo (std::string& message, std
 }
 //Issues command to client to clear chat history. Will be useful for initiating a game instance
 
+
+
 std::vector<MessageReturn> GameManager::clearCommand(PlayerID playerId) {
     std::vector<MessageReturn> msg_list;
     std::string text = "/clear";
@@ -392,10 +392,11 @@ std::vector<MessageReturn> GameManager::clearCommand(PlayerID playerId) {
     return msg_list;
 }
 
+*/
 
 void GameManager::createRoom (PlayerID creator, RoomID room_id){
     roomid_to_room_map.insert({ room_id, Room(creator, room_id) });
-    roomid_to_room_map.at(room_id).playerJoin(creator);
+    roomid_to_room_map.at(room_id).addPlayer(creator);
     playerid_to_roomid_map.insert({ creator, room_id });
 }
 
@@ -403,7 +404,7 @@ void GameManager::createRoom (PlayerID creator, RoomID room_id){
 void GameManager::addPlayerToRoom (PlayerID player_id, RoomID room_id){
     if(true /*satisfies all conditions eg. room capacity*/){
         Room room = roomid_to_room_map.at(room_id);
-        room.playerJoin(player_id);
+        room.addPlayer(player_id);
         playerid_to_roomid_map.insert({ player_id, room_id });
     }
 }
@@ -413,18 +414,20 @@ void GameManager::removePlayerFromRoom (PlayerID player_id){
     if(true/*if action is allowed*/){
         RoomID room_id = playerid_to_roomid_map.at(player_id);
         Room room = roomid_to_room_map.at(room_id);
-        room.playerLeave(player_id);
+        room.removePlayer(player_id);
         playerid_to_roomid_map.erase(player_id);
     }
+}
+
+std::string GameManager::getRoomUsernameOfPlayer(PlayerID player_id, RoomID room_id) {
+
+}
+
+PlayerID GameManager::getPlayerIDFromRoomUsername(const std::string& username, RoomID room_id) {
+
 }
 
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`
 
-
-//template class GameManager<networking::ConnectionId>;
-
-/*
-*Avoids linking error allows us to use a template.
-*/
