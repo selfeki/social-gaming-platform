@@ -8,6 +8,7 @@
 #include <string>
 #include <unordered_map>
 #include <iterator>
+#include <string_view>
 
 class GameManager;
 
@@ -36,6 +37,14 @@ enum commandType {
 
 class Command{
 public:
+
+    struct MessageReturn {
+        PlayerID send_to;
+        std::string message;
+        bool shouldShutdown;
+    };
+
+
     Command(GameManager &gm);
     Command(const input &message, GameManager &gm);
 
@@ -43,13 +52,13 @@ public:
     commandType& getCommandType();
     std::vector<input> getTokens() const;
 
-    output kickPlayer(PlayerID player_id, input username_to_kick);
-    output createRoom(PlayerID player_id, input username_to_kick);
-    output joinRoom(PlayerID player_id, input username_to_kick);
-    output destroyRoom(PlayerID player_id, input username_to_kick);
-    output listRoomMembers(PlayerID player_id, input username_to_kick);
-    output leaveRoom(PlayerID player_id, input username_to_kick);
-    output whisperToPlayer(PlayerID player_id, input username_to_kick);
+    std::vector<MessageReturn> kickPlayer(PlayerID player_id, input username_to_kick);
+    std::vector<MessageReturn> createRoom(PlayerID player_id, input username_to_kick);
+    std::vector<MessageReturn> joinRoom(PlayerID player_id, input username_to_kick);
+    std::vector<MessageReturn> destroyRoom(PlayerID player_id, input username_to_kick);
+    std::vector<MessageReturn> listRoomMembers(PlayerID player_id, input username_to_kick);
+    std::vector<MessageReturn> leaveRoom(PlayerID player_id, input username_to_kick);
+    std::vector<MessageReturn> whisperToPlayer(PlayerID player_id, input username_to_kick);
 
 
 private:
