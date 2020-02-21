@@ -56,7 +56,7 @@ namespace commandSpace{
 
     //return any special command messages, and for each special command message a list of players to send message back to
     void
-    Command::kickPlayer(PlayerID player_id, input& username_to_kick, std::vector<MessageReturn>& messagesToSend){
+    Command::kickPlayer(PlayerID player_id, input& username_to_kick, std::vector<networking::Message>& messagesToSend){
         
         Room* room = gameManager.getRoomFromPlayerID(player_id);
         if(!room){
@@ -91,7 +91,7 @@ namespace commandSpace{
 
     }
     void 
-    Command::createRoom(PlayerID player_id, std::vector<MessageReturn>& messagesToSend){
+    Command::createRoom(PlayerID player_id, std::vector<networking::Message>& messagesToSend){
         
         std::pair<std::optional<RoomID>, GameManager::ReturnCode> create_room_result;
         create_room_result = gameManager.createRoom(player_id);
@@ -106,7 +106,7 @@ namespace commandSpace{
         return;
     }
     void 
-    Command::joinRoom(PlayerID player_id, RoomID room_id, std::vector<MessageReturn>& messagesToSend){
+    Command::joinRoom(PlayerID player_id, RoomID room_id, std::vector<networking::Message>& messagesToSend){
 
         GameManager::ReturnCode result = gameManager.addPlayerToRoom(player_id, room_id);
 
@@ -146,7 +146,7 @@ namespace commandSpace{
     }
 
     void
-    Command::regularMessage(PlayerID player_id, const std::string& msg, std::vector<MessageReturn>& messagesToSend){
+    Command::regularMessage(PlayerID player_id, const std::string& msg, std::vector<networking::Message>& messagesToSend){
         
         Room* room = gameManager.getRoomFromPlayerID(player_id);
 
@@ -165,7 +165,7 @@ namespace commandSpace{
         }
 
         const std::vector<PlayerID>& players = room->getPlayers();
-        const RoomID room_id = room->getRoomID();
+        const RoomID& room_id = room->getRoomID();
 
         std::string success_msg = "{" + room_id + "} " + *username + ": " + msg;
         

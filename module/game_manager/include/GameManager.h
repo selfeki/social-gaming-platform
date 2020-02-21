@@ -66,7 +66,7 @@ public:
     std::optional<std::string> getUsernameFromPlayerID(PlayerID player_id);
     std::optional<PlayerID> getPlayerIDFromUsername(const std::string& username);
     const PlayerID getOwner() const;
-    const RoomID getRoomID() const;
+    const RoomID& getRoomID() const;
 
 private:
     std::vector<PlayerID> players;

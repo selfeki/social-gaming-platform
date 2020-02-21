@@ -50,12 +50,13 @@ enum SendTo {
     PLAYER_LIST
 };
 
+/*
 struct MessageReturn {
     MessageReturn(PlayerID player_id, std::string _msg) : sendTo(player_id), msg(_msg) {};
     PlayerID sendTo;
     std::string msg;
 };
-
+*/
 
 
 class Command{
@@ -70,14 +71,14 @@ public:
     commandType& getCommandType();
     std::vector<input> getTokens() const;
 
-    void kickPlayer(PlayerID player_id, input& username_to_kick, std::vector<MessageReturn>& messagesToSend);
-    void createRoom(PlayerID player_id, std::vector<MessageReturn>& messagesToSend);
-    void joinRoom(PlayerID player_id, RoomID room_id, std::vector<MessageReturn>& messagesToSend);
+    void kickPlayer(PlayerID player_id, input& username_to_kick, std::vector<networking::Message>& messagesToSend);
+    void createRoom(PlayerID player_id, std::vector<networking::Message>& messagesToSend);
+    void joinRoom(PlayerID player_id, RoomID room_id, std::vector<networking::Message>& messagesToSend);
     void destroyRoom(PlayerID player_id, input username_to_kick);
     void listRoomMembers(PlayerID player_id, input username_to_kick);
     void leaveRoom(PlayerID player_id, input username_to_kick);
     void whisperToPlayer(PlayerID player_id, input username_to_kick);
-    void regularMessage(PlayerID player_id, const std::string& msg, std::vector<MessageReturn>& messagesToSend);
+    void regularMessage(PlayerID player_id, const std::string& msg, std::vector<networking::Message>& messagesToSend);
 
 private:
         commandType commandRecieved;

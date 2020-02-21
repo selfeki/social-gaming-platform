@@ -165,6 +165,10 @@ void onConnect(shared_ptr<Connection> c) {
 //Called whenenver a client disconnects. Should handle disconneting player from game room
 void onDisconnect(shared_ptr<Connection> c) {
     std::cout << "Connection lost: " << c->session_token() << "\n";
+
+    
+    
+
 }
 
 

@@ -128,7 +128,7 @@ const PlayerID Room::getOwner() const{
     return owner;
 }
 
-const RoomID Room::getRoomID() const {
+const RoomID& Room::getRoomID() const {
     return room_id;
 }
 
