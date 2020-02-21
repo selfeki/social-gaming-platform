@@ -13,10 +13,10 @@ static std::string gen_random_username() {
     static const std::vector<std::string> name_pool = {"aardwolf", "beaver", "lemming", "fox", "baboon", "dragon", "elephant", "sloth"};
     static const std::vector<std::string> adjective_pool = {"super", "iridescent", "bittersweet", "euphoric", "golden", "temporary", "melancholy"};
 
-    name += name_pool[rand() % (name_pool.size()-1)];
-    name += "_";
     name += adjective_pool[rand() % (adjective_pool.size()-1)];
-    name += std::to_string(rand());
+    name += "_";
+    name += name_pool[rand() % (name_pool.size()-1)];
+    name += std::to_string(rand() % 99);
 
     return name;
 }
@@ -82,21 +82,29 @@ std::optional<PlayerID> Room::addPlayer(PlayerID player_id, std::string (*random
     auto find = player_id_to_username_map.find(player_id);
     if (find != player_id_to_username_map.end()) return std::nullopt;
 
+
+
     std::string username;
     do { 
        username = random_name_generator();
     } while(username_to_player_id_map.find(username) != username_to_player_id_map.end());
 
+
+
     username_to_player_id_map.insert({username, player_id});
     player_id_to_username_map.insert({player_id, username});
     players.push_back(player_id);
+
 
     assert(username_to_player_id_map.size() == player_id_to_username_map.size());
     assert(player_id_to_username_map.size() == player.size());
     assert(username_to_player_id_map.at(username) == player_id);
     assert(player_id_to_username_map.at(player_id) == username);
 
-    return find->first;
+    //std::cout << "find->first might bethe culprit\n";
+    //std::cout << std::string(*(find->first)) << "\n";
+
+    return player_id;
 }
 
 
@@ -166,8 +174,7 @@ void GameManager::setUp(const s_config& server_config) {
 
 const std::vector<PlayerID> &GameManager::getPlayersInRoom(RoomID room_id) const {
     auto find_room = roomid_to_room_map.find(room_id);
-    if (find_room == roomid_to_room_map.end()) return {};
-
+    //if (find_room == roomid_to_room_map.end()) return {};
     return (find_room->second).getPlayers();
 }
 
@@ -519,11 +526,18 @@ GameManager::addPlayerToRoom (PlayerID player_id, RoomID room_id){
     auto find = roomid_to_room_map.find(room_id);
     if (find == roomid_to_room_map.end()) return GameManager::ReturnCode::ROOM_NOT_EXIST;
 
+    Room& room = find->second;
+
+
+    
     if(true){  //satisfies all conditions eg. room capacity
-        if(!roomid_to_room_map.at(room_id).addPlayer(player_id,gen_random_username)) return GameManager::ReturnCode::FAILURE;
+        if(!room.addPlayer(player_id,gen_random_username)) return GameManager::ReturnCode::FAILURE;
+        std::cout << "trace: inside addPlayerToRoom\n";
+
         playerid_to_roomid_map.insert({ player_id, room_id });
         return GameManager::ReturnCode::SUCCESS;
     }
+    
 }
 
 

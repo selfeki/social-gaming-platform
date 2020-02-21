@@ -68,17 +68,16 @@ public:
     Command(const input &message, GameManager &gm);
 
     void evaluateMessage(const std::string& message);
-    commandType& getCommandType();
+    commandType getCommandTypeAndSetTokens(const input& message, std::vector<input>& tokens );
     std::vector<input> getTokens() const;
-
-    void kickPlayer(PlayerID player_id, input& username_to_kick, std::vector<networking::Message>& messagesToSend);
-    void createRoom(PlayerID player_id, std::vector<networking::Message>& messagesToSend);
-    void joinRoom(PlayerID player_id, RoomID room_id, std::vector<networking::Message>& messagesToSend);
+    void kickPlayer(PlayerID player_id, input& username_to_kick, std::deque<networking::Message>& messagesToSend);
+    void createRoom(PlayerID player_id, std::deque<networking::Message>& messagesToSend);
+    void joinRoom(PlayerID player_id, RoomID room_id, std::deque<networking::Message>& messagesToSend);
     void destroyRoom(PlayerID player_id, input username_to_kick);
     void listRoomMembers(PlayerID player_id, input username_to_kick);
     void leaveRoom(PlayerID player_id, input username_to_kick);
     void whisperToPlayer(PlayerID player_id, input username_to_kick);
-    void regularMessage(PlayerID player_id, const std::string& msg, std::vector<networking::Message>& messagesToSend);
+    void regularMessage(PlayerID player_id, const std::string& msg, std::deque<networking::Message>& messagesToSend);
 
 private:
         commandType commandRecieved;

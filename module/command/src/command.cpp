@@ -14,19 +14,17 @@
 */
 
 namespace commandSpace{
-    Command::Command(GameManager &gm) : commandRecieved(commandType::message),userInput(std::vector<input>{" "}),gameManager(gm){}
-    
+    Command::Command(GameManager &gm) : gameManager(gm){    }
+ 
     //Initializes userInput and commandRecieved according to messageRecieved
     Command::Command(const input &message, GameManager &gm) : gameManager(gm) {
-        std::istringstream iss(message);
-        std::copy(std::istream_iterator<std::string>(iss),
-              std::istream_iterator<std::string>(),
-              std::back_inserter(userInput));
         
         evaluateMessage(message);
     }
+    
 
-
+    
+    
     //sets commandRecieved depending on the messeage recived
     void Command::evaluateMessage(const std::string& message){
         
@@ -44,19 +42,38 @@ namespace commandSpace{
             }
         }
     }
+    
 
-    commandType& Command::getCommandType()  {
-        return commandRecieved;
+
+
+
+    commandType Command::getCommandTypeAndSetTokens(const input& message,  std::vector<input>& tokens ) {
+
+        std::istringstream iss(message);
+        std::copy(std::istream_iterator<std::string>(iss),
+              std::istream_iterator<std::string>(),
+              std::back_inserter(tokens));
+
+        if(tokens[0][0] != '/'){
+            return commandType::message;
+        }
+        else {
+
+            auto search = commandMap.find(tokens[0]);
+            if(search != commandMap.end()){
+                return search->second;
+            }
+            else{
+                return commandType::nullCommand; 
+            }
+        }
     }
 
-    std::vector<input> Command::getTokens() const{
-        return userInput;
-    }
 
 
-    //return any special command messages, and for each special command message a list of players to send message back to
+
     void
-    Command::kickPlayer(PlayerID player_id, input& username_to_kick, std::vector<networking::Message>& messagesToSend){
+    Command::kickPlayer(PlayerID player_id, input& username_to_kick, std::deque<networking::Message>& messagesToSend){
         
         Room* room = gameManager.getRoomFromPlayerID(player_id);
         if(!room){
@@ -91,7 +108,7 @@ namespace commandSpace{
 
     }
     void 
-    Command::createRoom(PlayerID player_id, std::vector<networking::Message>& messagesToSend){
+    Command::createRoom(PlayerID player_id, std::deque<networking::Message>& messagesToSend){
         
         std::pair<std::optional<RoomID>, GameManager::ReturnCode> create_room_result;
         create_room_result = gameManager.createRoom(player_id);
@@ -106,9 +123,10 @@ namespace commandSpace{
         return;
     }
     void 
-    Command::joinRoom(PlayerID player_id, RoomID room_id, std::vector<networking::Message>& messagesToSend){
+    Command::joinRoom(PlayerID player_id, RoomID room_id, std::deque<networking::Message>& messagesToSend){
 
         GameManager::ReturnCode result = gameManager.addPlayerToRoom(player_id, room_id);
+        std::cout << "trace: addPlayerToRoom called\n";
 
         if(result != GameManager::ReturnCode::SUCCESS) {
             std::string error_msg = errorMessageMap.at(result);
@@ -125,7 +143,7 @@ namespace commandSpace{
             return;    
         }
 
-        messagesToSend.emplace_back(player_id, "Joined room " + room_id + "as " + *username);
+        messagesToSend.emplace_back(player_id, "Joined room " + room_id + " as " + *username);
         return;
     }
     void
@@ -146,7 +164,7 @@ namespace commandSpace{
     }
 
     void
-    Command::regularMessage(PlayerID player_id, const std::string& msg, std::vector<networking::Message>& messagesToSend){
+    Command::regularMessage(PlayerID player_id, const std::string& msg, std::deque<networking::Message>& messagesToSend){
         
         Room* room = gameManager.getRoomFromPlayerID(player_id);
 
@@ -159,7 +177,7 @@ namespace commandSpace{
         std::optional<std::string> username = room->getUsernameFromPlayerID(player_id);
 
         if(!username) {
-            std::string error_msg = "You do not have a username for some reason.";
+            std::string error_msg = "You do not have a username for some reason. (Try joining the room)";
             messagesToSend.emplace_back(player_id, error_msg); 
             return;               
         }

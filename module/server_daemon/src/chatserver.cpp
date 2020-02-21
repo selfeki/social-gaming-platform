@@ -96,7 +96,7 @@ MessageType getMessageType(const std::string& _message) {
 * Interpret command and call appropriate game_manager api function (there might be a better way to do this)
 */
 std::vector<GameManager::MessageReturn> parseCommandAndCollectResponse(const std::string& message, UniqueConnectionID id){
-
+  /*
   std::vector<GameManager::MessageReturn> game_manager_message;
 
   //tokenize the string, split by ' '
@@ -139,6 +139,7 @@ std::vector<GameManager::MessageReturn> parseCommandAndCollectResponse(const std
   };
 
   return game_manager_message;
+  */
 }
 
 
@@ -166,13 +167,61 @@ void onConnect(shared_ptr<Connection> c) {
 void onDisconnect(shared_ptr<Connection> c) {
     std::cout << "Connection lost: " << c->session_token() << "\n";
 
-    
-    
 
 }
 
 
-void processMessages(Server& server, const std::deque<Message>& incoming) {
+void processMessages(Server& server, const std::deque<Message>& incoming, Command& command) {
+
+  static std::vector<commandSpace::input> tokens(3);
+
+  for(auto& message : incoming) {
+    ConnectionId sentFrom = message.connection;
+    commandSpace::commandType command_type = command.getCommandTypeAndSetTokens(message.text, tokens);
+    std::cout << (int)command_type << "\n";
+
+    switch(command_type) {
+          case commandType::listMember :
+            //cmd_messages = game_manager.returnRoomMembersCommand(sentFrom.uuid);
+          break;
+          case commandType::listRoom :
+            //cmd_messages = game_manager.returnRoomCommand(sentFrom.uuid);
+            break;
+          case commandType::createRoom :
+            command.createRoom(message.connection, networkMessageQueue);
+            break;
+          case commandType::joinRoom:
+            std::cout << "HIIII" << "\n";
+            command.joinRoom(message.connection, tokens[1], networkMessageQueue);
+            break;
+          case commandType::kickUser:
+            command.kickPlayer(message.connection, tokens[1], networkMessageQueue);
+            break;
+          case commandType::clear:
+            //cmd_messages = game_manager.clearCommand(sentFrom.uuid);
+            break;
+          case commandType::quitFromServer:
+            //cmd_messages = game_manager.leaveRoomCommand(sentFrom.uuid);
+            break;
+          case commandType::initGame:
+            //cmd_messages = game_manager.initRoomCommand(sentFrom.uuid);
+            break;
+          case commandType::shutdownServer:
+            //cmd_messages = game_manager.shutdownServerCommand(sentFrom.uuid);
+            break; 
+          case commandType::nullCommand:
+            //cmd_messages = {{sentFrom.uuid, tokens[0]+" is not a command." , false}};
+            break;
+          case commandType::message:
+            command.regularMessage(message.connection, message.text, networkMessageQueue);
+            break;
+      }
+    }
+
+    tokens.clear();
+
+  /*
+    
     for (auto& message : incoming) {
       ConnectionId sentFrom = message.connection;
       Command command(message.text, game_manager);
@@ -228,7 +277,8 @@ void processMessages(Server& server, const std::deque<Message>& incoming) {
         }
         
       };
-    }
+    */  
+}
 
 
 /*
@@ -242,6 +292,7 @@ std::deque<Message> buildOutgoing(const std::string& log) {
 */
 
 int main(int argc, char* argv[]) {
+
 
     s_config server_config;
 
@@ -276,6 +327,8 @@ int main(int argc, char* argv[]) {
     opts.bind_port = port;
 
     Server server(opts, &onConnect, &onDisconnect);
+    GameManager gameManager;
+    Command command(gameManager);
 
   /*
   * Main Game Server Loop
@@ -289,10 +342,10 @@ int main(int argc, char* argv[]) {
         auto incoming = server.receive();
 
         //Process messages and put them in gameMessagesQueue (global queue)
-        processMessages(server, incoming);
+        processMessages(server, incoming, command);
 
         //if an admin runs a comman to shutdown server, shouldQuit will be set to true
-        shouldQuit = gameMessagesToNetworkMessages();
+        //shouldQuit = gameMessagesToNetworkMessages();
         server.send(networkMessageQueue);
         networkMessageQueue.clear();
 
