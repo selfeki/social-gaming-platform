@@ -72,7 +72,7 @@ void Room::configRoomAndGame(const g_config& game_config) {
 }
 
 
-const std::vector<PlayerID> &Room::returnPlayers() const {
+const std::vector<PlayerID> &Room::getPlayers() const {
     return players;
 }
 
@@ -124,8 +124,12 @@ void Room::gameUpdate() {
 }
 
 
-PlayerID Room::getOwner() {
+const PlayerID Room::getOwner() const{
     return owner;
+}
+
+const RoomID Room::getRoomID() const {
+    return room_id;
 }
 
 std::optional<std::string> Room::getUsernameFromPlayerID(PlayerID player_id) {
@@ -160,9 +164,12 @@ void GameManager::setUp(const s_config& server_config) {
 
 
 
-//std::vector<PlayerID> &GameManager::getPlayersInRoom(RoomID room_id) const {
-//    return  
-//}
+const std::vector<PlayerID> &GameManager::getPlayersInRoom(RoomID room_id) const {
+    auto find_room = roomid_to_room_map.find(room_id);
+    if (find_room == roomid_to_room_map.end()) return {};
+
+    return (find_room->second).getPlayers();
+}
 
 std::vector<MessageReturn> GameManager::handleGameMessage(std::string msg, PlayerID player_id) {
 
@@ -416,10 +423,19 @@ GameManager::getRoomIDOfPlayer(PlayerID player_id) {
 
 
 
-Room& GameManager::getRoomFromPlayerID(PlayerID id){
+Room* GameManager::getRoomFromPlayerID(PlayerID id) {
 
-    //auto room_id = playerid_to_roomid_map.at(id);
-    //return roomid_to_room_map.at(room_id);
+    auto it_room_id = playerid_to_roomid_map.find(id);
+    if(it_room_id == playerid_to_roomid_map.end()) {
+        return NULL;
+    }
+    RoomID wut = (it_room_id->second);
+    auto it_room = roomid_to_room_map.find(wut);
+    if(it_room == roomid_to_room_map.end()) {
+        return NULL;
+    }
+
+    return &(it_room->second);
 }
 
 
@@ -472,15 +488,23 @@ std::vector<MessageReturn> GameManager::clearCommand(PlayerID playerId) {
 
 */
 
-GameManager::ReturnCode
-GameManager::createRoom (PlayerID creator, RoomID room_id){
-    roomid_to_room_map.insert({ room_id, Room(creator, room_id) });
-    playerid_to_roomid_map.insert({ creator, room_id });
+std::pair<std::optional<RoomID>, GameManager::ReturnCode>
+GameManager::createRoom (PlayerID creator){
 
-    if(roomid_to_room_map.count(room_id) == 1 && playerid_to_roomid_map.count(creator) == 1) {
-        return GameManager::ReturnCode::SUCCESS;
+    RoomID room_code;
+
+    //Generate random key, while that key does not already exist in the map
+    do {
+        room_code = gen_random(5);
+    } while (roomid_to_room_map.count(room_code) > 0);
+
+    roomid_to_room_map.insert({ room_code, Room(creator, room_code) });
+    playerid_to_roomid_map.insert({ creator, room_code });
+
+    if(roomid_to_room_map.count(room_code) == 1 && playerid_to_roomid_map.count(creator) == 1) {
+        return {room_code, GameManager::ReturnCode::SUCCESS};
     } else {
-        return GameManager::ReturnCode::ROOM_NOT_EXIST;
+        return {std::nullopt, GameManager::ReturnCode::ROOM_NOT_EXIST};
     }
 
 }

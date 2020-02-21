@@ -9,6 +9,8 @@
 #include <unordered_map>
 #include <iterator>
 #include <string_view>
+#include <optional>
+#include <algorithm>
 
 class GameManager;
 
@@ -35,14 +37,30 @@ enum commandType {
     nullCommand     //undefined command. return error
 };
 
+enum SuccessCode {
+    KICK,
+    CREATE_ROOM,
+    JOIN_ROOM,
+    LEAVE_ROOM
+};
+
+enum SendTo {
+    BROADCAST_ROOM,
+    BROADCAST_SERVER,
+    PLAYER_LIST
+};
+
+struct MessageReturn {
+    MessageReturn(PlayerID player_id, std::string _msg) : sendTo(player_id), msg(_msg) {};
+    PlayerID sendTo;
+    std::string msg;
+};
+
+
+
 class Command{
 public:
 
-    struct MessageReturn {
-        PlayerID send_to;
-        std::string message;
-        bool shouldShutdown;
-    };
 
 
     Command(GameManager &gm);
@@ -52,14 +70,14 @@ public:
     commandType& getCommandType();
     std::vector<input> getTokens() const;
 
-    std::vector<MessageReturn> kickPlayer(PlayerID player_id, input username_to_kick);
-    std::vector<MessageReturn> createRoom(PlayerID player_id, input username_to_kick);
-    std::vector<MessageReturn> joinRoom(PlayerID player_id, input username_to_kick);
-    std::vector<MessageReturn> destroyRoom(PlayerID player_id, input username_to_kick);
-    std::vector<MessageReturn> listRoomMembers(PlayerID player_id, input username_to_kick);
-    std::vector<MessageReturn> leaveRoom(PlayerID player_id, input username_to_kick);
-    std::vector<MessageReturn> whisperToPlayer(PlayerID player_id, input username_to_kick);
-
+    void kickPlayer(PlayerID player_id, input& username_to_kick, std::vector<MessageReturn>& messagesToSend);
+    void createRoom(PlayerID player_id, std::vector<MessageReturn>& messagesToSend);
+    void joinRoom(PlayerID player_id, RoomID room_id, std::vector<MessageReturn>& messagesToSend);
+    void destroyRoom(PlayerID player_id, input username_to_kick);
+    void listRoomMembers(PlayerID player_id, input username_to_kick);
+    void leaveRoom(PlayerID player_id, input username_to_kick);
+    void whisperToPlayer(PlayerID player_id, input username_to_kick);
+    void regularMessage(PlayerID player_id, const std::string& msg, std::vector<MessageReturn>& messagesToSend);
 
 private:
         commandType commandRecieved;
@@ -81,13 +99,21 @@ private:
             {"/shutdown", commandType::shutdownServer},
         };
 
-        const std::unordered_map <GameManager::ReturnCode,std::string> messageMap = {
+        const std::unordered_map <GameManager::ReturnCode,std::string> errorMessageMap = {
             {GameManager::ReturnCode::NO_PERMISSION, "Error: Permission denied"},
             {GameManager::ReturnCode::ROOM_NOT_EXIST, "Error: room does not exist"},
             {GameManager::ReturnCode::PLAYER_NOT_EXIST, "Error: player does not exist"},
             {GameManager::ReturnCode::ROOM_FULL, "Error: room full"},
             {GameManager::ReturnCode::FAILURE, "Error"},
         };
+
+        const std::unordered_map <SuccessCode,std::string> successMessageMap = {
+            {SuccessCode::KICK, " has been kicked"},
+            {SuccessCode::CREATE_ROOM, "Room has been created: "},
+            {SuccessCode::JOIN_ROOM, "You have joined room "}, 
+            {SuccessCode::LEAVE_ROOM, "You have left room "},
+        };
+
 
 };
 

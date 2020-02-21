@@ -61,11 +61,12 @@ public:
     std::optional<PlayerID> addPlayer(PlayerID player_id, std::string (*random_name_generator)());
     std::optional<PlayerID> removePlayer(PlayerID player_id);
     void gameUpdate();
-    const std::vector<PlayerID> &returnPlayers() const;
+    const std::vector<PlayerID> &getPlayers() const;
     void configRoomAndGame(const g_config& game_config);
-    std::optional<std::string> getUsernameFromPlayerID(PlayerID);
+    std::optional<std::string> getUsernameFromPlayerID(PlayerID player_id);
     std::optional<PlayerID> getPlayerIDFromUsername(const std::string& username);
-    PlayerID getOwner();
+    const PlayerID getOwner() const;
+    const RoomID getRoomID() const;
 
 private:
     std::vector<PlayerID> players;
@@ -113,8 +114,8 @@ public:
     std::optional<RoomID>
     getRoomIDOfPlayer(PlayerID player_id);
 
-    //std::vector<PlayerID>
-    //getPlayersInRoom(RoomID player_id);
+    const std::vector<PlayerID>&
+    getPlayersInRoom(RoomID room_id) const;
 
     /*
 
@@ -159,7 +160,7 @@ public:
     destroyRoom(PlayerID player_id);
 
     //takes player id and return Room instance
-    Room& getRoomFromPlayerID(PlayerID player_id);
+    Room* getRoomFromPlayerID(PlayerID player_id);
 
     //forms message return to send a message everyone in the room
     //MessageReturnList
@@ -182,8 +183,8 @@ public:
     //MessageReturnList
     //clearCommand(PlayerID player_id);
 
-    ReturnCode 
-    createRoom (PlayerID owner, RoomID room_id);
+    std::pair<std::optional<RoomID>, GameManager::ReturnCode> 
+    createRoom (PlayerID owner);
 
     ReturnCode
     addPlayerToRoom (PlayerID player_id, RoomID room_id);

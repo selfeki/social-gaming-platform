@@ -54,60 +54,125 @@ namespace commandSpace{
     }
 
 
-    //return any special command messages, and for each special command message a list of players to send command back to
-    std::vector<Command::MessageReturn> 
-    Command::kickPlayer(PlayerID player_id, input username_to_kick){
+    //return any special command messages, and for each special command message a list of players to send message back to
+    void
+    Command::kickPlayer(PlayerID player_id, input& username_to_kick, std::vector<MessageReturn>& messagesToSend){
         
-        std::optional<RoomID> room_id = gameManager.getRoomIDOfPlayer(player_id);
-        if(!room_id){
-            //sendTo = {player_id};
-            std::string_view msg = messageMap.at(GameManager::ReturnCode::PLAYER_NOT_EXIST);
-            std::vector 
-
-
-
+        Room* room = gameManager.getRoomFromPlayerID(player_id);
+        if(!room){
+            std::string error_msg = errorMessageMap.at(GameManager::ReturnCode::NO_PERMISSION);                  
+            messagesToSend.emplace_back(player_id, error_msg);
+            return;
         }
 
-        std::pair<std::optional<PlayerID>, GameManager::ReturnCode> player_id_res = gameManager.getPlayerIDFromRoomUsername(username_to_kick, *room_id);     
-        if(player_id_res.second != GameManager::ReturnCode::SUCCESS) {
-            //sendTo = {player_id};
-            //return messageMap.at(player_id_res.second)
+        std::optional<PlayerID> id_result = room->getPlayerIDFromUsername(player_id);
+        if(!id_result) {
+            std::string error_msg = "Player not found";   
+            messagesToSend.emplace_back(player_id, error_msg);     
+            return;
         }
+
+        GameManager::ReturnCode result = gameManager.removePlayerFromRoom(player_id, *id_result);
+
+        if(result != GameManager::ReturnCode::SUCCESS) {
+            std::string error_msg = errorMessageMap.at(result);
+            messagesToSend.emplace_back(player_id, error_msg);     
+            return;
+        }
+
+        const std::vector<PlayerID>& players = room->getPlayers();
+        std::string success_msg = username_to_kick + " has been kicked from the room.";
         
-        GameManager::ReturnCode res = gameManager.removePlayerFromRoom(player_id, *(player_id_res.first));
-        if(res != GameManager::ReturnCode::SUCCESS) {
-            //sendTo = {player_id};
-            //return messageMap.at(res);
-        } 
+        std::for_each(players.begin(), players.end(), [&](auto & p) {
+                                                            messagesToSend.emplace_back(p, success_msg);
+                                                      });
         
-        //sendTo = 
-        //return username_to_kick + " has been kicked."
+        return;
 
     }
-    std::vector<Command::MessageReturn> 
-    Command::createRoom(PlayerID player_id, input username_to_kick){
+    void 
+    Command::createRoom(PlayerID player_id, std::vector<MessageReturn>& messagesToSend){
+        
+        std::pair<std::optional<RoomID>, GameManager::ReturnCode> create_room_result;
+        create_room_result = gameManager.createRoom(player_id);
 
+        if(create_room_result.second != GameManager::ReturnCode::SUCCESS) {
+            std::string error_msg = errorMessageMap.at(create_room_result.second);
+            messagesToSend.emplace_back(player_id, error_msg); 
+            return;    
+        }    
 
-
+        messagesToSend.emplace_back(player_id, "Room " + *(create_room_result.first) + " has been created.");
+        return;
     }
-    std::vector<Command::MessageReturn> 
-    Command::joinRoom(PlayerID player_id, input username_to_kick){
+    void 
+    Command::joinRoom(PlayerID player_id, RoomID room_id, std::vector<MessageReturn>& messagesToSend){
 
+        GameManager::ReturnCode result = gameManager.addPlayerToRoom(player_id, room_id);
+
+        if(result != GameManager::ReturnCode::SUCCESS) {
+            std::string error_msg = errorMessageMap.at(result);
+            messagesToSend.emplace_back(player_id, error_msg); 
+            return;    
+        }
+
+        Room* room = gameManager.getRoomFromPlayerID(player_id);
+        std::optional<std::string> username = room->getUsernameFromPlayerID(player_id);
+
+        if(!username) {
+            std::string error_msg = "You do not have a username for some reason.";
+            messagesToSend.emplace_back(player_id, error_msg); 
+            return;    
+        }
+
+        messagesToSend.emplace_back(player_id, "Joined room " + room_id + "as " + *username);
+        return;
     }
-    std::vector<Command::MessageReturn>
+    void
     Command::destroyRoom(PlayerID player_id, input username_to_kick){
 
     }
-    std::vector<Command::MessageReturn>
+    void
     Command::listRoomMembers(PlayerID player_id, input username_to_kick){
 
     }
-    std::vector<Command::MessageReturn>
+    void
     Command::leaveRoom(PlayerID player_id, input username_to_kick){
 
     }
-    std::vector<Command::MessageReturn>
+    void
     Command::whisperToPlayer(PlayerID player_id, input username_to_kick){
+
+    }
+
+    void
+    Command::regularMessage(PlayerID player_id, const std::string& msg, std::vector<MessageReturn>& messagesToSend){
+        
+        Room* room = gameManager.getRoomFromPlayerID(player_id);
+
+        if(!room) {
+            std::string error_msg = "You are not in a room. You must be in a room to send normal messages. Try /join <room>.";
+            messagesToSend.emplace_back(player_id, error_msg); 
+            return;    
+        }
+
+        std::optional<std::string> username = room->getUsernameFromPlayerID(player_id);
+
+        if(!username) {
+            std::string error_msg = "You do not have a username for some reason.";
+            messagesToSend.emplace_back(player_id, error_msg); 
+            return;               
+        }
+
+        const std::vector<PlayerID>& players = room->getPlayers();
+        const RoomID room_id = room->getRoomID();
+
+        std::string success_msg = "{" + room_id + "} " + *username + ": " + msg;
+        
+        std::for_each(players.begin(), players.end(), [&](auto & p) {
+                                                            messagesToSend.emplace_back(p, success_msg);
+                                                      });
+        return;
 
     }
 
