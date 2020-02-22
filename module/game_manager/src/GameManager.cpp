@@ -17,7 +17,7 @@ static std::string gen_random_username() {
     name += "_";
     name += name_pool[rand() % (name_pool.size()-1)];
     name += std::to_string(rand() % 99);
-
+    
     return name;
 }
 
