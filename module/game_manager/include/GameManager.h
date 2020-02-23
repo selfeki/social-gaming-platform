@@ -3,6 +3,7 @@
 #include "GameInstance.h"
 #include "command.h"
 #include "jsonconfig.h"
+#include "arepa/game_spec/GameSpecification.h"
 
 #include <algorithm>
 #include <exception>
@@ -169,7 +170,7 @@ public:
 
 private:
     // Specification of games offered by the game engine
-    std::vector<gameSpecification> game_specs;
+    std::vector<gameSpecification::Specification> game_specs;
 
     // Currently running game instances
     std::vector<GameInstance> live_games;
