@@ -1,4 +1,7 @@
+#pragma once
 
+#include "MapWrapper.h"
+#include "Expression.h"
 
 namespace rules {
 
@@ -70,7 +73,7 @@ struct Loop {
   RuleList rules;
 };
 
-struct Inparallel {
+struct InParallel {
   RuleList rules;
 };
 
@@ -161,6 +164,16 @@ struct Timer {
 
 // todo: make consistent with GameManager user ID?
 using UserID = std::string;
+using UserIDList = std::vector<UserID>;
+
+
+struct InputChoice {
+  UserIDList  targetUsers;
+  Expression  prompt;
+  Expression  choiceList;
+  Expression	result;
+  std::optional<Expression> timeout;
+};
 
 struct InputText {
   UserID      targetUser;
@@ -169,8 +182,6 @@ struct InputText {
   // optional
   std::optional<Expression> timeout;
 };
-
-using UserIDList = std::vector<UserID>;
 
 struct InputVote {
   UserIDList  targetUsers;
