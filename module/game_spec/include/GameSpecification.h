@@ -7,12 +7,12 @@
 #include <boost/variant/recursive_wrapper.hpp>
 #include <boost/variant/variant.hpp>
 
+namespace gameSpecification {
+	
 #include "MapWrapper.h"
 #include "Expression.h"
 #include "Rules.h"
 #include "GameState.h"
-
-namespace gameSpecification {
 
 ////// Game Setup related
 
@@ -48,13 +48,13 @@ struct PlayerCount {
 struct Configuration {
 	std::string name;
 	PlayerCount	count;
-	bool				allowAudience;
-	Setup				setup;
+	bool	allowAudience;
+	Setup	setup;
 };
 
 struct Specification {
 	Configuration 	configuration;
-	GameState				gameState;
+	GameState		gameState;
 	rules::RuleList	rules;
 };
 
