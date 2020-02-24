@@ -1,3 +1,5 @@
+include("${AREPA_CONFIG_CXX}")  
+
 add_library(jsonconfig
   jsonconfig.cpp
 )
@@ -11,6 +13,7 @@ target_include_directories(jsonconfig
 )
 
 target_link_libraries(jsonconfig PUBLIC nlohmann_json::nlohmann_json)
+target_link_libraries(jsonconfig PUBLIC game_spec)
 
 set_target_properties(jsonconfig
                       PROPERTIES

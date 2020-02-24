@@ -2,48 +2,86 @@
 #include <fstream>
 #include <unordered_map>
 #include <vector>
+#include <algorithm>
 #include "jsonconfig.h"
 
 using json = nlohmann::json;
-//Game config
-void game_config::from_json(const json& j, game_config::configuration& config) {
 
-    j["configuration"]["name"].get_to(config.name);
-    //j["configuration"]["player count"].get_to(config.player_count);
-    j["configuration"]["audience"].get_to(config.audience);
-    //j["configuration"]["setup"].get_to(config.setup);
-    //j["constants"].get_to(config.constants);
-    j["variables"].get_to(config.variables);
-    j["per-audience"].get_to(config.per_audience);
-    for (const auto& element: j["rules"]) {
-        config.rules.push_back(element);
-    }
+//json_game spec
+using namespace json_serializer;
 
-    std::unordered_map<std::string, json> player_count_json;
-    j["configuration"]["player count"].get_to(player_count_json);
-    config.player_count_s = config_player_count{player_count_json.find("min")->second, player_count_json.find("max")->second};
+gameSpecification::Setup
+parseSetup(const json& j) {
+    // todo
+}
 
-    std::unordered_map<std::string, json> per_player_json;
-    j["per-player"].get_to(per_player_json);
-    config.per_player_s = config_per_player{per_player_json.find("wins")->second};
+gameSpecification::Configuration 
+parseConfig(const json& j) {
+    gameSpecification::Configuration  config;
+    j.at("name").get_to(config.name);
+    j.at("player count").at("min").get_to(config.count.min);
+    j.at("player count").at("max").get_to(config.count.max);
+    j.at("audience").get_to(config.allowAudience);
+    config.setup = parseSetup(j);
+    return config;
+}
 
-    std::unordered_map<std::string, json> setup_json;
-    j["configuration"]["setup"].get_to(setup_json);
-    config.setup_s = config_setup{setup_json.find("Rounds")->second};
+// gameSpecification::Expression serializer
+void from_json(const json& j, gameSpecification::Expression& exp) {
+    // todo: serialize boost:variant
+}
 
-    std::unordered_map<std::string, json> constants_json;
-    j["constants"].get_to(constants_json);
+// todo refactor namespaces and class names for concision
+gameSpecification::GameState
+parseStateSchema(const json& j) {
+    gameSpecification::GameState state;
+    // j.at("constants").get_to(state.constants);
+    // j.at("variables").get_to(state.variables);
+    // j.at("per-player").get_to(state.perPlayer);
+    // j.at("per-audience").get_to(state.perAudience);
+    return state;
+}
 
-    for(const auto& elem: j["constants"]["weapons"]){
-        constants_weapon weapon = constants_weapon{elem["name"], elem["beats"]};
-        config.constants_s.weapons.push_back(weapon);
-    }
-    config.err = false;
+gameSpecification::rules::RuleList
+parseRules(const json& j) {
+    
+}
+
+void 
+from_json(const json& j, gameSpecification::Specification& spec) {
+    auto config = parseConfig(j.at("configuration"));
+    auto state  = parseStateSchema(j);
+    auto rules  = parseRules(j.at("rules"));
+
+    // j["variables"].get_to(spec.variables);
+    // j["per-audience"].get_to(spec.per_audience);
+    // for (const auto& element: j["rules"]) {
+    //     spec.rules.push_back(element);
+    // }
+    
+    // spec.player_count_s = spec_player_count{player_count_json.find("min")->second, player_count_json.find("max")->second};
+
+    // std::unordered_map<std::string, json> per_player_json;
+    // j["per-player"].get_to(per_player_json);
+    // spec.per_player_s = spec_per_player{per_player_json.find("wins")->second};
+
+    // std::unordered_map<std::string, json> setup_json;
+    // j["configuration"]["setup"].get_to(setup_json);
+    // spec.setup_s = spec_setup{setup_json.find("Rounds")->second};
+
+    // std::unordered_map<std::string, json> constants_json;
+    // j["constants"].get_to(constants_json);
+
+    // for(const auto& elem: j["constants"]["weapons"]){
+    //     constants_weapon weapon = constants_weapon{elem["name"], elem["beats"]};
+    //     spec.constants_s.weapons.push_back(weapon);
+    // }
+    // spec.err = false;
 }
 
 
 
-std::vector<json> game_config::find_rule(const std::vector<json>& j, const std::string& rule_name) {
+std::vector<json> find_rule(const std::vector<json>& j, const std::string& rule_name) {
     std::vector<json> ret;
     for (auto& element: j) {
         auto found = element.find("rule");
@@ -54,7 +92,7 @@ std::vector<json> game_config::find_rule(const std::vector<json>& j, const std::
     return ret;
 }
 
-json game_config::first_rule(const json& j, const int i) {
+json first_rule(const json& j, const int i) {
     if (j.find("rules") == j.end()) {
         return j;
     } else {
@@ -62,77 +100,113 @@ json game_config::first_rule(const json& j, const int i) {
     }
 }
 
-bool game_config::has_rules(const json& j) {
+bool has_rules(const json& j) {
     return j.find("rules") != j.end();
 }
 
-void game_config::print_config(const game_config::configuration& config) {
+// void print_spec(const specification& spec) {
 
-    std::cout << "configuration:\n"
-    << "name: " << config.name
-    //<< "\nplayer count: " << config.player_count
-    << "\nPlayer count: Min: "<< config.player_count_s.min <<"Max: "<< config.player_count_s.max
-    << "\naudience: " << config.audience
-    //<< "\nsetup: " << config.setup
-    << "\nsetup: " << config.setup_s.rounds
-    //<< "\nconstants: " << config.constants
-    //<< "\nvariables: " << config.variables
-    //<< "\nper_player: " << config.per_player
-    << "\nwins per player : "<< config.per_player_s.wins
-    << "\nper_audience: " << config.per_audience
-    << "\nweapons: \n";
-    for (const auto& elem: config.constants_s.weapons){
-        std::cout << "\tname: " << elem.name << " beats: " << elem.beats << "\n";
-    }
-    std::cout << "\nrules: ";
-    for (const auto& element: config.rules) {
-        std::cout << element << "\n\n";
-    }
+//     std::cout << "specification:\n"
+//     << "name: " << spec.name
+//     //<< "\nplayer count: " << spec.player_count
+//     << "\nPlayer count: Min: "<< spec.player_count_s.min <<"Max: "<< spec.player_count_s.max
+//     << "\naudience: " << spec.audience
+//     //<< "\nsetup: " << spec.setup
+//     << "\nsetup: " << spec.setup_s.rounds
+//     //<< "\nconstants: " << spec.constants
+//     //<< "\nvariables: " << spec.variables
+//     //<< "\nper_player: " << spec.per_player
+//     << "\nwins per player : "<< spec.per_player_s.wins
+//     << "\nper_audience: " << spec.per_audience
+//     << "\nweapons: \n";
+//     for (const auto& elem: spec.constants_s.weapons){
+//         std::cout << "\tname: " << elem.name << " beats: " << elem.beats << "\n";
+//     }
+//     std::cout << "\nrules: ";
+//     for (const auto& element: spec.rules) {
+//         std::cout << element << "\n\n";
+//     }
 
-    std::cout << "\n";
-}
+//     std::cout << "\n";
+// }
 
-game_config::configuration game_config::load_file(const std::string& filepath, bool debug) {
-    json temp;
-    game_config::configuration ret;
-    std::ifstream s(filepath);
-    if (s.fail()) {
-        std::cerr << "Error: " << strerror(errno) << std::endl;
-        return ret;
-    }
+// specification load_file(const std::string& filepath, bool debug) {
+//     json temp;
+//     json_game_spec::specification ret;
+//     std::ifstream s(filepath);
+//     if (s.fail()) {
+//         std::cerr << "Error: " << strerror(errno) << std::endl;
+//         return ret;
+//     }
 
-    try {
-        temp = json::parse(s);
+//     try {
+//         temp = json::parse(s);
 
-        ret = temp.get<game_config::configuration>();
-    }
-    catch (json::parse_error& e) {
-        std::cerr << "Failed to parse JSON.\n in jsonconfig.cpp\n"
-        << "message: " << e.what();
-        return ret;
-    }
+//         ret = temp.get<json_game_spec::specification>();
+//     }
+//     catch (json::parse_error& e) {
+//         std::cerr << "Failed to parse JSON.\n in jsonspec.cpp\n"
+//         << "message: " << e.what();
+//         return ret;
+//     }
 
 
-    ret.jsonpath = filepath;
-    ret.err = false;
-    if (debug) {
-        game_config::print_config(ret);
-    }
+//     ret.jsonpath = filepath;
+//     ret.err = false;
+//     if (debug) {
+//         json_game_spec::print_spec(ret);
+//     }
 
-    return ret;
-}
+//     return ret;
+// }
 
-bool game_config::valid(const json& j) {
-    json temp = j.flatten();
-    for (auto element: game_config::enum_to_str) {
-        if (temp[element.second] == NULL) {
+enum FIELDS {
+    CONF,
+    NAME,
+    PLYRCOUNT,
+    AUDI,
+    SETUP,
+    CONST,
+    VAR,
+    PPLYR,
+    PAUDI,
+    RULES
+};
+
+const std::unordered_map<FIELDS, std::string> enum_to_str({
+    {CONF,      "/configuration"},
+    {NAME,      "/configuration/name"},
+    {PLYRCOUNT, "/configuration/player count"},
+    {AUDI,      "/configuration/audience"},
+    {SETUP,     "/configuration/setup"},
+    {CONST,     "/constants"},
+    {VAR,       "/variables"},
+    {PPLYR,     "/per-player"},
+    {PAUDI,     "/per-audience"},
+    {RULES,     "/rules"}
+});
+
+bool hasAllRequiredFields(const json& j) {
+    json flat = j.flatten();
+    // change to accumulate?
+    for (auto element: enum_to_str) {
+        if (flat[element.second] == NULL) {
             return false;
         }
     }
     return true;
 }
 
-//Server config
+bool hasNoExtraFields(const json& j) {
+    // need to check for duplicate keys, as that would be invalid
+}
+
+bool isValid(const json& j) {
+    return hasAllRequiredFields(j)
+        && hasNoExtraFields(j);
+}
+
+// //Server config
 void server_config::from_json(const json& j, server_config::configuration& config) {
     j["port"].get_to(config.port);
     j["html"].get_to(config.htmlpath);
