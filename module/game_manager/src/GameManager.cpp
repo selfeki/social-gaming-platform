@@ -52,7 +52,7 @@ Room<IDType>::Room(IDType _owner, RoomID room_code)
 }
 
 template <typename IDType>
-void Room<IDType>::configRoomAndGame(const g_config& game_config) {
+void Room<IDType>::configRoomAndGame(const g_spec& game_spec) {
 }
 
 template <typename IDType>

@@ -11,7 +11,8 @@
 #include <unordered_map>
 #include <optional>
 
-using g_config = game_config::configuration;
+// todo: change 
+using g_spec = gameSpecification::Specification;
 using s_config = server_config::configuration;
 /*
 *Game_manager class
@@ -59,7 +60,7 @@ public:
     void exitPlayer(IDType player);
     void gameUpdate();
     std::vector<IDType> returnPlayers();
-    void configRoomAndGame(const g_config& game_config);
+    void configRoomAndGame(const g_spec& game_spec);
     IDType getOwner();
 
 private:
