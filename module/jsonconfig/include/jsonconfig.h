@@ -12,8 +12,8 @@ using json = nlohmann::json;
 
 namespace json_serializer {
 
-
-
+gameSpecification::Specification
+parseGameSpecification(const json&);
 
 
 // struct spec_player_count{
@@ -53,13 +53,6 @@ namespace json_serializer {
 // };
 
 // void from_json(const json&, specification&);
-
-gameSpecification::Specification
-parseGameSpecification(const json&);
-
-
-
-
 
 
     // //Returns an empty vector on failure to find rule.
