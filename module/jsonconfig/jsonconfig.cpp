@@ -17,17 +17,11 @@ parseGameSpecification(const json& j) {
     if (!hasValidFields(j)) { 
         throw;
     } // todo: handle error gracefully
-
     Specification spec;
-    from_json(j, spec);
+    spec.configuration = parseConfig(j.at("configuration"));
+    spec.gameState     = parseGameState(j);
+    spec.rules         = parseRules(j.at("rules"));
     return spec;
-}
-
-void 
-from_json(const json& j, gameSpecification::Specification& spec) {
-    auto config = parseConfig(j.at("configuration"));
-    auto state  = parseStateSchema(j);
-    auto rules  = parseRules(j.at("rules"));
 }
 
 gameSpecification::Configuration 
@@ -44,68 +38,120 @@ parseConfig(const json& j) {
 gameSpecification::Setup
 parseSetup(const json& j) {
     Setup setup;
-    from_json(j.at("setup"), setup);
-    return setup;
-}
-
-void 
-from_json(const json& j, gameSpecification::Setup& setup) {
-    for(const auto& [key, val]: j.items()) {
+    for(const auto& [key, val]: j.at("setup").items()) {
         setup.set(key, parseSetupValue(val));
     }
+    return setup;
 }
 
 SetupValue
 parseSetupValue(const json& j) {
     switch (j.type()) {
-        case json::value_t::string: return j.get<std::string>();
+        case json::value_t::string:         return j.get<std::string>();
         case json::value_t::number_integer: return j.get<int>();
-        case json::value_t::boolean: return j.get<bool>();
-        case json::value_t::object: return parseCustomSetup(j);
-        default: throw std::runtime_error(""); // todo
+        case json::value_t::boolean:        return j.get<bool>();
+        case json::value_t::object:         return parseCustomSetup(j);
+        default: assert(false);             return 0; // todo: log error
     }
 }
 
 CustomSetup
 parseCustomSetup(const json& j) {
-    auto kind = parseDataKind(j.at("kind"));
+    auto kind   = parseDataKind(j.at("kind"));
     auto prompt = j.at("prompt").get<std::string>();
     return {kind, prompt};
 }
 
+// Map for switch-case convenience
+const std::unordered_map<std::string, DataKind> strToKind = {
+    {"integer",         DataKind::INTEGER},
+    {"string",          DataKind::STRING},
+    {"boolean",         DataKind::BOOLEAN},
+    {"question-answer", DataKind::QUESTION_ANSWER},
+    {"multiple-choice", DataKind::MULTIPLE_CHOICE}
+};
+
 DataKind
 parseDataKind(const json& j) {
-    // todo
-}
-
-// gameSpecification::Expression serializer
-void from_json(const json& j, gameSpecification::Expression& exp) {
-    // todo: serialize boost:variant
+    auto str = j.get<std::string>();
+    auto it  = strToKind.find(str);
+    if (it != strToKind.end()){
+        assert(false);  // this should have been caught in validation
+    }
+    return it->second;
 }
 
 // todo refactor namespaces and class names for concision
-gameSpecification::GameState
-parseStateSchema(const json& j) {
-    gameSpecification::GameState state;
-    // j.at("constants").get_to(state.constants);
-    // j.at("variables").get_to(state.variables);
-    // j.at("per-player").get_to(state.perPlayer);
-    // j.at("per-audience").get_to(state.perAudience);
+GameState
+parseGameState(const json& j) {
+    GameState state;
+    state.constants   = parseEnvironment(j.at("constants"));
+    state.variables   = parseEnvironment(j.at("variables"));
+    state.perPlayer   = parseEnvironment(j.at("per-player"));
+    state.perAudience = parseEnvironment(j.at("per-audience"));
     return state;
+}
+
+Environment
+parseEnvironment(const json& j) {
+    Environment env;
+    for(const auto& item: j.items()) {
+        auto key   = item.key();
+        auto value = item.value();
+        auto exp   = parseExpression(value);
+        env.set(key, exp);
+    }
+    return env;
+}
+
+Expression
+parseExpression(const json& j) {
+    switch (j.type()) {
+        case json::value_t::string:         return j.get<std::string>();
+        case json::value_t::number_integer: return j.get<int>();
+        case json::value_t::boolean:        return j.get<bool>();
+        case json::value_t::object:         return parseExpMap(j);
+        case json::value_t::array:          return parseExpList(j);
+        default: assert(false); // todo: log error
+    }
+}
+
+Expression
+parseExpMap(const json& j) {
+    auto expMap = MapWrapper<std::string, Expression>();
+    for(const auto& [key, val]: j.items()) {
+        Expression exp = parseExpression(val);
+        expMap.set(key, exp);
+    }
+    return expMap;
+}
+
+Expression
+parseExpList(const json& j) {
+    auto expList = std::vector<Expression>();
+    for(const auto& [_, val]: j.items()) {
+        // todo: change to std::transform
+        // todo: test expressions are serialized in right order
+        Expression exp = parseExpression(val);
+        expList.emplace_back(exp);
+    }
+    return expList;
 }
 
 gameSpecification::rules::RuleList
 parseRules(const json& j) {
-    
+    // todo
 }
 
 
-bool hasValidFields(const json& j) {
+bool 
+hasValidFields(const json& j) {
     return hasAllRequiredFields(j)
         && hasNoExtraFields(j);
 }
 
-bool hasAllRequiredFields(const json& j) {
+bool 
+hasAllRequiredFields(const json& j) {
     json flat = j.flatten();
     // change to accumulate?
     for (auto element: enum_to_str) {
@@ -116,7 +162,8 @@ bool hasAllRequiredFields(const json& j) {
     return true;
 }
 
-bool hasNoExtraFields(const json& j) {
+bool 
+hasNoExtraFields(const json& j) {
     // need to check for duplicate keys, as that would be invalid
 }
 

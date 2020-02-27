@@ -29,30 +29,32 @@ parseCustomSetup(const json&);
 gameSpecification::DataKind
 parseDataKind(const json&);
 
-void 
-from_json(const json&, gameSpecification::Specification&);
-
-gameSpecification::Setup
-parseSetup(const json&);
-
-void 
-from_json(const json&, gameSpecification::Setup&);
-
-gameSpecification::Configuration
-parseConfig(const json&);
-
-void 
-from_json(const json&, gameSpecification::Configuration&);
-
 gameSpecification::GameState
-parseStateSchema(const json&);
+parseGameState(const json&);
 
-void 
-from_json(const json&, gameSpecification::Expression&);
+gameSpecification::Environment
+parseEnvironment(const json&);
+
+gameSpecification::Expression
+parseExpression(const json&);
+
+gameSpecification::Expression
+parseExpMap(const json&);
+
+gameSpecification::Expression
+parseExpList(const json&);
 
 gameSpecification::rules::RuleList
 parseRules(const json&);
 
+bool 
+hasAllRequiredFields(const json&);
+
+bool 
+hasNoExtraFields(const json&);
+
+bool 
+hasValidFields(const json&);
 
 enum FIELDS {
     CONF,
@@ -79,9 +81,3 @@ const std::unordered_map<FIELDS, std::string> enum_to_str({
     {PAUDI,     "/per-audience"},
     {RULES,     "/rules"}
 });
-
-bool hasAllRequiredFields(const json&);
-
-bool hasNoExtraFields(const json&);
-
-bool hasValidFields(const json&);
