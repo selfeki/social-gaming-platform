@@ -29,6 +29,15 @@ struct CustomSetup {
 	std::string prompt;
 };
 
+// todo:
+// - handle default setup overriding when user creates game instance
+// - handle mandatory user provided setup
+// 
+// Design decision:
+// Should setup be part of the GameState (in constants)
+// OR should setup be passed with the game state to interpreter?
+// 
+// Note: maybe  structure of domain rep need not reflect the json?
 using SetupValue = boost::variant<
 	CustomSetup,
 	std::string,
