@@ -47,7 +47,7 @@ GameState Interpreter:: operator()(MessageRule const& m) const{
     return newState;
 }
 
-bool varibaleCompare(const std::pair<std::string, int>& p1, const std::pair<std::string, size_t>& p2){
+bool varibaleCompare(const std::pair<std::string, int>& p1, const std::pair<std::string, int>& p2){
     return p1.second < p2.second ;
 }
 GameState Interpreter:: operator()(Scores const& sc) const{ 
