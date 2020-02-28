@@ -1,4 +1,5 @@
 #include "MapWrapper.h"
+#include <boost/variant.hpp>
 
 // An Expression is a R-value in game specification
 
@@ -9,5 +10,5 @@ using Expression = boost::make_recursive_variant<
   Map,
   List,
   std::string,
-  int,
-  bool>::type;
+  int
+  >::type;
