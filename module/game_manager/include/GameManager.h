@@ -1,15 +1,16 @@
 #pragma once
 
 #include "GameInstance.h"
-#include "command.h"
-#include "jsonconfig.h"
 #include "arepa/game_spec/GameSpecification.h"
+#include "jsonconfig.h"
+
+#include <arepa/command/Executor.hpp>
 
 #include <algorithm>
 #include <exception>
+#include <optional>
 #include <time.h>
 #include <unordered_map>
-#include <optional>
 
 using g_config = game_config::configuration;
 using s_config = server_config::configuration;
@@ -90,7 +91,7 @@ public:
     void
     addPlayer(IDType player, RoomID room);
 
-    std::vector<IDType> 
+    std::vector<IDType>
     getRoomOfPlayer(IDType player);
 
     std::vector<IDType>
@@ -140,32 +141,32 @@ public:
     //forms message return to send a message everyone in the room
     messageReturnList
     formMessageToRoomMembers(std::string& message, IDType& sentFrom, bool shouldShutdown);
-    
+
     /* forms message to all_players
     *  note: all_players variable not implemented, so it doesn't send message to anyone
     */
     messageReturnList
     formMessageToEveryone(std::string& message, bool shouldShutdown);
-    
+
     //forms message to a single recipient
     messageReturnList
-    formMessageTo (std::string& message, IDType& recipent);
-    
+    formMessageTo(std::string& message, IDType& recipent);
+
     //forms message to multiple recipients
     messageReturnList
-    formMessageTo (std::string& message, std::vector<IDType>& recipent);
+    formMessageTo(std::string& message, std::vector<IDType>& recipent);
 
     messageReturnList
     clearCommand(IDType playerId);
 
-    void 
-    createRoom (IDType creator, RoomID room_id);
-
-    void 
-    addPlayerToRoom (IDType player_id, RoomID room_id);
+    void
+    createRoom(IDType creator, RoomID room_id);
 
     void
-    removePlayerFromRoom (IDType player_id);
+    addPlayerToRoom(IDType player_id, RoomID room_id);
+
+    void
+    removePlayerFromRoom(IDType player_id);
 
 
 private:
