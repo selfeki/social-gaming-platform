@@ -1,4 +1,5 @@
 #include "commands.h"
+#include <unordered_map>
 
 using Arguments = arepa::command::CommandArguments;
 using Context = CommandContext;
