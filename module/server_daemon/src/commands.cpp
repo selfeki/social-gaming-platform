@@ -15,14 +15,63 @@ std::unordered_map<std::string, std::unique_ptr<CommandExecutor>> COMMAND_MAP;
 void init_commands() {
     COMMAND_MAP.insert(COMMAND("ping", [](Context& game_manager, User& user, const Arguments& args) {
         std::cout << "Received /ping" << std::endl;
+
     }));
 
     COMMAND_MAP.insert(COMMAND("member", [](Context& game_manager, User& user, const Arguments& args) {
         auto responses = game_manager.returnRoomMembersCommand(*user);
         std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
+        //return responses;
     }));
 
+    COMMAND_MAP.insert(COMMAND("room", [](Context& game_manager, User& user, const Arguments& args){
+        auto responses = game_manager.returnRoomCommand(*user);
+        std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
+        //return responses;
+    }));
 
+    COMMAND_MAP.insert(COMMAND("create", [](Context& game_manager, User& user, const Arguments& args){
+        auto responses = game_manager.createRoomCommand(*user);
+        std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
+        //return responses;
+    }));
+
+    COMMAND_MAP.insert(COMMAND("room", [](Context& game_manager, User& user, const Arguments& args){
+        auto responses = game_manager.returnRoomCommand(*user);
+        std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
+        //return responses;
+    }));
+
+    COMMAND_MAP.insert(COMMAND("join", [](Context& game_manager, User& user, const Arguments& args){
+        auto responses = game_manager.joinRoomCommand(*user, args.front());
+        std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
+        //return responses;
+    }));
+
+    COMMAND_MAP.insert(COMMAND("kick", [](Context& game_manager, User& user, const Arguments& args){
+        auto responses = game_manager.kickPlayerCommand(*user, args.front());
+        std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
+        //return responses;
+    }));
+
+    COMMAND_MAP.insert(COMMAND("clear", [](Context& game_manager, User& user, const Arguments& args){
+        auto responses = game_manager.clearCommand(*user);
+        std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
+        //return responses;
+    }));
+
+    COMMAND_MAP.insert(COMMAND("quit", [](Context& game_manager, User& user, const Arguments& args){
+        auto responses = game_manager.leaveRoomCommand(*user);
+        std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
+        //return responses;
+    }));   
+
+    COMMAND_MAP.insert(COMMAND("shutdown", [](Context& game_manager, User& user, const Arguments& args){
+        auto responses = game_manager.shutdownServerCommand(*user);
+        std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
+        //return responses;
+    }));
+    
     // TODO(nikolkam): Port the rest of these.
     //                 Also, maybe refactor some of them if you can?
 

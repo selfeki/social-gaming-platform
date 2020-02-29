@@ -159,15 +159,6 @@ void processMessages(Server& server, const std::deque<Message>& incoming) {
 }
 
 
-/*
-std::deque<Message> buildOutgoing(const std::string& log) {
-  std::deque<Message> outgoing;
-  for (auto client : clients) {
-    outgoing.push_back({client, log});
-  }
-  return outgoing;
-}
-*/
 
 int main(int argc, char* argv[]) {
 
