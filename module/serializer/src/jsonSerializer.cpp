@@ -198,7 +198,7 @@ bool isValidGameSpec(const json& j) {
 
 bool hasAllRequiredFields(const json& j) {
     json flat = j.flatten();
-    // change to accumulate?
+    // use std::all_of or any_of to implement this
     for (auto element : enum_to_str) {
         if (flat[element.second] == NULL) {
             return false;
