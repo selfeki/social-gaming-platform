@@ -8,18 +8,6 @@ typedef networking::ConnectionId PlayerID;
 
 using MessageReturn = GameManager::MessageReturn;
 
-static std::string gen_random_username() {
-    std::string name;
-    static const std::vector<std::string> name_pool = {"aardwolf", "beaver", "lemming", "fox", "baboon", "dragon", "elephant", "sloth"};
-    static const std::vector<std::string> adjective_pool = {"super", "iridescent", "bittersweet", "euphoric", "golden", "temporary", "melancholy"};
-
-    name += adjective_pool[rand() % (adjective_pool.size()-1)];
-    name += "_";
-    name += name_pool[rand() % (name_pool.size()-1)];
-    name += std::to_string(rand() % 99);
-    
-    return name;
-}
 
 static std::string gen_random(const int len) {
     std::string code = "";
@@ -77,31 +65,23 @@ const std::vector<PlayerID> &Room::getPlayers() const {
 }
 
 //if success, return ID of player added, else return nullopt
-std::optional<PlayerID> Room::addPlayer(PlayerID player_id, std::string (*random_name_generator)()) {    //todo: should deal with some error handling
+Room::ReturnCode Room::addPlayer(PlayerID player_id, std::string& username) {   
 
     auto find = player_id_to_username_map.find(player_id);
-    if (find != player_id_to_username_map.end()) return std::nullopt;
+    if (find != player_id_to_username_map.end()) return ReturnCode::PLAYER_ALREADY_EXISTS;
 
-
-
-    std::string username;
-    do { 
-       username = random_name_generator();
-    } while(username_to_player_id_map.find(username) != username_to_player_id_map.end());
-
-
+    if(username_to_player_id_map.count(username) > 0) return ReturnCode::USERNAME_ALREADY_EXISTS;
 
     username_to_player_id_map.insert({username, player_id});
     player_id_to_username_map.insert({player_id, username});
     players.push_back(player_id);
-
 
     assert(username_to_player_id_map.size() == player_id_to_username_map.size());
     assert(player_id_to_username_map.size() == player.size());
     assert(username_to_player_id_map.at(username) == player_id);
     assert(player_id_to_username_map.at(player_id) == username);
 
-    return player_id;
+    return ReturnCode::SUCCESS;
 }
 
 
@@ -186,9 +166,6 @@ GameManager::GameManager() {
 void GameManager::setUp(const s_config& server_config) {
     throw(GameManagerException("oops", 0, "lol"));
 }
-
-
-
 
 
 GameManager::ReturnCode
@@ -285,7 +262,16 @@ GameManager::addPlayerToRoom (PlayerID player_id, RoomID room_id){
     Room& room = find->second;
     
     if(true){  //satisfies all conditions eg. room capacity
-        if(!room.addPlayer(player_id,gen_random_username)) return GameManager::ReturnCode::FAILURE;
+        Room::ReturnCode result;
+        do {
+            std::string username_candidate = random_name_generator();
+            result = room.addPlayer(player_id, username_candidate);
+        } while(result == Room::ReturnCode::USERNAME_ALREADY_EXISTS);
+
+        if(result != Room::ReturnCode::SUCCESS) {
+            return GameManager::ReturnCode::FAILURE;
+        }
+
         std::cout << "trace: inside addPlayerToRoom\n";
         playerid_to_roomid_map.insert({ player_id, room_id });
         return GameManager::ReturnCode::SUCCESS;
@@ -386,6 +372,20 @@ GameManager::changePlayerUsername(PlayerID player_id, const std::string& new_use
     }
 
 }
+
+std::string GameManager::random_name_generator() {
+    std::string name;
+    static const std::vector<std::string> name_pool = {"aardwolf", "beaver", "lemming", "fox", "baboon", "dragon", "elephant", "sloth"};
+    static const std::vector<std::string> adjective_pool = {"super", "iridescent", "bittersweet", "euphoric", "golden", "temporary", "melancholy"};
+
+    name += adjective_pool[rand() % (adjective_pool.size()-1)];
+    name += "_";
+    name += name_pool[rand() % (name_pool.size()-1)];
+    name += std::to_string(rand() % 99);
+    
+    return name;
+}
+
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`

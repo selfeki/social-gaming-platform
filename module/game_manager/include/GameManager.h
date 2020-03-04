@@ -55,12 +55,13 @@ public:
         SUCCESS = 0,
         ROOM_FULL,
         PLAYER_NOT_FOUND,
-        USERNAME_ALREADY_EXISTS
+        USERNAME_ALREADY_EXISTS,
+        PLAYER_ALREADY_EXISTS
     };
 
 
     Room(PlayerID _owner, RoomID room_id);
-    std::optional<PlayerID> addPlayer(PlayerID player_id, std::string (*random_name_generator)());
+    ReturnCode addPlayer(PlayerID player_id, std::string& username);
     std::optional<PlayerID> removePlayer(PlayerID player_id);
     Room::ReturnCode changePlayerUsername(PlayerID player_id, const std::string& new_username);
     void gameUpdate();
@@ -147,6 +148,8 @@ public:
 
     //returns pointer to vector of players in a room, null pointer if room does not exist.
     const std::vector<PlayerID>* getPlayersInRoom(RoomID room_id);
+
+    static std::string random_name_generator();
 
 private:
 

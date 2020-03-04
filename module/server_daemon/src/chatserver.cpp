@@ -97,50 +97,7 @@ MessageType getMessageType(const std::string& _message) {
 * Interpret command and call appropriate game_manager api function (there might be a better way to do this)
 */
 std::vector<GameManager::MessageReturn> parseCommandAndCollectResponse(const std::string& message, UniqueConnectionID id){
-  /*
-  std::vector<GameManager::MessageReturn> game_manager_message;
 
-  //tokenize the string, split by ' '
-  std::vector<std::string> tokens;
-  std::istringstream iss(message);
-  std::copy(std::istream_iterator<std::string>(iss),
-              std::istream_iterator<std::string>(),
-              std::back_inserter(tokens));
-
-  //command class to translate to enumerator 
-  Command command(tokens[0], game_manager);
-  switch (command.getCommandType()){
-    case commandType::listMember :
-      //game_manager_message = game_manager.returnRoomMembersCommand(id);
-      break;
-    case commandType::listRoom :
-      //game_manager_message = game_manager.returnRoomCommand(id);
-      break;
-    case commandType::createRoom :
-      //game_manager_message = game_manager.createRoomCommand(id);
-      break;
-    case commandType::joinRoom:
-      //game_manager_message = game_manager.joinRoomCommand(id, tokens[1]);
-      break;
-    case commandType::kickUser:
-      //game_manager_message = game_manager.kickPlayerCommand(id, tokens[1]);
-      break;
-    case commandType::quitFromServer:
-      //game_manager_message = game_manager.leaveRoomCommand(id);
-      break;
-    case commandType::initGame:
-      //game_manager_message = game_manager.initRoomCommand(id);
-      break;
-    case commandType::clear:
-      //game_manager_message = game_manager.clearCommand(id);
-      break;
-    case commandType::shutdownServer:
-
-      break;
-  };
-
-  return game_manager_message;
-  */
 }
 
 
