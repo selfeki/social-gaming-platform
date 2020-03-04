@@ -16,7 +16,6 @@
 // If the state says user input required then do that before resuming rule interpretation
 
 // The iterator will be implemented using a visitor
-void 
-updateState() {
-  // interpreter.interpret();
+void updateState() {
+    // interpreter.interpret();
 }

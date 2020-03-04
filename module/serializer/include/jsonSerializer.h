@@ -1,15 +1,15 @@
 #pragma once
 
+#include "arepa/game_spec/GameSpecification.h"
+#include "arepa/server_config/Config.h"
+
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <list>
+#include <nlohmann/json.hpp>
 #include <unordered_map>
 #include <vector>
-#include <list>
-#include <iostream>
-#include <fstream>
-#include <algorithm>
-#include <nlohmann/json.hpp>
-
-#include "arepa/server_config/Config.h"
-#include "arepa/game_spec/GameSpecification.h"
 
 
 namespace jsonSerializer {
@@ -17,15 +17,15 @@ namespace jsonSerializer {
 using json = nlohmann::json;
 
 serverConfig::Configuration
-parseServerConfig(const json &);
+parseServerConfig(const json&);
 
 gameSpecification::Specification
 parseGameSpecification(const json&);
 
-gameSpecification::Configuration 
+gameSpecification::Configuration
 parseConfig(const json&);
 
-gameSpecification::Setup 
+gameSpecification::Setup
 parseSetup(const json&);
 
 gameSpecification::SetupValue
@@ -55,17 +55,13 @@ parseExpList(const json&);
 rules::RuleList
 parseRules(const json&);
 
-bool 
-isValidServerConfig(const json&);
+bool isValidServerConfig(const json&);
 
-bool 
-isValidGameSpec(const json&);
+bool isValidGameSpec(const json&);
 
-bool 
-hasAllRequiredFields(const json&);
+bool hasAllRequiredFields(const json&);
 
-bool 
-hasNoExtraFields(const json&);
+bool hasNoExtraFields(const json&);
 
 // enum FIELDS {
 //     CONF,
@@ -94,6 +90,4 @@ hasNoExtraFields(const json&);
 // });
 
 
-} // namespace jsonSerializer
-
-
+}    // namespace jsonSerializer

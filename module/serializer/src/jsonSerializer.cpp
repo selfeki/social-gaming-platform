@@ -1,12 +1,13 @@
-#include <iostream>
-#include <fstream>
-#include <unordered_map>
-#include <vector>
+#include "jsonSerializer.h"
+
 #include <algorithm>
+#include <fstream>
+#include <iostream>
 #include <numeric>
 #include <string>
 #include <string_view>
-#include "jsonSerializer.h"
+#include <unordered_map>
+#include <vector>
 
 
 using json = nlohmann::json;
@@ -20,25 +21,24 @@ using namespace gameSpecification;
 // Server configuration serializing
 
 serverConfig::Configuration
-parseServerConfig(const json & j) {
-    if (!isValidServerConfig(j)) { 
+parseServerConfig(const json& j) {
+    if (!isValidServerConfig(j)) {
         throw;
-    } // todo: handle error gracefully
+    }    // todo: handle error gracefully
     serverConfig::Configuration config;
     j.at("port").get_to(config.port);
     j.at("html").get_to(config.htmlPath);
     auto games = j.at("games");
     std::transform(
         games.begin(), games.end(), std::back_inserter(config.gameSpecs),
-        [](const json& spec) { return parseGameSpecification(spec); }
-    );
+        [](const json& spec) { return parseGameSpecification(spec); });
     return config;
 }
 
 // Note: Only validates top-level keys of server config
 bool isValidServerConfig(const json& j) {
     json temp = j.flatten();
-    for (auto element: serverConfig::enum_to_str) {
+    for (auto element : serverConfig::enum_to_str) {
         if (temp[element.second] == NULL) {
             return false;
         }
@@ -50,19 +50,19 @@ bool isValidServerConfig(const json& j) {
 
 gameSpecification::Specification
 parseGameSpecification(const json& j) {
-    if (!isValidGameSpec(j)) { 
+    if (!isValidGameSpec(j)) {
         throw;
-    } // todo: handle error gracefully
+    }    // todo: handle error gracefully
     Specification spec;
     spec.configuration = parseConfig(j.at("configuration"));
-    spec.gameState     = parseGameState(j);
-    spec.rules         = parseRules(j.at("rules"));
+    spec.gameState = parseGameState(j);
+    spec.rules = parseRules(j.at("rules"));
     return spec;
 }
 
-gameSpecification::Configuration 
+gameSpecification::Configuration
 parseConfig(const json& j) {
-    gameSpecification::Configuration  config;
+    gameSpecification::Configuration config;
     j.at("name").get_to(config.name);
     j.at("player count").at("min").get_to(config.count.min);
     j.at("player count").at("max").get_to(config.count.max);
@@ -74,7 +74,7 @@ parseConfig(const json& j) {
 gameSpecification::Setup
 parseSetup(const json& j) {
     Setup setup;
-    for(const auto& [key, val]: j.at("setup").items()) {
+    for (const auto& [key, val] : j.at("setup").items()) {
         setup.set(key, parseSetupValue(val));
     }
     return setup;
@@ -83,36 +83,42 @@ parseSetup(const json& j) {
 SetupValue
 parseSetupValue(const json& j) {
     switch (j.type()) {
-        case json::value_t::string:         return j.get<std::string>();
-        case json::value_t::number_integer: return j.get<int>();
-        case json::value_t::boolean:        return j.get<bool>();
-        case json::value_t::object:         return parseCustomSetup(j);
-        default: assert(false);             return 0; // todo: log error
+    case json::value_t::string:
+        return j.get<std::string>();
+    case json::value_t::number_integer:
+        return j.get<int>();
+    case json::value_t::boolean:
+        return j.get<bool>();
+    case json::value_t::object:
+        return parseCustomSetup(j);
+    default:
+        assert(false);
+        return 0;    // todo: log error
     }
 }
 
 CustomSetup
 parseCustomSetup(const json& j) {
-    auto kind   = parseDataKind(j.at("kind"));
+    auto kind = parseDataKind(j.at("kind"));
     auto prompt = j.at("prompt").get<std::string>();
-    return {kind, prompt};
+    return { kind, prompt };
 }
 
 // Map for switch-case convenience
 const std::unordered_map<std::string, DataKind> strToKind = {
-    {"integer",         DataKind::INTEGER},
-    {"string",          DataKind::STRING},
-    {"boolean",         DataKind::BOOLEAN},
-    {"question-answer", DataKind::QUESTION_ANSWER},
-    {"multiple-choice", DataKind::MULTIPLE_CHOICE}
+    { "integer", DataKind::INTEGER },
+    { "string", DataKind::STRING },
+    { "boolean", DataKind::BOOLEAN },
+    { "question-answer", DataKind::QUESTION_ANSWER },
+    { "multiple-choice", DataKind::MULTIPLE_CHOICE }
 };
 
 DataKind
 parseDataKind(const json& j) {
     auto str = j.get<std::string>();
-    auto it  = strToKind.find(str);
-    if (it != strToKind.end()){
-        assert(false);  // this should have been caught in validation
+    auto it = strToKind.find(str);
+    if (it != strToKind.end()) {
+        assert(false);    // this should have been caught in validation
     }
     return it->second;
 }
@@ -121,9 +127,9 @@ parseDataKind(const json& j) {
 GameState
 parseGameState(const json& j) {
     GameState state;
-    state.constants   = parseEnvironment(j.at("constants"));
-    state.variables   = parseEnvironment(j.at("variables"));
-    state.perPlayer   = parseEnvironment(j.at("per-player"));
+    state.constants = parseEnvironment(j.at("constants"));
+    state.variables = parseEnvironment(j.at("variables"));
+    state.perPlayer = parseEnvironment(j.at("per-player"));
     state.perAudience = parseEnvironment(j.at("per-audience"));
     return state;
 }
@@ -131,10 +137,10 @@ parseGameState(const json& j) {
 Environment
 parseEnvironment(const json& j) {
     Environment env;
-    for(const auto& item: j.items()) {
-        auto key   = item.key();
+    for (const auto& item : j.items()) {
+        auto key = item.key();
         auto value = item.value();
-        auto exp   = parseExpression(value);
+        auto exp = parseExpression(value);
         env.set(key, exp);
     }
     return env;
@@ -143,19 +149,25 @@ parseEnvironment(const json& j) {
 Expression
 parseExpression(const json& j) {
     switch (j.type()) {
-        case json::value_t::string:         return j.get<std::string>();
-        case json::value_t::number_integer: return j.get<int>();
-        case json::value_t::boolean:        return j.get<bool>();
-        case json::value_t::object:         return parseExpMap(j);
-        case json::value_t::array:          return parseExpList(j);
-        default: assert(false); // todo: log error
+    case json::value_t::string:
+        return j.get<std::string>();
+    case json::value_t::number_integer:
+        return j.get<int>();
+    case json::value_t::boolean:
+        return j.get<bool>();
+    case json::value_t::object:
+        return parseExpMap(j);
+    case json::value_t::array:
+        return parseExpList(j);
+    default:
+        assert(false);    // todo: log error
     }
 }
 
 Expression
 parseExpMap(const json& j) {
     auto expMap = MapWrapper<std::string, Expression>();
-    for(const auto& [key, val]: j.items()) {
+    for (const auto& [key, val] : j.items()) {
         Expression exp = parseExpression(val);
         expMap.set(key, exp);
     }
@@ -165,7 +177,7 @@ parseExpMap(const json& j) {
 Expression
 parseExpList(const json& j) {
     auto expList = std::vector<Expression>();
-    for(const auto& [_, val]: j.items()) {
+    for (const auto& [_, val] : j.items()) {
         // todo: change to std::transform
         // todo: test expressions are serialized in right order
         Expression exp = parseExpression(val);
@@ -179,17 +191,15 @@ parseRules(const json& j) {
     // todo
 }
 
-bool 
-isValidGameSpec(const json& j) {
+bool isValidGameSpec(const json& j) {
     return hasAllRequiredFields(j)
         && hasNoExtraFields(j);
 }
 
-bool 
-hasAllRequiredFields(const json& j) {
+bool hasAllRequiredFields(const json& j) {
     json flat = j.flatten();
     // change to accumulate?
-    for (auto element: enum_to_str) {
+    for (auto element : enum_to_str) {
         if (flat[element.second] == NULL) {
             return false;
         }
@@ -197,8 +207,7 @@ hasAllRequiredFields(const json& j) {
     return true;
 }
 
-bool 
-hasNoExtraFields(const json& j) {
+bool hasNoExtraFields(const json& j) {
     // need to check for duplicate keys, as that would be invalid
 }
 
