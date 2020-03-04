@@ -1,4 +1,8 @@
+#pragma once
 
+#include "MapWrapper.h"
+#include "Expression.h"
+#include "Rules.h"
 
 // A GameState is the input and output of the DSLInterpreter
 

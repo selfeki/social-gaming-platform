@@ -6,9 +6,10 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #include "GameManager.h"
+#include "commands.h"
 #include "jsonconfig.h"
-#include "command.h"
 
+#include <arepa/command/Command.hpp>
 #include <arepa/server/Server.h>
 
 #include <boost/uuid/uuid_io.hpp>
@@ -17,6 +18,7 @@
 //#include "json_parser.h"
 #include <atomic>
 #include <cstdint>
+#include <deque>
 #include <fstream>
 #include <iostream>
 #include <iterator>
@@ -25,15 +27,15 @@
 #include <unistd.h>
 #include <vector>
 
+using arepa::command::Command;
 using networking::ConnectionId;
 using networking::Message;
-using namespace commandSpace;
 using networking::Server;
-
 
 typedef networking::ConnectionId UniqueConnectionID;
 //typedef MessageReturn<UniqueConnectionID> GameManager::MessageReturn;
 //typedef GameManager<UniqueConnectionID> GameManagerAlias;
+
 
 std::atomic<std::uint64_t> unique_connection_id_counter = 0;
 
@@ -92,15 +94,6 @@ MessageType getMessageType(const std::string& _message) {
     }
 }
 
-
-/*
-* Interpret command and call appropriate game_manager api function (there might be a better way to do this)
-*/
-std::vector<GameManager::MessageReturn> parseCommandAndCollectResponse(const std::string& message, UniqueConnectionID id){
-
-}
-
-
 //function to format a message object to a particular client
 std::deque<Message> sendToClient(const ConnectionId& client, const std::string& log) {
     std::deque<Message> outgoing;
@@ -117,7 +110,7 @@ void onConnect(shared_ptr<Connection> c) {
 
     //override game manager and send back server welcome message...
     networkMessageQueue.emplace_back(c->session_id(), "Welcome to the server! Enter a command...");
-    //put player in a room 
+    //put player in a room
     //game_manager.createRoomCommand();
 }
 
@@ -175,76 +168,44 @@ void processMessages(Server& server, const std::deque<Message>& incoming, Comman
 
     tokens.clear();
 
-  /*
-    
-    for (auto& message : incoming) {
-      ConnectionId sentFrom = message.connection;
-      Command command(message.text, game_manager);
-      commandType recieved = command.getCommandType();
-      //variable type input is type alias to string defined in command.h
-      std::vector<input> tokens = command.getTokens();
-      if(recieved==commandType::message)
-      {
-        std::vector<GameManager::MessageReturn> game_messages = game_manager.handleGameMessage(message.text, sentFrom.uuid);
-          for(auto game_message : game_messages) {
-            gameMessageQueue.push_back(game_message);
-          } 
-      }
-      else {
-        //handle command in game manager
-        std::vector<GameManager::MessageReturn> cmd_messages;
-        switch (recieved){
-          case commandType::listMember :
-            //cmd_messages = game_manager.returnRoomMembersCommand(sentFrom.uuid);
-          break;
-          case commandType::listRoom :
-            //cmd_messages = game_manager.returnRoomCommand(sentFrom.uuid);
-            break;
-          case commandType::createRoom :
-            //cmd_messages = game_manager.createRoomCommand(sentFrom.uuid);
-            break;
-          case commandType::joinRoom:
-            //cmd_messages = game_manager.joinRoomCommand(sentFrom.uuid, tokens[1]);
-            break;
-          case commandType::kickUser:
-            //cmd_messages = game_manager.kickPlayerCommand(sentFrom.uuid, tokens[1]);
-            break;
-          case commandType::clear:
-            //cmd_messages = game_manager.clearCommand(sentFrom.uuid);
-            break;
-          case commandType::quitFromServer:
-            //cmd_messages = game_manager.leaveRoomCommand(sentFrom.uuid);
-            break;
-          case commandType::initGame:
-            //cmd_messages = game_manager.initRoomCommand(sentFrom.uuid);
-            break;
-          case commandType::shutdownServer:
-            //cmd_messages = game_manager.shutdownServerCommand(sentFrom.uuid);
-            break; 
-          case commandType::nullCommand:
-            //cmd_messages = {{sentFrom.uuid, tokens[0]+" is not a command." , false}};
-            break;
-          };
-          //create message vector to send out 
-          for(auto cmd_message : cmd_messages) {
-            gameMessageQueue.push_back(cmd_message);
-          }
+        ConnectionId sentFrom = message.connection;
+
+        // If it's not a command, handle it as a game message.
+        if (!Command::is_command(message.text)) {
+            std::vector<messageReturnAlias> game_messages = game_manager.handleGameMessage(message.text, sentFrom.uuid);
+            for (const auto& game_message : game_messages) {
+                gameMessageQueue.push_back(game_message);
+            }
+
+            continue;
         }
-        
-      };
-    */  
+
+        // If it is a command, parse it and execute it.
+        auto command = Command::parse(message.text);
+        if (!command) {
+            // This means the command string was invalid (not alphanumeric command name).
+            // TODO(nikolkam): Send the user an error message.
+            std::cout << "Invalid command: " << message.text << std::endl;
+            continue;
+        }
+
+        // Get the command executor.
+        auto executor = COMMAND_MAP.find(command->name());
+        if (executor == COMMAND_MAP.end()) {
+            // This means the command couldn't be found.
+            // TODO(nikolkam): Send the user an error message.
+            std::cout << "Unknown command: " << message.text << std::endl;
+            continue;
+        }
+
+        // Execute the command.
+        CommandUser user(sentFrom);
+        executor->second->execute(game_manager, user, command->arguments());
+        std::copy(user.outgoing_message_queue().begin(), user.outgoing_message_queue().end(), std::back_inserter(gameMessageQueue));
+    }
 }
 
 
-/*
-std::deque<Message> buildOutgoing(const std::string& log) {
-  std::deque<Message> outgoing;
-  for (auto client : clients) {
-    outgoing.push_back({client, log});
-  }
-  return outgoing;
-}
-*/
 
 int main(int argc, char* argv[]) {
 
@@ -283,7 +244,10 @@ int main(int argc, char* argv[]) {
 
     Server server(opts, &onConnect, &onDisconnect);
 
-  /*
+    // Initialize commands
+    init_commands();
+
+    /*
   * Main Game Server Loop
   */
 

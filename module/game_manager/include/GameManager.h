@@ -1,15 +1,18 @@
 #pragma once
 
 #include "GameInstance.h"
+#include "arepa/game_spec/GameSpecification.h"
 #include "jsonconfig.h"
 #include <arepa/server/Server.h>
 
 
+#include <arepa/command/Executor.hpp>
+
 #include <algorithm>
 #include <exception>
+#include <optional>
 #include <time.h>
 #include <unordered_map>
-#include <optional>
 
 using g_config = game_config::configuration;
 using s_config = server_config::configuration;
@@ -149,9 +152,10 @@ public:
     //returns pointer to vector of players in a room, null pointer if room does not exist.
     const std::vector<PlayerID>* getPlayersInRoom(RoomID room_id);
 
-    static std::string random_name_generator();
+
 
 private:
+    static std::string random_name_generator();
 
     Room* getRoomFromRoomID(RoomID room_id);
     Room* getRoomFromPlayerID(PlayerID id);
