@@ -7,9 +7,10 @@
 #include <boost/variant/recursive_wrapper.hpp>
 #include <boost/variant/variant.hpp>
 
+#include "MapWrapper.h"
+
 namespace gameSpecification {
 	
-#include "MapWrapper.h"
 #include "Expression.h"
 #include "Rules.h"
 #include "GameState.h"
