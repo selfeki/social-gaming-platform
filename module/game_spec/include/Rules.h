@@ -1,7 +1,11 @@
 #pragma once
 
-#include "MapWrapper.h"
 #include "Expression.h"
+#include "MapWrapper.h"
+
+#include <boost/variant.hpp>
+#include <boost/variant/recursive_wrapper.hpp>
+#include <boost/variant/variant.hpp>
 
 namespace rules {
 
@@ -34,88 +38,88 @@ struct Scores;
 
 
 using Rule = boost::make_recursive_variant<
-  ForEach,
-  Loop,
-  InParallel,
-  ParallelFor,
-  Switch,
-  When,
-  Extend,
-  Reverse,
-  Shuffle,
-  Sort,
-  Deal,
-  Discard,
-  Add,
-  Timer,
-  InputChoice,
-  InputText,
-  InputVote,
-  Message,
-  GlobalMessage,
-  Scores>::type;
+    ForEach,
+    Loop,
+    InParallel,
+    ParallelFor,
+    Switch,
+    When,
+    Extend,
+    Reverse,
+    Shuffle,
+    Sort,
+    Deal,
+    Discard,
+    Add,
+    Timer,
+    InputChoice,
+    InputText,
+    InputVote,
+    Message,
+    GlobalMessage,
+    Scores>::type;
 
 using RuleList = std::vector<Rule>;
 
 struct ForEach {
-  Expression  elemList; 
-  Expression  elem;
-  RuleList    rules;
+    Expression elemList;
+    Expression elem;
+    RuleList rules;
 };
 
 enum LoopType {
-	UNTIL,
-	WHILE
+    UNTIL,
+    WHILE
 };
 
 struct Loop {
-  LoopType type; // Until or While
-  RuleList rules;
+    LoopType type;    // Until or While
+    RuleList rules;
 };
 
 struct InParallel {
-  RuleList rules;
+    RuleList rules;
 };
 
 struct ParallelFor {
-  Expression  elemList;
-  Expression  elem;
-  RuleList    rules;
+    Expression elemList;
+    Expression elem;
+    RuleList rules;
 };
 
 using CaseToRules = MapWrapper<Expression, RuleList>;
 
 struct Switch {
-  Expression  switchTarget;
-  Expression  valuesList;
-  RuleList    rules;
-  CaseToRules caseToRules;
+    Expression switchTarget;
+    Expression valuesList;
+    RuleList rules;
+    CaseToRules caseToRules;
 };
 
 using ConditionToRules = MapWrapper<Expression, RuleList>;
 
 struct When {
-  ConditionToRules condToRules;
+    ConditionToRules condToRules;
 };
 
 struct Extend {
-  Expression targetList;
-  Expression list;
+    Expression targetList;
+    Expression list;
 };
 
 struct Reverse {
-  Expression list;
+    Expression list;
 };
 
 struct Shuffle {
-  Expression list;
+    Expression list;
 };
 
 struct Sort {
-  Expression list;
-  // todo: if key provided
-  // Validate that the list contains maps
-  std::optional<std::string> key;
+    Expression list;
+    // todo: if key provided
+    // Validate that the list contains maps
+    std::optional<std::string> key;
 };
 
 // possibel element values
@@ -128,38 +132,38 @@ struct Sort {
 
 // Only if the elementLists are maps ->
 
-// "roles.elements.name" defines the list of names contained within the above list. 
-// Additional useful attributes are 
+// "roles.elements.name" defines the list of names contained within the above list.
+// Additional useful attributes are
 // "contains" and "collect"
 
 // Number is an integer literal?
 struct Deal {
-  Expression  fromList;
-  Expression  toList;
-  Expression  count;
+    Expression fromList;
+    Expression toList;
+    Expression count;
 };
 
 struct Discard {
-  Expression  fromList;
-  Expression  count;
+    Expression fromList;
+    Expression count;
 };
 
 struct Add {
-  Expression to;
-  Expression value;
+    Expression to;
+    Expression value;
 };
 
 enum TimerMode {
-  EXACT,
-  AT_MOST,
-  TRACK
+    EXACT,
+    AT_MOST,
+    TRACK
 };
 
 struct Timer {
-  Expression  duration;
-  TimerMode 	mode;
-  RuleList  	rules;
-  Expression	flag;
+    Expression duration;
+    TimerMode mode;
+    RuleList rules;
+    Expression flag;
 };
 
 // todo: make consistent with GameManager user ID?
@@ -168,40 +172,40 @@ using UserIDList = std::vector<UserID>;
 
 
 struct InputChoice {
-  UserIDList  targetUsers;
-  Expression  prompt;
-  Expression  choiceList;
-  Expression	result;
-  std::optional<Expression> timeout;
+    UserIDList targetUsers;
+    Expression prompt;
+    Expression choiceList;
+    Expression result;
+    std::optional<Expression> timeout;
 };
 
 struct InputText {
-  UserID      targetUser;
-  Expression  prompt;
-  Expression  result;
-  // optional
-  std::optional<Expression> timeout;
+    UserID targetUser;
+    Expression prompt;
+    Expression result;
+    // optional
+    std::optional<Expression> timeout;
 };
 
 struct InputVote {
-  UserIDList  targetUsers;
-  Expression  prompt;
-  Expression  choiceList;
-  Expression	resultMap;
+    UserIDList targetUsers;
+    Expression prompt;
+    Expression choiceList;
+    Expression resultMap;
 };
 
 struct Message {
-	UserIDList targetUsers;
-	Expression content;
+    UserIDList targetUsers;
+    Expression content;
 };
 
 struct GlobalMessage {
-	Expression content;
+    Expression content;
 };
 
 struct Scores {
-	Expression scoreAttribute;
-	Expression isAscending;
+    Expression scoreAttribute;
+    Expression isAscending;
 };
 
-} // namespace rules
+}    // namespace rules
