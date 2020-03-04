@@ -2,9 +2,8 @@
 
 #include "GameInstance.h"
 #include "command.h"
-#include "jsonconfig.h"
 #include "arepa/game_spec/GameSpecification.h"
-
+#include "arepa/server_config/Config.h"
 #include <algorithm>
 #include <exception>
 #include <time.h>
@@ -13,7 +12,7 @@
 
 // todo: change 
 using g_spec = gameSpecification::Specification;
-using s_config = server_config::configuration;
+using s_config = serverConfig::Configuration;
 /*
 *Game_manager class
 */

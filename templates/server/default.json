@@ -1,4 +1,5 @@
 {
     "port":4002,
-    "html": "webchat.html"
+    "html": "webchat.html",
+    "games": []
 }
