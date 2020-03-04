@@ -349,20 +349,20 @@ std::vector<MessageReturn> GameManager::initRoomCommand(PlayerID id) {
 */
 
 GameManager::ReturnCode
-GameManager::destroyRoom(PlayerID player_id) {
+GameManager::destroyRoom(PlayerID player_id, RoomID room_id) {
 
-    auto find_room_id = playerid_to_roomid_map.find(player_id);
-    if (find_room_id == playerid_to_roomid_map.end()) return GameManager::ReturnCode::ROOM_NOT_EXIST;
+    auto find_room = roomid_to_room_map.find(room_id);
+    if (find_room == roomid_to_room_map.end()) return GameManager::ReturnCode::ROOM_NOT_EXIST;
 
-    auto find_room = roomid_to_room_map.find(find_room_id->second);
-    if (find_room == roomid_to_room_map.end()) return GameManager::ReturnCode::PLAYER_NOT_EXIST;
+    Room& room = find_room->second;
 
-    if((find_room->second).getOwner() != player_id) return GameManager::ReturnCode::NO_PERMISSION;
+    if(room.getOwner() != player_id) return GameManager::ReturnCode::NO_PERMISSION;
 
-    roomid_to_room_map.erase(find_room_id->second);
+    roomid_to_room_map.erase(room_id);
+
 
     for( auto it = playerid_to_roomid_map.begin(); it != playerid_to_roomid_map.end(); ) {
-        if (it->second == find_room_id->second) {
+        if (it->second == room_id) {
             it = playerid_to_roomid_map.erase(it);
         } else {
             ++it;
@@ -429,7 +429,6 @@ GameManager::getRoomIDOfPlayer(PlayerID player_id) {
 }
 
 
-
 Room* GameManager::getRoomFromPlayerID(PlayerID id) {
 
     auto it_room_id = playerid_to_roomid_map.find(id);
@@ -443,6 +442,17 @@ Room* GameManager::getRoomFromPlayerID(PlayerID id) {
     }
 
     return &(it_room->second);
+}
+
+Room* GameManager::getRoomFromRoomID(RoomID room_id) {
+
+    auto it_room = roomid_to_room_map.find(room_id);
+    if(it_room == roomid_to_room_map.end()) {
+        return NULL;
+    }
+
+    return &(it_room->second);
+
 }
 
 
@@ -527,13 +537,10 @@ GameManager::addPlayerToRoom (PlayerID player_id, RoomID room_id){
     if (find == roomid_to_room_map.end()) return GameManager::ReturnCode::ROOM_NOT_EXIST;
 
     Room& room = find->second;
-
-
     
     if(true){  //satisfies all conditions eg. room capacity
         if(!room.addPlayer(player_id,gen_random_username)) return GameManager::ReturnCode::FAILURE;
         std::cout << "trace: inside addPlayerToRoom\n";
-
         playerid_to_roomid_map.insert({ player_id, room_id });
         return GameManager::ReturnCode::SUCCESS;
     }
@@ -558,7 +565,8 @@ GameManager::removePlayerFromRoom (PlayerID kicking_player_id, PlayerID player_i
 
         if(!(find_room->second).removePlayer(player_id)) return GameManager::ReturnCode::FAILURE;
 
-        playerid_to_roomid_map.erase(player_id);
+        playerid_to_roomid_map.erase(player_id);        
+
         return GameManager::ReturnCode::SUCCESS;
     }
 }
@@ -570,10 +578,14 @@ GameManager::getRoomUsernameOfPlayer(PlayerID player_id) {
     auto find_room_id = playerid_to_roomid_map.find(player_id);
     if (find_room_id == playerid_to_roomid_map.end()) return {std::nullopt, GameManager::ReturnCode::PLAYER_NOT_EXIST};
 
-    auto find_room = roomid_to_room_map.find(find_room_id->second);
+    RoomID room_id = (find_room_id->second);
+
+    auto find_room = roomid_to_room_map.find(room_id);
     if (find_room == roomid_to_room_map.end()) return {std::nullopt, GameManager::ReturnCode::ROOM_NOT_EXIST};
 
-    std::optional<std::string> username = (find_room->second).getUsernameFromPlayerID(player_id);
+    Room& room = find_room->second;
+
+    std::optional<std::string> username = room.getUsernameFromPlayerID(player_id);
 
     if(!username) return {username, GameManager::ReturnCode::FAILURE};
 
@@ -593,10 +605,14 @@ GameManager::getPlayerIDFromRoomUsername(const std::string& username, RoomID roo
     return {player_id, GameManager::ReturnCode::SUCCESS};
 }
 
-std::vector<PlayerID>& getPlayersInRoom(RoomID room_id) {
-    
+const std::vector<PlayerID>* GameManager::getPlayersInRoom(RoomID room_id){
+    auto find_room = roomid_to_room_map.find(room_id);
+    if (find_room == roomid_to_room_map.end()) return NULL;
 
-
+    Room& room = (find_room->second);
+    const std::vector<PlayerID>& players = room.getPlayers();
+    //return &(room.getPlayers());
+    return (&players);
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`

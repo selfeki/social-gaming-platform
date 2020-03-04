@@ -73,9 +73,9 @@ public:
     void kickPlayer(PlayerID player_id, input& username_to_kick, std::deque<networking::Message>& messagesToSend);
     void createRoom(PlayerID player_id, std::deque<networking::Message>& messagesToSend);
     void joinRoom(PlayerID player_id, RoomID room_id, std::deque<networking::Message>& messagesToSend);
-    void destroyRoom(PlayerID player_id, input username_to_kick);
-    void listRoomMembers(PlayerID player_id, input username_to_kick);
-    void leaveRoom(PlayerID player_id, input username_to_kick);
+    void destroyRoom(PlayerID player_id, RoomID room_id, std::deque<networking::Message>& messagesToSend);
+    void listRoomMembers(PlayerID player_id, std::deque<networking::Message>& messagesToSend);
+    void leaveRoom(PlayerID player_id, std::deque<networking::Message>& messagesToSend);
     void whisperToPlayer(PlayerID player_id, input username_to_kick);
     void regularMessage(PlayerID player_id, const std::string& msg, std::deque<networking::Message>& messagesToSend);
 

@@ -41,7 +41,8 @@ std::atomic<std::uint64_t> unique_connection_id_counter = 0;
 
 std::string default_json = "templates/server/default.json";
 
-GameManager game_manager;
+GameManager gameManager;
+Command command(gameManager);
 
 
 //messages returned from game manager
@@ -167,7 +168,7 @@ void onConnect(shared_ptr<Connection> c) {
 void onDisconnect(shared_ptr<Connection> c) {
     std::cout << "Connection lost: " << c->session_token() << "\n";
 
-
+    command.leaveRoom(c->session_id(), networkMessageQueue);
 }
 
 
@@ -182,16 +183,14 @@ void processMessages(Server& server, const std::deque<Message>& incoming, Comman
 
     switch(command_type) {
           case commandType::listMember :
-            //cmd_messages = game_manager.returnRoomMembersCommand(sentFrom.uuid);
+            command.listRoomMembers(message.connection, networkMessageQueue);
           break;
           case commandType::listRoom :
-            //cmd_messages = game_manager.returnRoomCommand(sentFrom.uuid);
             break;
           case commandType::createRoom :
             command.createRoom(message.connection, networkMessageQueue);
             break;
           case commandType::joinRoom:
-            std::cout << "HIIII" << "\n";
             command.joinRoom(message.connection, tokens[1], networkMessageQueue);
             break;
           case commandType::kickUser:
@@ -210,7 +209,6 @@ void processMessages(Server& server, const std::deque<Message>& incoming, Comman
             //cmd_messages = game_manager.shutdownServerCommand(sentFrom.uuid);
             break; 
           case commandType::nullCommand:
-            //cmd_messages = {{sentFrom.uuid, tokens[0]+" is not a command." , false}};
             break;
           case commandType::message:
             command.regularMessage(message.connection, message.text, networkMessageQueue);
@@ -327,8 +325,6 @@ int main(int argc, char* argv[]) {
     opts.bind_port = port;
 
     Server server(opts, &onConnect, &onDisconnect);
-    GameManager gameManager;
-    Command command(gameManager);
 
   /*
   * Main Game Server Loop

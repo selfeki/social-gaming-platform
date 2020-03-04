@@ -157,10 +157,13 @@ public:
     handleGameMessage(std::string msg, PlayerID player_id);
 
     ReturnCode
-    destroyRoom(PlayerID player_id);
+    destroyRoom(PlayerID player_id, RoomID room_id);
 
     //takes player id and return Room instance
     Room* getRoomFromPlayerID(PlayerID player_id);
+
+    Room* getRoomFromRoomID(RoomID room_id);
+
 
     //forms message return to send a message everyone in the room
     //MessageReturnList
@@ -198,7 +201,7 @@ public:
     std::pair<std::optional<PlayerID>, ReturnCode> 
     getPlayerIDFromRoomUsername(const std::string& username, RoomID room_id);
 
-    std::vector<PlayerID>& getPlayersInRoom(RoomID room_id);
+    const std::vector<PlayerID>* getPlayersInRoom(RoomID room_id);
 
 private:
     //commandSpace::Command<PlayerID> commands;

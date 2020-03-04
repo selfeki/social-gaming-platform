@@ -126,7 +126,6 @@ namespace commandSpace{
     Command::joinRoom(PlayerID player_id, RoomID room_id, std::deque<networking::Message>& messagesToSend){
 
         GameManager::ReturnCode result = gameManager.addPlayerToRoom(player_id, room_id);
-        std::cout << "trace: addPlayerToRoom called\n";
 
         if(result != GameManager::ReturnCode::SUCCESS) {
             std::string error_msg = errorMessageMap.at(result);
@@ -143,21 +142,97 @@ namespace commandSpace{
             return;    
         }
 
-        messagesToSend.emplace_back(player_id, "Joined room " + room_id + " as " + *username);
+        std::string success_msg = "{" + room_id + "} " + *username + " has joined the room, say hi!";
+
+        const std::vector<PlayerID>& players = room->getPlayers();
+
+        std::transform(players.begin(), 
+                        players.end(), 
+                        std::back_inserter(messagesToSend),
+                        [&success_msg](auto & p) -> networking::Message {
+                            return {p, success_msg};
+                        });
+
         return;
     }
     void
-    Command::destroyRoom(PlayerID player_id, input username_to_kick){
+    Command::destroyRoom(PlayerID player_id, RoomID room_id, std::deque<networking::Message>& messagesToSend){
+        
+
+        GameManager::ReturnCode result = gameManager.destroyRoom(player_id, room_id);
+
+        if(result != GameManager::ReturnCode::SUCCESS) {
+            std::string error_msg = errorMessageMap.at(result);
+            messagesToSend.emplace_back(player_id, error_msg); 
+            return;    
+        }
+
+        messagesToSend.emplace_back(player_id, "Deleted room " + room_id);
+        return;
 
     }
     void
-    Command::listRoomMembers(PlayerID player_id, input username_to_kick){
+    Command::listRoomMembers(PlayerID player_id, std::deque<networking::Message>& messagesToSend){
+        Room* room = gameManager.getRoomFromPlayerID(player_id);
+
+        if(!room) {
+            std::string error_msg = "You are not in a room.";               
+            messagesToSend.emplace_back(player_id, error_msg);
+            return;
+        }
+
+        const std::vector<PlayerID>& players = room->getPlayers();
+
+        std::string success_msg;
+
+        std::for_each(players.begin(), players.end(), 
+                    [&success_msg, room](auto& p) {
+                        std::optional<std::string> name = room->getUsernameFromPlayerID(p);
+                        if(name){
+                            success_msg += *name + "\n";
+                        } 
+                    });
+
+        messagesToSend.emplace_back(player_id, success_msg);
+        return;
 
     }
     void
-    Command::leaveRoom(PlayerID player_id, input username_to_kick){
+    Command::leaveRoom(PlayerID player_id, std::deque<networking::Message>& messagesToSend){
+        Room* room = gameManager.getRoomFromPlayerID(player_id);
+        RoomID room_id = room->getRoomID();
 
+        if(!room) {
+            std::string error_msg = "You are not in a room.";               
+            messagesToSend.emplace_back(player_id, error_msg);
+            return;
+        }
+        std::optional<std::string> username = room->getUsernameFromPlayerID(player_id);
+
+        std::optional<PlayerID> return_value = room->removePlayer(player_id);
+
+        if(!return_value || *return_value != player_id) {
+            std::string error_msg = "You could not leave the room for some reason.";               
+            messagesToSend.emplace_back(player_id, error_msg);
+            return;           
+        }
+
+        std::string success_msg = "{" + room_id + "} " + *username + " has left the room.";
+
+        const std::vector<PlayerID>& players = room->getPlayers();
+
+        std::transform(players.begin(), 
+                        players.end(), 
+                        std::back_inserter(messagesToSend),
+                        [&success_msg](auto & p) -> networking::Message {
+                            return {p, success_msg};
+                        });
+
+        messagesToSend.emplace_back(player_id, "You have left room " + room_id);        
+        return;
     }
+
+
     void
     Command::whisperToPlayer(PlayerID player_id, input username_to_kick){
 
