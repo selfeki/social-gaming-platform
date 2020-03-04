@@ -3,18 +3,54 @@
 #include <unordered_map>
 #include <vector>
 #include <algorithm>
-#include "jsonconfig.h"
-#include "jsonSerializerImpl.h"
+#include <numeric>
+#include <string>
+#include <string_view>
+#include "jsonSerializer.h"
 
-using namespace json_serializer;
-using namespace gameSpecification;
 
 using json = nlohmann::json;
 
 
+namespace jsonSerializer {
+
+using namespace serverConfig;
+using namespace gameSpecification;
+
+// Server configuration serializing
+
+serverConfig::Configuration
+parseServerConfig(const json & j) {
+    if (!isValidServerConfig(j)) { 
+        throw;
+    } // todo: handle error gracefully
+    serverConfig::Configuration config;
+    j.at("port").get_to(config.port);
+    j.at("html").get_to(config.htmlPath);
+    auto games = j.at("games");
+    std::transform(
+        games.begin(), games.end(), std::back_inserter(config.gameSpecs),
+        [](const json& spec) { return parseGameSpecification(spec); }
+    );
+    return config;
+}
+
+// Note: Only validates top-level keys of server config
+bool isValidServerConfig(const json& j) {
+    json temp = j.flatten();
+    for (auto element: serverConfig::enum_to_str) {
+        if (temp[element.second] == NULL) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Game specification serializing
+
 gameSpecification::Specification
 parseGameSpecification(const json& j) {
-    if (!hasValidFields(j)) { 
+    if (!isValidGameSpec(j)) { 
         throw;
     } // todo: handle error gracefully
     Specification spec;
@@ -138,14 +174,13 @@ parseExpList(const json& j) {
     return expList;
 }
 
-gameSpecification::rules::RuleList
+rules::RuleList
 parseRules(const json& j) {
     // todo
 }
 
-
 bool 
-hasValidFields(const json& j) {
+isValidGameSpec(const json& j) {
     return hasAllRequiredFields(j)
         && hasNoExtraFields(j);
 }
@@ -168,134 +203,4 @@ hasNoExtraFields(const json& j) {
 }
 
 
-// std::vector<json> find_rule(const std::vector<json>& j, const std::string& rule_name) {
-//     std::vector<json> ret;
-//     for (auto& element: j) {
-//         auto found = element.find("rule");
-//         if (found != element.end() && element.at("rule") == rule_name) {
-//             ret.push_back(element);
-//         }
-//     }
-//     return ret;
-// }
-
-// json first_rule(const json& j, const int i) {
-//     if (j.find("rules") == j.end()) {
-//         return j;
-//     } else {
-//         return j["rules"][i];
-//     }
-// }
-
-// bool has_rules(const json& j) {
-//     return j.find("rules") != j.end();
-// }
-
-// void print_spec(const specification& spec) {
-
-//     std::cout << "specification:\n"
-//     << "name: " << spec.name
-//     //<< "\nplayer count: " << spec.player_count
-//     << "\nPlayer count: Min: "<< spec.player_count_s.min <<"Max: "<< spec.player_count_s.max
-//     << "\naudience: " << spec.audience
-//     //<< "\nsetup: " << spec.setup
-//     << "\nsetup: " << spec.setup_s.rounds
-//     //<< "\nconstants: " << spec.constants
-//     //<< "\nvariables: " << spec.variables
-//     //<< "\nper_player: " << spec.per_player
-//     << "\nwins per player : "<< spec.per_player_s.wins
-//     << "\nper_audience: " << spec.per_audience
-//     << "\nweapons: \n";
-//     for (const auto& elem: spec.constants_s.weapons){
-//         std::cout << "\tname: " << elem.name << " beats: " << elem.beats << "\n";
-//     }
-//     std::cout << "\nrules: ";
-//     for (const auto& element: spec.rules) {
-//         std::cout << element << "\n\n";
-//     }
-
-//     std::cout << "\n";
-// }
-
-// specification load_file(const std::string& filepath, bool debug) {
-//     json temp;
-//     json_game_spec::specification ret;
-//     std::ifstream s(filepath);
-//     if (s.fail()) {
-//         std::cerr << "Error: " << strerror(errno) << std::endl;
-//         return ret;
-//     }
-
-//     try {
-//         temp = json::parse(s);
-
-//         ret = temp.get<json_game_spec::specification>();
-//     }
-//     catch (json::parse_error& e) {
-//         std::cerr << "Failed to parse JSON.\n in jsonspec.cpp\n"
-//         << "message: " << e.what();
-//         return ret;
-//     }
-
-
-//     ret.jsonpath = filepath;
-//     ret.err = false;
-//     if (debug) {
-//         json_game_spec::print_spec(ret);
-//     }
-
-//     return ret;
-// }
-
-// // //Server config
-// void server_config::from_json(const json& j, server_config::configuration& config) {
-//     j["port"].get_to(config.port);
-//     j["html"].get_to(config.htmlpath);
-//     config.err = false;
-// }
-
-// void server_config::print_config(const server_config::configuration& config) {
-//     std::cout << "configuration: {\n"
-//     << "html: " << config.htmlpath
-//     << "\nport: " << config.port
-//     << "\n}\n";
-// }
-
-// server_config::configuration server_config::load_file(const std::string& filepath, bool debug) {
-//     json temp;
-//     server_config::configuration ret;
-//     std::ifstream s(filepath);
-//     if (s.fail()) {
-//         std::cerr << "Error: " << strerror(errno) << std::endl;
-//         return ret;
-//     }
-
-//     try {
-//         temp = json::parse(s);
-//         ret = temp.get<server_config::configuration>();
-//     }
-//     catch (json::parse_error& e) {
-//         std::cerr << "Failed to parse JSON.\n in jsonconfig.cpp\n"
-//         << "message: " << e.what();
-//         return ret;
-//     }
-
-
-//     ret.jsonpath = filepath;
-//     ret.err = false;
-//     if (debug) {
-//         server_config::print_config(ret);
-//     }
-
-//     return ret;
-// }
-
-// bool server_config::valid(const json& j) {
-//     json temp = j.flatten();
-//     for (auto element: server_config::enum_to_str) {
-//         if (temp[element.second] == NULL) {
-//             return false;
-//         }
-//     }
-//     return true;
-// }
+}
