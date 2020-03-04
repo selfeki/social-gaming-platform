@@ -53,13 +53,16 @@ public:
 
     enum ReturnCode {
         SUCCESS = 0,
-        ROOM_FULL
+        ROOM_FULL,
+        PLAYER_NOT_FOUND,
+        USERNAME_ALREADY_EXISTS
     };
 
 
     Room(PlayerID _owner, RoomID room_id);
     std::optional<PlayerID> addPlayer(PlayerID player_id, std::string (*random_name_generator)());
     std::optional<PlayerID> removePlayer(PlayerID player_id);
+    Room::ReturnCode changePlayerUsername(PlayerID player_id, const std::string& new_username);
     void gameUpdate();
     const std::vector<PlayerID> &getPlayers() const;
     void configRoomAndGame(const g_config& game_config);
@@ -91,9 +94,10 @@ public:
         ROOM_NOT_EXIST,
         NO_PERMISSION,
         FAILURE, 
-        ROOM_FULL
+        ROOM_FULL, 
+        FATAL_ERROR,
+        USERNAME_ALREADY_EXISTS
     };
-
 
     struct MessageReturn {
         PlayerID sendTo;
@@ -101,120 +105,58 @@ public:
         bool shouldShutdown;
     };
 
-
     using MessageReturn = GameManager::MessageReturn;
     using MessageReturnList = std::vector<MessageReturn>;
 
     GameManager();
 
-
     void
     setUp(const s_config& server_config);
 
+    //returns room id of player, otherwise returns nullopt there is no such player on the server
     std::optional<RoomID>
     getRoomIDOfPlayer(PlayerID player_id);
 
-    const std::vector<PlayerID>&
-    getPlayersInRoom(RoomID room_id) const;
+    //creates a room. If room creation is successful, returns room_id of room. 
+    std::pair<std::optional<RoomID>, ReturnCode> 
+    createRoom (PlayerID owner);
 
-    /*
-
-
-    MessageReturnList
-    returnRoomMembersCommand(PlayerID player_id);
-
-    MessageReturnList
-    returnRoomCommand(PlayerID player_id);
-
-    MessageReturnList
-    createRoomCommand(PlayerID player_id);
-
-    MessageReturnList
-    joinRoomCommand(PlayerID player_id, std::string room_id);
-
-    MessageReturnList
-    kickPlayerCommand(PlayerID player_id, std::string id_to_kick);
-
-    //refactoring leave room command to quit from server...
-    MessageReturnList
-    leaveRoomCommand(PlayerID player_id);
-
-    MessageReturnList
-    quitFromServerCommand(PlayerID player_id);
-
-    MessageReturnList
-    shutdownServerCommand(PlayerID player_id);
-
-    MessageReturnList
-    initRoomCommand(PlayerID player_id);
-
-    MessageReturnList
-    whisperCommand(PlayerID player_id, std::string recipient_id, std::string msg);
-
-    */
-
-    MessageReturnList
-    handleGameMessage(std::string msg, PlayerID player_id);
-
+    //destroys a room and updates the game manager accordingly
     ReturnCode
     destroyRoom(PlayerID player_id, RoomID room_id);
 
-    //takes player id and return Room instance
-    Room* getRoomFromPlayerID(PlayerID player_id);
-
-    Room* getRoomFromRoomID(RoomID room_id);
-
-
-    //forms message return to send a message everyone in the room
-    //MessageReturnList
-    //formMessageToRoomMembers(std::string& message, PlayerID& sentFrom, bool shouldShutdown);
-    
-    /* forms message to all_players
-    *  note: all_players variable not implemented, so it doesn't send message to anyone
-    */
-    //MessageReturnList
-    //formMessageToEveryone(std::string& message, bool shouldShutdown);
-    
-    //forms message to a single recipient
-    //MessageReturnList
-    //formMessageTo (std::string& message, PlayerID& recipent);
-    
-    //forms message to multiple recipients
-    //MessageReturnList
-    //formMessageTo (std::string& message, std::vector<PlayerID>& recipent);
-
-    //MessageReturnList
-    //clearCommand(PlayerID player_id);
-
-    std::pair<std::optional<RoomID>, GameManager::ReturnCode> 
-    createRoom (PlayerID owner);
-
+    //adds a player to a room
     ReturnCode
     addPlayerToRoom (PlayerID player_id, RoomID room_id);
 
+    //removes a player from a room
     ReturnCode
     removePlayerFromRoom (PlayerID kicking_player_id, PlayerID player_id);
 
-    std::pair<std::optional<std::string>, GameManager::ReturnCode>
+    //Gets the username of the plaer in the room. Returns nullopt if player not in room.
+    std::pair<std::optional<std::string>, ReturnCode>
     getRoomUsernameOfPlayer(PlayerID player_id);
 
+    //get a player's player_id from their username in a room. 
     std::pair<std::optional<PlayerID>, ReturnCode> 
     getPlayerIDFromRoomUsername(const std::string& username, RoomID room_id);
 
+    //Changes a player's username in a room
+    ReturnCode
+    changePlayerUsername(PlayerID player_id, const std::string& new_username);
+
+    //returns pointer to vector of players in a room, null pointer if room does not exist.
     const std::vector<PlayerID>* getPlayersInRoom(RoomID room_id);
 
 private:
+
+    Room* getRoomFromRoomID(RoomID room_id);
+    Room* getRoomFromPlayerID(PlayerID id);
     //commandSpace::Command<PlayerID> commands;
     std::vector<PlayerID> all_players;
 
     //roomID to room object map
     std::unordered_map<RoomID, Room> roomid_to_room_map;
-
-    //player ID to username map?
-    //std::unordered_map<PlayerID, std::string> id_player_map;
-
-    //username to player ID
-    //std::unordered_map<std::string, PlayerID> username_to_playerid_map;
 
     //player ID to roomID map
     std::unordered_map<PlayerID, RoomID> playerid_to_roomid_map;

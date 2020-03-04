@@ -75,6 +75,7 @@ namespace commandSpace{
     void
     Command::kickPlayer(PlayerID player_id, input& username_to_kick, std::deque<networking::Message>& messagesToSend){
         
+        /*
         Room* room = gameManager.getRoomFromPlayerID(player_id);
         if(!room){
             std::string error_msg = errorMessageMap.at(GameManager::ReturnCode::NO_PERMISSION);                  
@@ -105,11 +106,13 @@ namespace commandSpace{
                                                       });
         
         return;
+        */
 
     }
     void 
     Command::createRoom(PlayerID player_id, std::deque<networking::Message>& messagesToSend){
         
+        /*
         std::pair<std::optional<RoomID>, GameManager::ReturnCode> create_room_result;
         create_room_result = gameManager.createRoom(player_id);
 
@@ -121,10 +124,12 @@ namespace commandSpace{
 
         messagesToSend.emplace_back(player_id, "Room " + *(create_room_result.first) + " has been created.");
         return;
+        */
     }
     void 
     Command::joinRoom(PlayerID player_id, RoomID room_id, std::deque<networking::Message>& messagesToSend){
 
+        /*
         GameManager::ReturnCode result = gameManager.addPlayerToRoom(player_id, room_id);
 
         if(result != GameManager::ReturnCode::SUCCESS) {
@@ -154,11 +159,12 @@ namespace commandSpace{
                         });
 
         return;
+        */
     }
     void
     Command::destroyRoom(PlayerID player_id, RoomID room_id, std::deque<networking::Message>& messagesToSend){
         
-
+        /*
         GameManager::ReturnCode result = gameManager.destroyRoom(player_id, room_id);
 
         if(result != GameManager::ReturnCode::SUCCESS) {
@@ -169,10 +175,12 @@ namespace commandSpace{
 
         messagesToSend.emplace_back(player_id, "Deleted room " + room_id);
         return;
+        */
 
     }
     void
     Command::listRoomMembers(PlayerID player_id, std::deque<networking::Message>& messagesToSend){
+        /*
         Room* room = gameManager.getRoomFromPlayerID(player_id);
 
         if(!room) {
@@ -195,10 +203,12 @@ namespace commandSpace{
 
         messagesToSend.emplace_back(player_id, success_msg);
         return;
+        */
 
     }
     void
     Command::leaveRoom(PlayerID player_id, std::deque<networking::Message>& messagesToSend){
+        /*
         Room* room = gameManager.getRoomFromPlayerID(player_id);
         RoomID room_id = room->getRoomID();
 
@@ -230,6 +240,7 @@ namespace commandSpace{
 
         messagesToSend.emplace_back(player_id, "You have left room " + room_id);        
         return;
+        */
     }
 
 
@@ -241,6 +252,7 @@ namespace commandSpace{
     void
     Command::regularMessage(PlayerID player_id, const std::string& msg, std::deque<networking::Message>& messagesToSend){
         
+        /*
         Room* room = gameManager.getRoomFromPlayerID(player_id);
 
         if(!room) {
@@ -266,12 +278,8 @@ namespace commandSpace{
                                                             messagesToSend.emplace_back(p, success_msg);
                                                       });
         return;
-
+        */
     }
-
-
-
-
 
 }
 
