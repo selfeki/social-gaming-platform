@@ -8,12 +8,12 @@
 #include <boost/variant/variant.hpp>
 
 #include "MapWrapper.h"
-
-namespace gameSpecification {
-	
 #include "Expression.h"
 #include "Rules.h"
 #include "GameState.h"
+
+
+namespace gameSpecification {
 
 ////// Game Setup related
 
