@@ -19,8 +19,13 @@ void init_commands() {
     }));
 
     COMMAND_MAP.insert(COMMAND("member", [](Context& game_manager, User& user, const Arguments& args) {
-        auto responses = game_manager.returnRoomMembersCommand(*user);
-        std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
+
+        
+                
+
+
+
+        //std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
         //return responses;
     }));
 

@@ -103,15 +103,6 @@ public:
         USERNAME_ALREADY_EXISTS
     };
 
-    struct MessageReturn {
-        PlayerID sendTo;
-        std::string message;
-        bool shouldShutdown;
-    };
-
-    using MessageReturn = GameManager::MessageReturn;
-    using MessageReturnList = std::vector<MessageReturn>;
-
     GameManager();
 
     void

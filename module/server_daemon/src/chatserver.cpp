@@ -47,9 +47,6 @@ GameManager gameManager;
 Command command(gameManager);
 
 
-//messages returned from game manager
-std::deque<GameManager::MessageReturn> gameMessageQueue;
-
 //messages ready to be sent to networking
 std::deque<Message> networkMessageQueue;
 
@@ -124,85 +121,41 @@ void onDisconnect(shared_ptr<Connection> c) {
 
 void processMessages(Server& server, const std::deque<Message>& incoming, Command& command) {
 
-  static std::vector<commandSpace::input> tokens(3);
+  ConnectionId sentFrom = message.connection;
 
-  for(auto& message : incoming) {
-    ConnectionId sentFrom = message.connection;
-    commandSpace::commandType command_type = command.getCommandTypeAndSetTokens(message.text, tokens);
-    std::cout << (int)command_type << "\n";
-
-    switch(command_type) {
-          case commandType::listMember :
-            command.listRoomMembers(message.connection, networkMessageQueue);
-          break;
-          case commandType::listRoom :
-            break;
-          case commandType::createRoom :
-            command.createRoom(message.connection, networkMessageQueue);
-            break;
-          case commandType::joinRoom:
-            command.joinRoom(message.connection, tokens[1], networkMessageQueue);
-            break;
-          case commandType::kickUser:
-            command.kickPlayer(message.connection, tokens[1], networkMessageQueue);
-            break;
-          case commandType::clear:
-            //cmd_messages = game_manager.clearCommand(sentFrom.uuid);
-            break;
-          case commandType::quitFromServer:
-            //cmd_messages = game_manager.leaveRoomCommand(sentFrom.uuid);
-            break;
-          case commandType::initGame:
-            //cmd_messages = game_manager.initRoomCommand(sentFrom.uuid);
-            break;
-          case commandType::shutdownServer:
-            //cmd_messages = game_manager.shutdownServerCommand(sentFrom.uuid);
-            break; 
-          case commandType::nullCommand:
-            break;
-          case commandType::message:
-            command.regularMessage(message.connection, message.text, networkMessageQueue);
-            break;
+  // If it's not a command, handle it as a game message.
+  if (!Command::is_command(message.text)) {
+      std::vector<messageReturnAlias> game_messages = game_manager.handleGameMessage(message.text, sentFrom.uuid);
+      for (const auto& game_message : game_messages) {
+          gameMessageQueue.push_back(game_message);
       }
-    }
 
-    tokens.clear();
+      continue;
+  }
 
-        ConnectionId sentFrom = message.connection;
+  // If it is a command, parse it and execute it.
+  auto command = Command::parse(message.text);
+  if (!command) {
+      // This means the command string was invalid (not alphanumeric command name).
+      // TODO(nikolkam): Send the user an error message.
+      std::cout << "Invalid command: " << message.text << std::endl;
+      continue;
+  }
 
-        // If it's not a command, handle it as a game message.
-        if (!Command::is_command(message.text)) {
-            std::vector<messageReturnAlias> game_messages = game_manager.handleGameMessage(message.text, sentFrom.uuid);
-            for (const auto& game_message : game_messages) {
-                gameMessageQueue.push_back(game_message);
-            }
+  // Get the command executor.
+  auto executor = COMMAND_MAP.find(command->name());
+  if (executor == COMMAND_MAP.end()) {
+      // This means the command couldn't be found.
+      // TODO(nikolkam): Send the user an error message.
+      std::cout << "Unknown command: " << message.text << std::endl;
+      continue;
+  }
 
-            continue;
-        }
-
-        // If it is a command, parse it and execute it.
-        auto command = Command::parse(message.text);
-        if (!command) {
-            // This means the command string was invalid (not alphanumeric command name).
-            // TODO(nikolkam): Send the user an error message.
-            std::cout << "Invalid command: " << message.text << std::endl;
-            continue;
-        }
-
-        // Get the command executor.
-        auto executor = COMMAND_MAP.find(command->name());
-        if (executor == COMMAND_MAP.end()) {
-            // This means the command couldn't be found.
-            // TODO(nikolkam): Send the user an error message.
-            std::cout << "Unknown command: " << message.text << std::endl;
-            continue;
-        }
-
-        // Execute the command.
-        CommandUser user(sentFrom);
-        executor->second->execute(game_manager, user, command->arguments());
-        std::copy(user.outgoing_message_queue().begin(), user.outgoing_message_queue().end(), std::back_inserter(gameMessageQueue));
-    }
+  // Execute the command.
+  CommandUser user(sentFrom);
+  executor->second->execute(game_manager, user, command->arguments());
+  std::copy(user.outgoing_message_queue().begin(), user.outgoing_message_queue().end(), std::back_inserter(networkMessageQueue));
+    
 }
 
 
