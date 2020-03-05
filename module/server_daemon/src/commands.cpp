@@ -9,6 +9,8 @@ using User = CommandUser;
 using arepa::command::lambda_executor;
 
 typedef std::pair<std::optional<std::string>, GameManager::ReturnCode> getRoomUsernameReturnType;
+typedef std::pair<std::optional<RoomID>, GameManager::ReturnCode> createRoomReturnType;
+
 
 std::unordered_map<std::string, std::unique_ptr<CommandExecutor>> COMMAND_MAP;
 
@@ -57,9 +59,16 @@ void init_commands() {
     }));
 
     COMMAND_MAP.insert(COMMAND("create", [](Context& game_manager, User& user, const Arguments& args){
-        //auto responses = game_manager.createRoomCommand(*user);
-        //std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
-        //return responses;
+        createRoomReturnType room_ret = game_manager.createRoom(*user);
+
+        if(room_ret.second != GameManager::ReturnCode::SUCCESS) {
+            user.outgoing_message_queue().emplace_back(*user, "Failed to create room.");
+            return;
+        }
+
+        user.outgoing_message_queue().emplace_back(*user, "Created room " + *(room_ret.first));
+        return;
+
     }));
 
     COMMAND_MAP.insert(COMMAND("room", [](Context& game_manager, User& user, const Arguments& args){

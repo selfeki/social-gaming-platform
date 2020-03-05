@@ -62,11 +62,10 @@ public:
         PLAYER_ALREADY_EXISTS
     };
 
-
     Room(PlayerID _owner, RoomID room_id);
     ReturnCode addPlayer(PlayerID player_id, std::string& username);
     std::optional<PlayerID> removePlayer(PlayerID player_id);
-    Room::ReturnCode changePlayerUsername(PlayerID player_id, const std::string& new_username);
+    ReturnCode changePlayerUsername(PlayerID player_id, const std::string& new_username);
     void gameUpdate();
     const std::vector<PlayerID> &getPlayers() const;
     void configRoomAndGame(const g_config& game_config);
@@ -146,6 +145,7 @@ public:
 
 
 private:
+
     static std::string random_name_generator();
 
     Room* getRoomFromRoomID(RoomID room_id);

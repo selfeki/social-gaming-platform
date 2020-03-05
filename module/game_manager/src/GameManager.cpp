@@ -241,12 +241,12 @@ GameManager::createRoom (PlayerID creator){
     } while (roomid_to_room_map.count(room_code) > 0);
 
     roomid_to_room_map.insert({ room_code, Room(creator, room_code) });
-    playerid_to_roomid_map.insert({ creator, room_code });
+    //playerid_to_roomid_map.insert({ creator, room_code });
 
-    if(roomid_to_room_map.count(room_code) == 1 && playerid_to_roomid_map.count(creator) == 1) {
+    if(roomid_to_room_map.count(room_code) == 1) {
         return {room_code, GameManager::ReturnCode::SUCCESS};
     } else {
-        return {std::nullopt, GameManager::ReturnCode::ROOM_NOT_EXIST};
+        return {std::nullopt, GameManager::ReturnCode::FAILURE};
     }
 
 }
