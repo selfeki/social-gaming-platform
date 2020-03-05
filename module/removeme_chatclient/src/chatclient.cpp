@@ -6,21 +6,21 @@
 /////////////////////////////////////////////////////////////////////////////
 
 
+#include "ChatWindow.h"
+#include "Client.h"
+
 #include <iostream>
 #include <iterator>
 #include <sstream>
 #include <unistd.h>
 #include <vector>
 
-#include "ChatWindow.h"
-#include "Client.h"
-
 enum MessageType { COMMAND,
     GAME_CONFIG,
     NORMAL };
 
 void clearCommand(ChatWindow& CW) {
-  CW.chatWindowClear();
+    CW.chatWindowClear();
 }
 
 MessageType getMessageType(const std::string& message) {
@@ -32,71 +32,69 @@ MessageType getMessageType(const std::string& message) {
 }
 
 std::vector<std::string> parseCommandAndCollectResponse(const std::string& message) {
-  std::vector<std::string> tokens;
-  std::istringstream iss(message);
-  std::copy(std::istream_iterator<std::string>(iss),
-      std::istream_iterator<std::string>(),
-      std::back_inserter(tokens));
-  return tokens;
+    std::vector<std::string> tokens;
+    std::istringstream iss(message);
+    std::copy(std::istream_iterator<std::string>(iss),
+        std::istream_iterator<std::string>(),
+        std::back_inserter(tokens));
+    return tokens;
 }
 
 void processMessage(ChatWindow& CW, const std::string& message) {
-  MessageType msg_type = getMessageType(message);
+    MessageType msg_type = getMessageType(message);
     switch (msg_type) {
-      case MessageType::COMMAND: {
-          std::vector<std::string> tokens = parseCommandAndCollectResponse(message);
-          if (tokens[0] == "/clear") {
+    case MessageType::COMMAND: {
+        std::vector<std::string> tokens = parseCommandAndCollectResponse(message);
+        if (tokens[0] == "/clear") {
             //clear command found
             clearCommand(CW);
-          }
-          //if additional commands are added that are to be handled by chat client, add here 
-          break;
-      }
-      case MessageType::NORMAL: {
-          CW.displayText(message);
-          break;
-      }
-      default:
-          break;
+        }
+        //if additional commands are added that are to be handled by chat client, add here
+        break;
+    }
+    case MessageType::NORMAL: {
+        CW.displayText(message);
+        break;
+    }
+    default:
+        break;
     }
 }
 
-int
-main(int argc, char* argv[]) {
-  if (argc < 3) {
-    std::cerr << "Usage: \n  " << argv[0] << " <ip address> <port>\n"
-              << "  e.g. " << argv[0] << " localhost 4002\n";
-    return 1;
-  }
-
-  networking::Client client{argv[1], argv[2]};
-
-  bool done = false;
-  auto onTextEntry = [&done, &client] (std::string text) {
-    if ("exit" == text || "quit" == text) {
-      done = true;
-    } else {
-      client.send(text);
-    }
-  };
-
-  ChatWindow chatWindow(onTextEntry);
-  while (!done && !client.isDisconnected()) {
-    try {
-      client.update();
-    } catch (std::exception& e) {
-      chatWindow.displayText("Exception from Client update:");
-      chatWindow.displayText(e.what());
-      done = true;
+int main(int argc, char* argv[]) {
+    if (argc < 3) {
+        std::cerr << "Usage: \n  " << argv[0] << " <ip address> <port>\n"
+                  << "  e.g. " << argv[0] << " localhost 4002\n";
+        return 1;
     }
 
-    auto response = client.receive();
-    if (!response.empty()) {
-      processMessage(chatWindow, response);
-    }
-    chatWindow.update();
-  }
+    networking::Client client { argv[1], argv[2] };
 
-  return 0;
+    bool done = false;
+    auto onTextEntry = [&done, &client](std::string text) {
+        if ("exit" == text || "quit" == text) {
+            done = true;
+        } else {
+            client.send(text);
+        }
+    };
+
+    ChatWindow chatWindow(onTextEntry);
+    while (!done && !client.isDisconnected()) {
+        try {
+            client.update();
+        } catch (std::exception& e) {
+            chatWindow.displayText("Exception from Client update:");
+            chatWindow.displayText(e.what());
+            done = true;
+        }
+
+        auto response = client.receive();
+        if (!response.empty()) {
+            processMessage(chatWindow, response);
+        }
+        chatWindow.update();
+    }
+
+    return 0;
 }
-

@@ -29,44 +29,44 @@ namespace networking {
  */
 class Client {
 public:
-  /**
+    /**
    *  Construct a Client and acquire a connection to a remote Server at the
    *  given address and port.
    */
-  Client(std::string_view address, std::string_view port);
+    Client(std::string_view address, std::string_view port);
 
-  /** Out of line default constructor for compilation firewall. */
-  ~Client();
+    /** Out of line default constructor for compilation firewall. */
+    ~Client();
 
-  /**
+    /**
    *  Perform all pending sends and receives. This function can throw an
    *  exception if any of the I/O operations encounters an error.
    */
-  void update();
+    void update();
 
-  /**
+    /**
    *  Send a message to the server.
    */
-  void send(std::string message);
+    void send(std::string message);
 
-  /**
+    /**
    *  Receive messages from the Server. This returns all messages collected by
    *  previous calls to Client::update() and not yet received. If multiple
    *  messages were received from the Server, they are first concatenated
    *  into a single std::string.
    */
-  [[nodiscard]] std::string receive();
+    [[nodiscard]] std::string receive();
 
-  /**
+    /**
    *  Returns true iff the client disconnected from the server after initially
    *  connecting.
    */
-  [[nodiscard]] bool isDisconnected() const noexcept;
+    [[nodiscard]] bool isDisconnected() const noexcept;
 
 private:
-  class ClientImpl;
+    class ClientImpl;
 
-  std::unique_ptr<ClientImpl> impl;
+    std::unique_ptr<ClientImpl> impl;
 };
 
 
@@ -74,4 +74,3 @@ private:
 
 
 #endif
-

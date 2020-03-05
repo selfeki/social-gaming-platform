@@ -2,11 +2,10 @@
 
 #include "GameInstance.h"
 #include "arepa/game_spec/GameSpecification.h"
-#include "jsonconfig.h"
+//#include "jsonconfig.h"
 #include <arepa/server/Server.h>
-
-
 #include <arepa/command/Executor.hpp>
+#include "arepa/server_config/Config.h"
 
 #include <algorithm>
 #include <exception>
@@ -14,8 +13,9 @@
 #include <time.h>
 #include <unordered_map>
 
-using g_config = game_config::configuration;
-using s_config = server_config::configuration;
+// todo: change
+using g_spec = gameSpecification::Specification;
+using s_config = serverConfig::Configuration;
 /*
 *Game_manager class
 */
@@ -68,7 +68,7 @@ public:
     ReturnCode changePlayerUsername(PlayerID player_id, const std::string& new_username);
     void gameUpdate();
     const std::vector<PlayerID> &getPlayers() const;
-    void configRoomAndGame(const g_config& game_config);
+    void configRoomAndGame(const g_spec& game_spec);
     std::optional<std::string> getUsernameFromPlayerID(PlayerID player_id);
     std::optional<PlayerID> getPlayerIDFromUsername(const std::string& username);
     const PlayerID getOwner() const;

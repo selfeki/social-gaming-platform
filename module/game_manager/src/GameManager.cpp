@@ -55,7 +55,7 @@ Room::Room(PlayerID _owner, RoomID room_code)
 }
 
 
-void Room::configRoomAndGame(const g_config& game_config) {
+void Room::configRoomAndGame(const g_spec& game_spec) {
 }
 
 

@@ -7,7 +7,9 @@
 
 #include "GameManager.h"
 #include "commands.h"
-#include "jsonconfig.h"
+#include "arepa/game_spec/GameSpecification.h"
+#include "arepa/serializer/jsonSerializer.h"
+#include "arepa/server_config/Config.h"
 
 #include <arepa/command/Command.hpp>
 #include <arepa/server/Server.h>
@@ -49,33 +51,6 @@ GameManager gameManager;
 //messages ready to be sent to networking
 std::deque<Message> networkMessageQueue;
 
-
-/*
-transform game messages in game message queue to network messages in
-network message queue, then empty the game message queue. These act like queues,
-sof first game message processed is first to be put into the network queue.
-*/
-/*
-bool gameMessagesToNetworkMessages() {
-    bool quit = false;
-    while (!gameMessageQueue.empty()) {
-
-        GameManager::MessageReturn message = gameMessageQueue.front();
-        gameMessageQueue.pop_front();
-        std::string log = message.message;
-
-        if (message.shouldShutdown) {
-            quit = true;
-        }
-
-        UniqueConnectionID player = message.sendTo;
-        std::cout << boost::uuids::to_string(player.uuid) << "\n";
-        std::cout << log << "\n";
-        networkMessageQueue.push_back({ player, log });
-    }
-    return quit;
-}
-*/
 
 //message types possible (tentative)
 enum MessageType { COMMAND,
@@ -177,19 +152,44 @@ void processMessages(const std::deque<Message>& incoming) {
 
 
 
+using json = nlohmann::json;
+
+serverConfig::Configuration
+loadJSONConfigFile(const std::string& filepath) {
+    serverConfig::Configuration config;
+    std::ifstream s(filepath);
+    if (s.fail()) {
+        std::cerr << "Error: " << strerror(errno) << std::endl;
+        return config;
+    }
+
+    nlohmann::json jsonServerConfig;
+    try {
+        jsonServerConfig = json::parse(s);
+    } catch (json::parse_error& e) {
+        std::cerr << "Invalid JSON server config\n in jsonspec.cpp\n"
+                  << "message: " << e.what();
+        return config;
+    }
+
+    config = jsonSerializer::parseServerConfig(jsonServerConfig);
+    config.err = false;
+    return config;
+}
+
+
 int main(int argc, char* argv[]) {
 
-
-    s_config server_config;
+    serverConfig::Configuration server_config;
 
     if (argc < 2) {
-        server_config = server_config::load_file(default_json, true);
+        server_config = loadJSONConfigFile(default_json);
     } else {
-        server_config = server_config::load_file(argv[1], true);
+        server_config = loadJSONConfigFile(argv[1]);
     }
 
     if (server_config.err) {
-        return 1;
+        return -1;
     }
 
     //example
