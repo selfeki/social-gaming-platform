@@ -1,11 +1,14 @@
 #include "commands.h"
 #include <unordered_map>
+#include <tuple>
 
 using Arguments = arepa::command::CommandArguments;
 using Context = CommandContext;
 using Executor = CommandExecutor;
 using User = CommandUser;
 using arepa::command::lambda_executor;
+
+typedef std::pair<std::optional<std::string>, GameManager::ReturnCode> getRoomUsernameReturnType;
 
 std::unordered_map<std::string, std::unique_ptr<CommandExecutor>> COMMAND_MAP;
 
@@ -18,62 +21,80 @@ void init_commands() {
 
     }));
 
-    COMMAND_MAP.insert(COMMAND("member", [](Context& game_manager, User& user, const Arguments& args) {
-
-        
+    //example of the "members" command. TODO: the rest of the commands.
+    COMMAND_MAP.insert(COMMAND("members", [](Context& game_manager, User& user, const Arguments& args) {
                 
+        std::string text;
 
+        std::optional<RoomID> room_id = game_manager.getRoomIDOfPlayer(*user);
+        
+        if(!room_id) {
+            user.outgoing_message_queue().emplace_back(*user, "You are not in a room");
+            return;
+        }
 
+        const std::vector<PlayerID>* players = game_manager.getPlayersInRoom(*room_id);
 
+        if(!players) {
+            //should probably throw an exception here because in this case everything is messed up
+            return;
+        }
+
+        text += *room_id + " players: \n";
+        for(auto player : *players) {
+            getRoomUsernameReturnType username_return = game_manager.getRoomUsernameOfPlayer(player);
+            text += *(username_return.first) + "\n";
+        }
+        
+        user.outgoing_message_queue().emplace_back(*user, text);
+
+    }));
+
+    COMMAND_MAP.insert(COMMAND("room", [](Context& game_manager, User& user, const Arguments& args){
+        //auto responses = game_manager.returnRoomCommand(*user);
+        //std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
+        //return responses;
+    }));
+
+    COMMAND_MAP.insert(COMMAND("create", [](Context& game_manager, User& user, const Arguments& args){
+        //auto responses = game_manager.createRoomCommand(*user);
         //std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
         //return responses;
     }));
 
     COMMAND_MAP.insert(COMMAND("room", [](Context& game_manager, User& user, const Arguments& args){
-        auto responses = game_manager.returnRoomCommand(*user);
-        std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
-        //return responses;
-    }));
-
-    COMMAND_MAP.insert(COMMAND("create", [](Context& game_manager, User& user, const Arguments& args){
-        auto responses = game_manager.createRoomCommand(*user);
-        std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
-        //return responses;
-    }));
-
-    COMMAND_MAP.insert(COMMAND("room", [](Context& game_manager, User& user, const Arguments& args){
-        auto responses = game_manager.returnRoomCommand(*user);
-        std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
+        //auto responses = game_manager.returnRoomCommand(*user);
+        //std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
         //return responses;
     }));
 
     COMMAND_MAP.insert(COMMAND("join", [](Context& game_manager, User& user, const Arguments& args){
-        auto responses = game_manager.joinRoomCommand(*user, args.front());
-        std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
+        //auto responses = game_manager.joinRoomCommand(*user, args.front());
+        //std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
         //return responses;
     }));
 
     COMMAND_MAP.insert(COMMAND("kick", [](Context& game_manager, User& user, const Arguments& args){
-        auto responses = game_manager.kickPlayerCommand(*user, args.front());
-        std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
+        //auto responses = game_manager.kickPlayerCommand(*user, args.front());
+        //std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
         //return responses;
     }));
 
     COMMAND_MAP.insert(COMMAND("clear", [](Context& game_manager, User& user, const Arguments& args){
-        auto responses = game_manager.clearCommand(*user);
-        std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
+        //auto responses = game_manager.clearCommand(*user);
+        //std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
         //return responses;
     }));
 
     COMMAND_MAP.insert(COMMAND("quit", [](Context& game_manager, User& user, const Arguments& args){
-        auto responses = game_manager.leaveRoomCommand(*user);
-        std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
+        //auto responses = game_manager.leaveRoomCommand(*user);
+        //std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
         //return responses;
     }));   
 
     COMMAND_MAP.insert(COMMAND("shutdown", [](Context& game_manager, User& user, const Arguments& args){
-        auto responses = game_manager.shutdownServerCommand(*user);
-        std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
+        //auto responses = game_manager.shutdownServerCommand(*user);
+        //std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
         //return responses;
     }));
     

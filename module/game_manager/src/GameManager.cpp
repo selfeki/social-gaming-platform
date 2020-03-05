@@ -6,7 +6,6 @@
 typedef std::string RoomID;
 typedef networking::ConnectionId PlayerID;
 
-using MessageReturn = GameManager::MessageReturn;
 
 
 static std::string gen_random(const int len) {
