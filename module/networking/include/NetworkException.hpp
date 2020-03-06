@@ -1,6 +1,8 @@
 #pragma once
 
 #include <exception>
+#include <optional>
+#include <string>
 
 namespace arepa::networking {
 
@@ -35,11 +37,15 @@ public:
 
 private:
     Kind _kind;
+    std::string _what;
+    std::optional<std::string> _details;
 
 public:
     NetworkException() = delete;
     explicit NetworkException(Kind kind);
+    explicit NetworkException(Kind kind, std::string details);
 
+    [[nodiscard]] std::optional<std::string> details() const noexcept;
     [[nodiscard]] Kind kind() const noexcept;
     [[nodiscard]] const char* what() const noexcept override;
 };
