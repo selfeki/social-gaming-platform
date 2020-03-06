@@ -2,7 +2,7 @@
 
 #include "GameInstance.h"
 #include "arepa/game_spec/GameSpecification.h"
-#include "jsonconfig.h"
+#include "arepa/server_config/Config.h"
 
 #include <arepa/command/Executor.hpp>
 
@@ -12,8 +12,9 @@
 #include <time.h>
 #include <unordered_map>
 
-using g_config = game_config::configuration;
-using s_config = server_config::configuration;
+// todo: change
+using g_spec = gameSpecification::Specification;
+using s_config = serverConfig::Configuration;
 /*
 *Game_manager class
 */
@@ -60,7 +61,7 @@ public:
     void exitPlayer(IDType player);
     void gameUpdate();
     std::vector<IDType> returnPlayers();
-    void configRoomAndGame(const g_config& game_config);
+    void configRoomAndGame(const g_spec& game_spec);
     IDType getOwner();
 
 private:
