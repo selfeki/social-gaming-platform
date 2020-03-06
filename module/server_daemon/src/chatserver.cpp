@@ -16,6 +16,7 @@
 #include <arepa/log/console/ConsoleAdapter.hpp>
 #include <arepa/log/console/FormatterWithColor.hpp>
 #include <arepa/server/Server.h>
+#include <arepa/server/ServerLoop.hpp>
 
 #include <boost/uuid/uuid_io.hpp>
 
@@ -34,6 +35,7 @@
 using networking::ConnectionId;
 using networking::Message;
 using namespace commandSpace;
+using arepa::server::ServerLoop;
 using networking::Server;
 
 arepa::log::LogStreamFactory clout;
@@ -321,11 +323,7 @@ int main(int argc, char* argv[]) {
   */
 
     clout << "Initialization is complete." << endl;
-    clout << "Entering main loop." << endl;
-    while (true) {
-        bool shouldQuit = false;
-
-
+    ServerLoop main([&main, &server]() {
         //Get all messages.
         auto incoming = server.receive();
 
@@ -333,17 +331,15 @@ int main(int argc, char* argv[]) {
         processMessages(server, incoming);
 
         //if an admin runs a comman to shutdown server, shouldQuit will be set to true
-        shouldQuit = gameMessagesToNetworkMessages();
+        bool shouldQuit = gameMessagesToNetworkMessages();
         server.send(networkMessageQueue);
         networkMessageQueue.clear();
 
         if (shouldQuit) {
-            break;
+            main.stop();
         }
+    });
 
-        // Sleep to not burn out the CPU.
-        constexpr int ONE_HUNDRED_MILLISECONDS = 1000 * 100;
-        usleep(ONE_HUNDRED_MILLISECONDS);
-    }
+    main.start();
     return 0;
 }
