@@ -188,7 +188,68 @@ parseExpList(const json& j) {
 
 rules::RuleList
 parseRules(const json& j) {
-    // todo
+
+    std::vector<json> jsonRules = j["rules"].get<std::vector<json>>();
+    for (auto rule : jsonRules){
+        //rule.at("rule")
+        if(rule.at("rule") == "foreach")
+            std::cout << "HI IM AT FOREACH\n";
+        else if (rule.at("rule") == "loop")
+            std::cout << "HI IM AT scores\n";
+        else if (rule.at("rule") == "inparallel")
+            std::cout << "HI IM AT scores\n";
+        else if (rule.at("rule") == "parallelfor")
+            std::cout << "HI IM AT scores\n";
+        else if (rule.at("rule") == "switch")
+            std::cout << "HI IM AT scores\n";
+        else if (rule.at("rule") == "when")
+            std::cout << "HI IM AT scores\n";
+        else if (rule.at("rule") == "extend")
+            std::cout << "HI IM AT scores\n";
+        else if (rule.at("rule") == "reverse")
+            std::cout << "HI IM AT scores\n";
+        else if (rule.at("rule") == "shuffle")
+            std::cout << "HI IM AT scores\n";
+        else if (rule.at("rule") == "sort")
+            std::cout << "HI IM AT scores\n";
+        else if (rule.at("rule") == "deal")
+            std::cout << "HI IM AT scores\n";
+        else if (rule.at("rule") == "discard")
+            std::cout << "HI IM AT scores\n";
+        else if (rule.at("rule") == "add")
+            std::cout << "HI IM AT scores\n";
+        else if (rule.at("rule") == "input-choice")
+            std::cout << "HI IM AT scores\n";
+        else if (rule.at("rule") == "input-text")
+            std::cout << "HI IM AT scores\n";
+        else if (rule.at("rule") == "input-vote")
+            std::cout << "HI IM AT scores\n";
+        else if (rule.at("rule") == "message")
+            std::cout << "HI IM AT scores\n";
+        else if (rule.at("rule") == "global-message")
+            std::cout << "HI IM AT scores\n";
+        else if (rule.at("rule") == "scores")
+            std::cout << "HI IM AT scores\n";
+    }
+    /*
+    auto innerJson = jsonRules[0].get<std::map<std::string, json>>();
+    std::cout << "top level \n";
+    for (auto i : jsonRules){
+        std::cout << "\n\n" << i << "\n\n";
+    }
+
+    std::cout << "one down level \n";
+    for (auto i : innerJson){
+        std::cout << "\n\n" << i << "\n\n";
+    }
+    if (innerJson.at("rules").is_array()){
+        std::cout << "LOOK AT MEEEE IM AN OBJECT";
+    }
+    for (auto subrule: innerJson.at("rules")){
+        std::cout << subrule;
+    }*/
+    return std::vector<rules::Rule>();
+
 }
 
 bool isValidGameSpec(const json& j) {

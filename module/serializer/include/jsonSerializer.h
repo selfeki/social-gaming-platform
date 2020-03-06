@@ -63,6 +63,8 @@ bool hasAllRequiredFields(const json&);
 
 bool hasNoExtraFields(const json&);
 
+
+
 // enum FIELDS {
 //     CONF,
 //     NAME,

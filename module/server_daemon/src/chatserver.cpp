@@ -9,6 +9,7 @@
 #include "arepa/game_spec/GameSpecification.h"
 #include "arepa/serializer/jsonSerializer.h"
 #include "arepa/server_config/Config.h"
+#include "arepa/game_spec/Rules.h"
 #include "command.h"
 
 #include <arepa/server/Server.h>
@@ -255,12 +256,19 @@ loadJSONConfigFile(const std::string& filepath) {
 
     config = jsonSerializer::parseServerConfig(jsonServerConfig);
     config.err = false;
+
+
+
     return config;
 }
 
 
 int main(int argc, char* argv[]) {
-
+    nlohmann::json jsonFile;
+    std::ifstream s("/home/at/Downloads/social-gaming/templates/game/simplified.json");
+    jsonFile = json::parse(s);
+    jsonSerializer::parseRules(jsonFile);
+    /* at place this here
     serverConfig::Configuration server_config;
 
     if (argc < 2) {
@@ -272,7 +280,7 @@ int main(int argc, char* argv[]) {
     if (server_config.err) {
         return -1;
     }
-
+ at*/
     //example
     //g_config game = game_config::load_file("templates/game/rps.json", true);
     //std::cout << game.player_count["min"] << std::endl;
@@ -281,24 +289,24 @@ int main(int argc, char* argv[]) {
   Try to configurate game_manager... with custom error handling to give useful
   error messages?
   */
-    try {
+    //at try {
         //game_manager.setUp(server_config);
-    } catch (... /*const GameManagerException& e*/) {
-        std::cerr << "Server configuration failed";
+    //at } catch (... /*const GameManagerException& e*/) {
+    //at    std::cerr << "Server configuration failed";
         //<< e.what() << '\n'
         //<< e.where() << '\n,
-    }
-
+   //at }
+   /*at
     unsigned short port = server_config.port;
     arepa::networking::websocket::Options opts;
     opts.bind_port = port;
 
     Server server(opts, &onConnect, &onDisconnect);
-
+ at*/
     /*
   * Main Game Server Loop
   */
-
+/*at
     while (true) {
         bool shouldQuit = false;
 
@@ -321,6 +329,6 @@ int main(int argc, char* argv[]) {
         // Sleep to not burn out the CPU.
         constexpr int ONE_HUNDRED_MILLISECONDS = 1000 * 100;
         usleep(ONE_HUNDRED_MILLISECONDS);
-    }
+    }at*/
     return 0;
 }
