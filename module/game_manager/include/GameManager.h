@@ -29,6 +29,14 @@ struct messageReturn {
     IDType sendTo;
     std::string message;
     bool shouldShutdown;
+
+    explicit messageReturn(IDType recipient, std::string message)
+        : messageReturn(recipient, message, false) {}
+
+    explicit messageReturn(IDType recipient, std::string message, bool shouldShutdown)
+        : sendTo(recipient)
+        , message(std::move(message))
+        , shouldShutdown(shouldShutdown) {}
 };
 
 

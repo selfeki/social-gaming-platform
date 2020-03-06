@@ -27,6 +27,10 @@ public:
     std::deque<messageReturn<::networking::ConnectionId>>& outgoing_message_queue() {
         return this->_messages_to_send;
     }
+
+    void send(const std::string& message) {
+        this->_messages_to_send.push_back(messageReturn(this->_connection_id, message));
+    }
 };
 
 using CommandContext = GameManager<::networking::ConnectionId>;

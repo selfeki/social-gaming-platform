@@ -348,7 +348,7 @@ std::vector<messageReturn<IDType>> GameManager<IDType>::formMessageToRoomMembers
     std::vector<IDType> members = room.returnPlayers();
     std::vector<messageReturn<IDType>> msg_list;
     for (auto member : members) {
-        msg_list.push_back(messageReturn<IDType> { member, message, shouldShutdown });
+        msg_list.push_back(messageReturn<IDType>(member, message, shouldShutdown));
     }
     return msg_list;
 }
@@ -373,10 +373,11 @@ template <typename IDType>
 std::vector<messageReturn<IDType>> GameManager<IDType>::formMessageTo(std::string& message, std::vector<IDType>& recipient) {
     std::vector<messageReturn<IDType>> msg_list;
     for (auto& id : recipient) {
-        msg_list.push_back(messageReturn<IDType> { id, message, false });
+        msg_list.push_back(messageReturn<IDType>(id, message));
     }
     return msg_list;
 }
+
 //Issues command to client to clear chat history. Will be useful for initiating a game instance
 template <typename IDType>
 std::vector<messageReturn<IDType>> GameManager<IDType>::clearCommand(IDType playerId) {
