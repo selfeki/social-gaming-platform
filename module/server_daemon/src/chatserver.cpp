@@ -11,6 +11,10 @@
 #include "arepa/server_config/Config.h"
 #include "command.h"
 
+#include <arepa/log/LogStream.hpp>
+#include <arepa/log/LogStreamFactory.hpp>
+#include <arepa/log/console/ConsoleAdapter.hpp>
+#include <arepa/log/console/FormatterWithColor.hpp>
 #include <arepa/server/Server.h>
 
 #include <boost/uuid/uuid_io.hpp>
@@ -32,6 +36,9 @@ using networking::Message;
 using namespace commandSpace;
 using networking::Server;
 
+arepa::log::LogStreamFactory clout;
+using data = arepa::log::LogStream::data<>;
+constexpr auto endl = arepa::log::LogStream::endl;
 
 typedef networking::ConnectionId UniqueConnectionID;
 typedef messageReturn<UniqueConnectionID> messageReturnAlias;
@@ -71,8 +78,8 @@ bool gameMessagesToNetworkMessages() {
         }
 
         UniqueConnectionID player = message.sendTo;
-        std::cout << boost::uuids::to_string(player.uuid) << "\n";
-        std::cout << log << "\n";
+        clout << boost::uuids::to_string(player.uuid) << "\n";
+        clout << log << "\n";
         networkMessageQueue.push_back({ player, log });
     }
     return quit;
@@ -156,7 +163,7 @@ std::deque<Message> sendToClient(const ConnectionId& client, const std::string& 
 void onConnect(shared_ptr<Connection> c) {
     auto id = ++unique_connection_id_counter;
 
-    std::cout << "New connection found: " << c->session_token() << "\n";
+    clout << "New connection found: " << c->session_token() << "\n";
 
     //override game manager and send back server welcome message...
     networkMessageQueue.emplace_back(c->session_id(), "Welcome to the server! Enter a command...");
@@ -166,7 +173,7 @@ void onConnect(shared_ptr<Connection> c) {
 
 //Called whenenver a client disconnects. Should handle disconneting player from game room
 void onDisconnect(shared_ptr<Connection> c) {
-    std::cout << "Connection lost: " << c->session_token() << "\n";
+    clout << "Connection lost: " << c->session_token() << "\n";
 }
 
 
@@ -240,7 +247,7 @@ loadJSONConfigFile(const std::string& filepath) {
     serverConfig::Configuration config;
     std::ifstream s(filepath);
     if (s.fail()) {
-        std::cerr << "Error: " << strerror(errno) << std::endl;
+        std::cerr << "Error: " << strerror(errno) << endl;
         return config;
     }
 
@@ -258,24 +265,33 @@ loadJSONConfigFile(const std::string& filepath) {
     return config;
 }
 
+void init_logging() {
+    auto adapter = std::make_shared<arepa::log::console::ConsoleAdapter>();
+    adapter->use_formatter(std::make_unique<arepa::log::console::FormatterWithColor>());
+    arepa::log::global = adapter;
+}
 
 int main(int argc, char* argv[]) {
+    init_logging();
 
     serverConfig::Configuration server_config;
 
     if (argc < 2) {
+        clout << "Loading server configuration from default config file." << endl;
         server_config = loadJSONConfigFile(default_json);
     } else {
+        clout << "Loading server configuration from " << argv[1] << "." << endl;
         server_config = loadJSONConfigFile(argv[1]);
     }
 
     if (server_config.err) {
+        clout << "Failed to load server configuration." << endl;
         return -1;
     }
 
     //example
     //g_config game = game_config::load_file("templates/game/rps.json", true);
-    //std::cout << game.player_count["min"] << std::endl;
+    //clout << game.player_count["min"] << endl;
 
     /*
   Try to configurate game_manager... with custom error handling to give useful
@@ -293,12 +309,19 @@ int main(int argc, char* argv[]) {
     arepa::networking::websocket::Options opts;
     opts.bind_port = port;
 
+    clout << "Creating server instance."
+          << data(std::make_pair("Port", opts.bind_port))
+          << endl;
+
     Server server(opts, &onConnect, &onDisconnect);
+    clout << "Successfully created server instance." << endl;
 
     /*
   * Main Game Server Loop
   */
 
+    clout << "Initialization is complete." << endl;
+    clout << "Entering main loop." << endl;
     while (true) {
         bool shouldQuit = false;
 
