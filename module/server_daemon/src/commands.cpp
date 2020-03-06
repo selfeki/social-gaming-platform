@@ -17,6 +17,7 @@ std::unordered_map<std::string, std::unique_ptr<CommandExecutor>> COMMAND_MAP;
 void init_commands() {
     COMMAND_MAP.insert(COMMAND("ping", [](Context& game_manager, User& user, const Arguments& args) {
         std::cout << "Received /ping" << std::endl;
+        user.send("Pong.");
     }));
 
     COMMAND_MAP.insert(COMMAND("member", [](Context& game_manager, User& user, const Arguments& args) {
