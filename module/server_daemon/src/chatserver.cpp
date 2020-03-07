@@ -135,27 +135,27 @@ void processMessages(Server& server, const std::deque<Message>& incoming) {
             continue;
         }
 
-        // If it is a command, parse it and execute it.
-        auto command = Command::parse(message.text);
-        if (!command) {
-            // This means the command string was invalid (not alphanumeric command name).
-            // TODO(nikolkam): Send the user an error message.
-            std::cout << "Invalid command: " << message.text << std::endl;
-            continue;
-        }
-
-        // Get the command executor.
-        auto executor = COMMAND_MAP.find(command->name());
-        if (executor == COMMAND_MAP.end()) {
-            // This means the command couldn't be found.
-            // TODO(nikolkam): Send the user an error message.
-            std::cout << "Unknown command: " << message.text << std::endl;
-            continue;
-        }
-
-        // Execute the command.
         CommandUser user(sentFrom);
-        executor->second->execute(game_manager, user, command->arguments());
+        auto command = Command::parse(message.text);
+        auto executor = COMMAND_MAP.find(command->name());
+
+        // This means the command string was invalid (not alphanumeric command name).
+        if (!command) {
+            invalidCommand(user);
+            std::cout<<"["<<(*user).name()<<"] Invalid command:" << message.text << std::endl;
+        }
+        // This means the command couldn't be found.
+        else if(executor == COMMAND_MAP.end()){
+            unknownCommand(user);
+            std::cout<<"["<<(*user).name()<<"] Unknown command:" << message.text << std::endl;
+        }
+        //Execute the command and store the result in user.outgoing_message_queue()
+        else
+        {
+            executor->second->execute(game_manager, user, command->arguments());
+        }
+
+        //Create outgoing message queue         
         std::copy(user.outgoing_message_queue().begin(), user.outgoing_message_queue().end(), std::back_inserter(gameMessageQueue));
     }
 }

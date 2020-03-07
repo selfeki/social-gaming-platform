@@ -60,6 +60,7 @@ void init_commands() {
         std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
     }));
 
+
     COMMAND_MAP.insert(COMMAND("help", [](Context& game_manager, User& user, const Arguments& args) {
         std::stringstream message;
 
@@ -81,3 +82,12 @@ void init_commands() {
         user.send(message.str());
     }));
 }
+
+void invalidCommand(User& user){
+    user.send("Invalid command. Command must be alphanumeric. \n");
+}
+void unknownCommand(User& user){
+    user.send("Unknown command. '/help' for command list. \n");
+}
+
+

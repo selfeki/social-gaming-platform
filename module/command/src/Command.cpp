@@ -1,6 +1,7 @@
 #include "Command.hpp"
 
 #include <boost/algorithm/string.hpp>
+#include <iostream>
 
 using namespace arepa::command;
 
@@ -43,7 +44,7 @@ std::optional<Command> Command::parse(std::string_view input) {
         // Parse the command arguments.
         CommandArguments args(split.begin(), split.end());
         return { Command(std::move(name), std::move(args), std::string(rawArgs)) };
-    } catch (std::exception& ex) {
+    } catch (std::bad_alloc& ex) {
         return std::nullopt;
     }
 }

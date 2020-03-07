@@ -35,7 +35,11 @@ public:
 
 using CommandContext = GameManager<::networking::ConnectionId>;
 using CommandExecutor = arepa::command::Executor<CommandUser, CommandContext>;
+using User = CommandUser;
+
 
 extern std::unordered_map<std::string, std::unique_ptr<CommandExecutor>> COMMAND_MAP;
 
 void init_commands();
+void invalidCommand(CommandUser& user);
+void unknownCommand(CommandUser& user);
