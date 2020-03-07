@@ -11,7 +11,7 @@
 #include <nlohmann/json.hpp>
 #include <unordered_map>
 #include <vector>
-
+#include <optional>
 
 namespace jsonSerializer {
 
@@ -54,8 +54,11 @@ parseExpMap(const json&);
 gameSpecification::Expression
 parseExpList(const json&);
 
+gameSpecification::rule::Rule
+ruleSelector(const json&, std::string, gameSpecification::rule::Rule&);
+
 gameSpecification::rule::RuleList
-parseRules(const json&);
+parseRule(const json&);
 
 bool isValidServerConfig(const json&);
 

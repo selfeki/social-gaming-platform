@@ -10,6 +10,8 @@
 #include <vector>
 
 using json = nlohmann::json;
+using gameRule = gameSpecification::rule::Rule;
+using gameRuleList = gameSpecification::rule::RuleList;
 
 namespace jsonSerializer {
 
@@ -54,7 +56,7 @@ parseGameSpecification(const json& j) {
     Specification spec;
     spec.configuration = parseConfig(j["configuration"]);
     spec.gameState = parseGameState(j);
-    spec.rules = parseRules(j["rules"]);
+    //spec.rules = ruleSelector(j["rules"]);
     return spec;
 }
 
@@ -185,68 +187,84 @@ parseExpList(const json& j) {
 }
 
 //all other parseRule__RULENAME__ will be similar with different fields
-//gameSpecification::rule::Rule
-void
-parseRuleForEach(const json& j){
+gameRule
+parseRuleForEach(const json& j, gameRule& parent){
     gameSpecification::Expression list = parseExpression(j.value("list", ""));
     gameSpecification::Expression elem = parseExpression(j.value("element", ""));
     //std::cout << boost::get<std::string>(list);
-    auto subRules = j["rules"].get<std::vector<json>>();
-    gameSpecification::rule::RuleList parsedSubRules = gameSpecification::rule::RuleList();
-    //TODO: call parseRules on each of the rules of THIS rule
-    //and push into RulesList of THIS rule
-    //ie: global-message, parallelfor, etc in the rock paper scissors example
 
-    //return gameSpecification::rule::ForEach{list, elem, parsedSubRules};
+    gameRuleList parsedSubRules = gameSpecification::rule::RuleList();
+    gameSpecification::rule::ForEach forEachRule = {parent, list, elem, parsedSubRules};
+
+
+    auto subRules = j["rules"].get<std::vector<json>>();
+        //TODO: call ruleSelector on each of the rules of THIS rule
+        //and push into RulesList of THIS rule
+        //ie: global-message, parallelfor, etc in the rock paper scissors example
+    //for each subrule
+    return forEachRule;
 }
 
-gameSpecification::rule::RuleList
-parseRules(const json& j) {
-    auto parsed_rules = gameSpecification::rule::RuleList();
-    auto jsonRules = j["rules"].get<std::vector<json>>();
-
-    for (auto rule : jsonRules) {
-        std::string rule_type = rule.at("rule");
-        if (rule_type == "foreach")
-            //parsed_rules.push_back(parseRuleForEach(rule));
+//think of this as the phone book of rules
+gameRule
+ruleSelector(const json& j, std::string ruleName, gameRule& parent) {
+        if (ruleName == "foreach")
+            return parseRuleForEach(j, parent);
         /*
         else if (rule_type == "loop")
+            std::cout << "placeholder";
             //TODO: implement parseLoopRules
         else if (rule_type == "inparallel")
+            std::cout << "placeholder";
             //TODO: implement parse _ Rules
         else if (rule_type == "parallelfor")
+            std::cout << "placeholder";
             //TODO: implement parse parallelfor Rules
         else if (rule_type == "switch")
+            std::cout << "placeholder";
             //TODO: implement parse switch Rules
         else if (rule_type == "when")
+            std::cout << "placeholder";
             //TODO: implement parse when Rules
         else if (rule_type == "extend")
+            std::cout << "placeholder";
             //TODO: implement parse extend Rules
         else if (rule_type == "reverse")
+            std::cout << "placeholder";
             //TODO: implement parse reverse Rules
         else if (rule_type == "shuffle")
+            std::cout << "placeholder";
             //TODO: implement parse shuffle Rules
         else if (rule_type == "sort")
+            std::cout << "placeholder";
             //TODO: implement parse sort Rules
         else if (rule_type == "deal")
+            std::cout << "placeholder";
             //TODO: implement parse deal Rules
         else if (rule_type == "discard")
+            std::cout << "placeholder";
             //TODO: implement parse discard Rules
         else if (rule_type == "add")
+            std::cout << "placeholder";
             //TODO: implement parse add Rules
         else if (rule_type == "input-choice")
+            std::cout << "placeholder";
             //TODO: implement parse input-choice Rules
         else if (rule_type == "input-text")
+            std::cout << "placeholder";
             //TODO: implement parse input-text Rules
         else if (rule_type == "input-vote")
+            std::cout << "placeholder";
             //TODO: implement parse input-vote Rules
         else if (rule_type == "message")
+            std::cout << "placeholder";
             //TODO: implement parse message Rules
         else if (rule_type == "global-message")
+            std::cout << "placeholder";
             //TODO: implement parse global-message Rules
         else if (rule_type == "scores")
+            std::cout << "placeholder";
         //TODO: implement parse scores Rules*/
-    }
     /*
     auto innerJson = jsonRules[0].get<std::map<std::string, json>>();
     std::cout << "top level \n";
@@ -264,8 +282,18 @@ parseRules(const json& j) {
     for (auto subrule: innerJson.at("rules")){
         std::cout << subrule;
     }*/
-    return parsed_rules;
 
+}
+
+//entry point of rule parsing
+gameSpecification::rule::RuleList
+parseRule(const json& j){
+    auto parsed_rules = gameSpecification::rule::RuleList();
+    auto jsonRules = j["rules"].get<std::vector<json>>();
+    for (auto rule : jsonRules) {
+        parsed_rules.push_back(ruleSelector(rule, "foreach", ));
+    }
+    return parsed_rules;
 }
 
 bool isValidGameSpec(const json& j) {

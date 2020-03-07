@@ -10,9 +10,8 @@
 #include "arepa/game_spec/GameSpecification.h"
 #include "arepa/serializer/jsonSerializer.h"
 #include "arepa/server_config/Config.h"
-#include "arepa/game_spec/Rules.h"
-#include "command.h"
->>>>>>> setup for rule serializing and commented out main to test jsonserializing
+#include "arepa/game_spec/Rule.h"
+
 
 #include <arepa/command/Command.hpp>
 #include <arepa/server/Server.h>
@@ -188,7 +187,7 @@ int main(int argc, char* argv[]) {
     nlohmann::json jsonFile;
     std::ifstream s("/home/at/Downloads/social-gaming/templates/game/simplified.json");
     jsonFile = json::parse(s);
-    jsonSerializer::parseRules(jsonFile);
+    jsonSerializer::parseRule(jsonFile);
     /* at place this here
     serverConfig::Configuration server_config;
 
