@@ -26,8 +26,8 @@ parseServerConfig(const json& j) {
         throw;
     }    // todo: handle error gracefully
     serverConfig::Configuration config;
-    j.at("port").get_to(config.port);
-    j.at("html").get_to(config.htmlPath);
+    j["port"].get_to(config.port);
+    j["html"].get_to(config.htmlPath);
     auto games = j.at("games");
     std::transform(
         games.begin(), games.end(), std::back_inserter(config.gameSpecs),
@@ -54,19 +54,19 @@ parseGameSpecification(const json& j) {
         throw;
     }    // todo: handle error gracefully
     Specification spec;
-    spec.configuration = parseConfig(j.at("configuration"));
+    spec.configuration = parseConfig(j["configuration"]);
     spec.gameState = parseGameState(j);
-    spec.rules = parseRules(j.at("rules"));
+    spec.rules = parseRules(j["rules"]);
     return spec;
 }
 
 gameSpecification::Configuration
 parseConfig(const json& j) {
     gameSpecification::Configuration config;
-    j.at("name").get_to(config.name);
-    j.at("player count").at("min").get_to(config.count.min);
-    j.at("player count").at("max").get_to(config.count.max);
-    j.at("audience").get_to(config.allowAudience);
+    j["name"].get_to(config.name);
+    j["player count"]["min"].get_to(config.count.min);
+    j["player count"]["max"].get_to(config.count.max);
+    j["audience"].get_to(config.allowAudience);
     config.setup = parseSetup(j);
     return config;
 }
@@ -74,7 +74,7 @@ parseConfig(const json& j) {
 gameSpecification::Setup
 parseSetup(const json& j) {
     Setup setup;
-    for (const auto& [key, val] : j.at("setup").items()) {
+    for (const auto& [key, val] : j["setup"].items()) {
         setup.set(key, parseSetupValue(val));
     }
     return setup;
@@ -127,10 +127,10 @@ parseDataKind(const json& j) {
 GameState
 parseGameState(const json& j) {
     GameState state;
-    state.constants = parseEnvironment(j.at("constants"));
-    state.variables = parseEnvironment(j.at("variables"));
-    state.perPlayer = parseEnvironment(j.at("per-player"));
-    state.perAudience = parseEnvironment(j.at("per-audience"));
+    state.constants = parseEnvironment(j["constants"]);
+    state.variables = parseEnvironment(j["variables"]);
+    state.perPlayer = parseEnvironment(j["per-player"]);
+    state.perAudience = parseEnvironment(j["per-audience"]);
     return state;
 }
 
@@ -192,6 +192,8 @@ parseRules(const json& j) {
     std::vector<json> jsonRules = j["rules"].get<std::vector<json>>();
     for (auto rule : jsonRules){
         //rule.at("rule")
+        // .at() only works for json arrays, you should use [] here
+        // my bad!
         if(rule.at("rule") == "foreach")
             std::cout << "HI IM AT FOREACH\n";
         else if (rule.at("rule") == "loop")
