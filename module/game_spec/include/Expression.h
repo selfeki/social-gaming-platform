@@ -1,5 +1,6 @@
 
 #include "MapWrapper.h"
+#include <boost/variant.hpp>
 
 #include <boost/variant.hpp>
 #include <boost/variant/recursive_wrapper.hpp>

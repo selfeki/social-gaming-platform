@@ -4,6 +4,7 @@
 #include <iostream>
 #include <unordered_map>
 
+
 // todo: implement State struct
 
 template <class keyTy, class valTy>
@@ -13,7 +14,6 @@ public:
     set(keyTy key, valTy value) {
         assignments[key] = value;
     }
-
     valTy
     get(const keyTy& key) const {
         auto found = assignments.find(key);
