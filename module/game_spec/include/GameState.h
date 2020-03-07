@@ -3,6 +3,9 @@
 #include "Expression.h"
 #include "MapWrapper.h"
 
+namespace gameSpecification {
+
+
 // A GameState is the input and output of the DSLInterpreter
 
 struct GamePlayer {
@@ -26,3 +29,6 @@ struct GameState {
     std::vector<GamePlayer> players;
     std::vector<GameAudience> audience;
 };
+
+
+}   // namespace gameSpecification

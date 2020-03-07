@@ -5,6 +5,9 @@
 #include <boost/variant/recursive_wrapper.hpp>
 #include <boost/variant/variant.hpp>
 
+namespace gameSpecification {
+
+
 // An Expression is a R-value in game specification
 
 using ExpMap = MapWrapper<std::string, boost::recursive_variant_>;
@@ -16,3 +19,6 @@ using Expression = boost::make_recursive_variant<
     std::string,
     int,
     bool>::type;
+
+
+}   // namespace gameSpecification
