@@ -3,7 +3,7 @@
 #include "Expression.h"
 #include "GameState.h"
 #include "MapWrapper.h"
-#include "Rules.h"
+#include "Rule.h"
 
 #include <optional>
 #include <string>
@@ -62,7 +62,7 @@ struct Configuration {
 struct Specification {
     Configuration configuration;
     GameState gameState;
-    rules::RuleList rules;
+    rule::RuleList rules;
 };
 
 

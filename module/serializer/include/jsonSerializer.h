@@ -14,6 +14,7 @@
 
 namespace jsonSerializer {
 
+
 using json = nlohmann::json;
 
 serverConfig::Configuration
@@ -37,22 +38,22 @@ parseCustomSetup(const json&);
 gameSpecification::DataKind
 parseDataKind(const json&);
 
-GameState
+gameSpecification::GameState
 parseGameState(const json&);
 
-Environment
+gameSpecification::Environment
 parseEnvironment(const json&);
 
-Expression
+gameSpecification::Expression
 parseExpression(const json&);
 
-Expression
+gameSpecification::Expression
 parseExpMap(const json&);
 
-Expression
+gameSpecification::Expression
 parseExpList(const json&);
 
-rules::RuleList
+gameSpecification::rule::RuleList
 parseRules(const json&);
 
 bool isValidServerConfig(const json&);

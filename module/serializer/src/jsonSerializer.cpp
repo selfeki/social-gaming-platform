@@ -186,7 +186,7 @@ parseExpList(const json& j) {
     return expList;
 }
 
-rules::RuleList
+rule::RuleList
 parseRules(const json& j) {
     // todo
 }

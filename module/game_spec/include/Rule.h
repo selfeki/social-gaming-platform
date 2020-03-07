@@ -7,7 +7,7 @@
 #include <boost/variant/recursive_wrapper.hpp>
 #include <boost/variant/variant.hpp>
 
-namespace rules {
+namespace gameSpecification::rule {
 
 // Control flow
 struct ForEach;
@@ -208,4 +208,4 @@ struct Scores {
     Expression isAscending;
 };
 
-}    // namespace rules
+}    // namespace rule
