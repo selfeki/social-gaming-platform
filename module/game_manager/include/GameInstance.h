@@ -1,12 +1,12 @@
 #include "DSLInterpreter.h"
 #include "arepa/game_spec/GameState.h"
-#include "arepa/game_spec/Rules.h"
+#include "arepa/game_spec/Rule.h"
 
-using Rules = rules::RuleList;
+using namespace gameSpecification;
 
 class GameInstance {
 public:
-    GameInstance(const Rules& rules);
+    GameInstance(const rule::RuleList& rules);
 
     // Interprets rules until requires user interaction or game ends.
     // It updates passed in state based upon interpretation of the current rule.
@@ -23,5 +23,5 @@ public:
 private:
     //   GameState&      gameState;
     Interpreter interpreter;
-    rules::Rule currentRule;
+    rule::Rule currentRule;
 };

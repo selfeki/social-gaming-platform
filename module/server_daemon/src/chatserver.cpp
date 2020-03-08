@@ -35,8 +35,8 @@ using networking::Message;
 using networking::Server;
 
 typedef networking::ConnectionId UniqueConnectionID;
-typedef messageReturn<UniqueConnectionID> messageReturnAlias;
-typedef GameManager<UniqueConnectionID> GameManagerAlias;
+//typedef MessageReturn<UniqueConnectionID> GameManager::MessageReturn;
+//typedef GameManager<UniqueConnectionID> GameManagerAlias;
 
 
 std::atomic<std::uint64_t> unique_connection_id_counter = 0;
@@ -45,40 +45,11 @@ std::atomic<std::uint64_t> unique_connection_id_counter = 0;
 
 std::string default_json = "templates/server/default.json";
 
-GameManagerAlias game_manager;
+GameManager gameManager;
 
-
-//messages returned from game manager
-std::deque<messageReturnAlias> gameMessageQueue;
 
 //messages ready to be sent to networking
 std::deque<Message> networkMessageQueue;
-
-
-/*
-transform game messages in game message queue to network messages in
-network message queue, then empty the game message queue. These act like queues,
-sof first game message processed is first to be put into the network queue.
-*/
-bool gameMessagesToNetworkMessages() {
-    bool quit = false;
-    while (!gameMessageQueue.empty()) {
-
-        messageReturnAlias message = gameMessageQueue.front();
-        gameMessageQueue.pop_front();
-        std::string log = message.message;
-
-        if (message.shouldShutdown) {
-            quit = true;
-        }
-
-        UniqueConnectionID player = message.sendTo;
-        std::cout << boost::uuids::to_string(player.uuid) << "\n";
-        std::cout << log << "\n";
-        networkMessageQueue.push_back({ player, log });
-    }
-    return quit;
-}
 
 
 //message types possible (tentative)
@@ -118,46 +89,65 @@ void onConnect(shared_ptr<Connection> c) {
 //Called whenenver a client disconnects. Should handle disconneting player from game room
 void onDisconnect(shared_ptr<Connection> c) {
     std::cout << "Connection lost: " << c->session_token() << "\n";
+
+    //command.leaveRoom(c->session_id(), networkMessageQueue);
 }
 
 
-void processMessages(Server& server, const std::deque<Message>& incoming) {
-    for (auto& message : incoming) {
-        ConnectionId sentFrom = message.connection;
+void processMessages(const std::deque<Message>& incoming) {
 
-        // If it's not a command, handle it as a game message.
-        if (!Command::is_command(message.text)) {
-            std::vector<messageReturnAlias> game_messages = game_manager.handleGameMessage(message.text, sentFrom.uuid);
-            for (const auto& game_message : game_messages) {
-                gameMessageQueue.push_back(game_message);
-            }
+  for(auto message : incoming) {
 
-            continue;
+    ConnectionId sentFrom = message.connection;
+
+    // If it's not a command, handle it as a game message.
+
+    //game manager refactored so it does not handle constructing messages, must do it here or somewhere else
+    if (!Command::is_command(message.text)) {
+        
+        std::string text;
+
+        std::optional<RoomID> room_id = gameManager.getRoomIDOfPlayer(sentFrom);
+
+        if(!room_id) {
+          text += "You are not in a room. Join one with /join, type /help for help.";
+          networkMessageQueue.emplace_back(sentFrom, text);
+        } else {
+          std::pair<std::optional<std::string>, GameManager::ReturnCode> username_result = gameManager.getRoomUsernameOfPlayer(sentFrom);
+          const std::vector<PlayerID>* players = gameManager.getPlayersInRoom(*room_id);
+          text += (*(username_result.first) + ": " + message.text);
+
+          for(auto player : *players) {
+            networkMessageQueue.emplace_back(player, text);
+          }
+
         }
-
-        CommandUser user(sentFrom);
-        auto command = Command::parse(message.text);
-        auto executor = COMMAND_MAP.find(command->name());
-
-        // This means the command string was invalid (not alphanumeric command name).
-        if (!command) {
-            invalidCommand(user);
-            std::cout<<"["<<(*user).name()<<"] Invalid command:" << message.text << std::endl;
-        }
-        // This means the command couldn't be found.
-        else if(executor == COMMAND_MAP.end()){
-            unknownCommand(user);
-            std::cout<<"["<<(*user).name()<<"] Unknown command:" << message.text << std::endl;
-        }
-        //Execute the command and store the result in user.outgoing_message_queue()
-        else
-        {
-            executor->second->execute(game_manager, user, command->arguments());
-        }
-
-        //Create outgoing message queue         
-        std::copy(user.outgoing_message_queue().begin(), user.outgoing_message_queue().end(), std::back_inserter(gameMessageQueue));
+        continue;
     }
+
+    // If it is a command, parse it and execute it.
+    auto command = Command::parse(message.text);
+    if (!command) {
+        // This means the command string was invalid (not alphanumeric command name).
+        // TODO(nikolkam): Send the user an error message.
+        std::cout << "Invalid command: " << message.text << std::endl;
+        continue;
+    }
+
+    // Get the command executor.
+    auto executor = COMMAND_MAP.find(command->name());
+    if (executor == COMMAND_MAP.end()) {
+        // This means the command couldn't be found.
+        // TODO(nikolkam): Send the user an error message.
+        std::cout << "Unknown command: " << message.text << std::endl;
+        continue;
+    }
+
+    // Execute the command.
+    CommandUser user(sentFrom);
+    executor->second->execute(gameManager, user, command->arguments());
+    std::copy(user.outgoing_message_queue().begin(), user.outgoing_message_queue().end(), std::back_inserter(networkMessageQueue));
+  }
 }
 
 
@@ -238,11 +228,11 @@ int main(int argc, char* argv[]) {
         //Get all messages.
         auto incoming = server.receive();
 
-        //Process messages and put them in gameMessagesQueue (global queue)
-        processMessages(server, incoming);
+        //Process messages and put them in networkMessagesQueue (global queue)
+        processMessages(incoming);
 
         //if an admin runs a comman to shutdown server, shouldQuit will be set to true
-        shouldQuit = gameMessagesToNetworkMessages();
+        //shouldQuit = gameMessagesToNetworkMessages();
         server.send(networkMessageQueue);
         networkMessageQueue.clear();
 

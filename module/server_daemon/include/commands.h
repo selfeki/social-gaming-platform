@@ -14,7 +14,7 @@
 struct CommandUser {
 private:
     ::networking::ConnectionId _connection_id;
-    std::deque<messageReturn<::networking::ConnectionId>> _messages_to_send;
+    std::deque<networking::Message> _messages_to_send;
 
 public:
     CommandUser(::networking::ConnectionId& connection_id)
@@ -24,7 +24,7 @@ public:
         return this->_connection_id;
     }
 
-    std::deque<messageReturn<::networking::ConnectionId>>& outgoing_message_queue() {
+    std::deque<networking::Message>& outgoing_message_queue() {
         return this->_messages_to_send;
     }
 
@@ -33,7 +33,7 @@ public:
     }
 };
 
-using CommandContext = GameManager<::networking::ConnectionId>;
+using CommandContext = GameManager;
 using CommandExecutor = arepa::command::Executor<CommandUser, CommandContext>;
 using User = CommandUser;
 
