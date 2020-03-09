@@ -33,5 +33,4 @@ struct GameState {
 };
 
 
-}   // namespace gameSpecification
-
+}    // namespace gameSpecification

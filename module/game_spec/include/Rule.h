@@ -1,10 +1,10 @@
 #pragma once
 
 #ifndef RULE_H
-#define RULE_H
+    #define RULE_H
 
-#include "Expression.h"
-#include "MapWrapper.h"
+    #include "Expression.h"
+    #include "MapWrapper.h"
 
 // #include <memory>
 
@@ -40,36 +40,35 @@ struct Scores;
 
 class RuleVisitor {
 public:
-  virtual ~RuleVisitor() = default;
+    virtual ~RuleVisitor() = default;
 
-  void visit(const ForEach& rule) { visitImpl(rule); }
-  void visit(const GlobalMessage& rule) { visitImpl(rule); }
+    void visit(const ForEach& rule) { visitImpl(rule); }
+    void visit(const GlobalMessage& rule) { visitImpl(rule); }
 
 private:
-  virtual void visitImpl(const ForEach& rule) { }
-  virtual void visitImpl(const GlobalMessage& rule) { }
+    virtual void visitImpl(const ForEach& rule) {}
+    virtual void visitImpl(const GlobalMessage& rule) {}
 };
 
 
 struct Rule {
-  virtual ~Rule() = default;
-  
-  virtual void accept(RuleVisitor& visitor) const = 0;
+    virtual ~Rule() = default;
+
+    virtual void accept(RuleVisitor& visitor) const = 0;
 };
 
-using RuleID  = int;
+using RuleID = int;
 using RuleList = std::vector<Rule>;
 
 struct ForEach final : public Rule {
-  virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
 
-  // raw pointer is fine because it is non-owning 
-  Rule*        parent;
-  Expression   elemList;
-  Expression   elem;
-  RuleList 	   rules;
+    // raw pointer is fine because it is non-owning
+    Rule* parent;
+    Expression elemList;
+    Expression elem;
+    RuleList rules;
 };
-
 
 
 // enum LoopType {
@@ -239,10 +238,10 @@ struct ForEach final : public Rule {
 // };
 
 struct GlobalMessage final : public Rule {
-  virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
 
-  Rule* 		 parent;
-  Expression content;
+    Rule* parent;
+    Expression content;
 };
 
 // struct Scores {

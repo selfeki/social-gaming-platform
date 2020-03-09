@@ -3,9 +3,10 @@
 #include "GameInstance.h"
 #include "arepa/game_spec/GameSpecification.h"
 //#include "jsonconfig.h"
-#include <arepa/server/Server.h>
-#include <arepa/command/Executor.hpp>
 #include "arepa/server_config/Config.h"
+
+#include <arepa/command/Executor.hpp>
+#include <arepa/server/Server.h>
 
 #include <algorithm>
 #include <exception>
@@ -26,7 +27,6 @@ typedef networking::ConnectionId PlayerID;
 
 //message return struct, game_manager returns a vector of these to the daemon,
 //on for each client that is to be sent a message
-
 
 
 //Custom error handling might be good for the future?
@@ -50,10 +50,8 @@ private:
 };
 
 
-
 class Room {
 public:
-
     enum ReturnCode {
         SUCCESS = 0,
         ROOM_FULL,
@@ -67,7 +65,7 @@ public:
     std::optional<PlayerID> removePlayer(PlayerID player_id);
     ReturnCode changePlayerUsername(PlayerID player_id, const std::string& new_username);
     void gameUpdate();
-    const std::vector<PlayerID> &getPlayers() const;
+    const std::vector<PlayerID>& getPlayers() const;
     void configRoomAndGame(const g_spec& game_spec);
     std::optional<std::string> getUsernameFromPlayerID(PlayerID player_id);
     std::optional<PlayerID> getPlayerIDFromUsername(const std::string& username);
@@ -87,17 +85,15 @@ private:
 };
 
 
-
 class GameManager {
 public:
-
     enum ReturnCode {
         SUCCESS = 0,
         PLAYER_NOT_EXIST,
         ROOM_NOT_EXIST,
         NO_PERMISSION,
-        FAILURE, 
-        ROOM_FULL, 
+        FAILURE,
+        ROOM_FULL,
         FATAL_ERROR,
         USERNAME_ALREADY_EXISTS
     };
@@ -111,9 +107,9 @@ public:
     std::optional<RoomID>
     getRoomIDOfPlayer(PlayerID player_id);
 
-    //creates a room. If room creation is successful, returns room_id of room. 
-    std::pair<std::optional<RoomID>, ReturnCode> 
-    createRoom (PlayerID owner);
+    //creates a room. If room creation is successful, returns room_id of room.
+    std::pair<std::optional<RoomID>, ReturnCode>
+    createRoom(PlayerID owner);
 
     //destroys a room and updates the game manager accordingly
     ReturnCode
@@ -121,18 +117,18 @@ public:
 
     //adds a player to a room
     ReturnCode
-    addPlayerToRoom (PlayerID player_id, RoomID room_id);
+    addPlayerToRoom(PlayerID player_id, RoomID room_id);
 
     //removes a player from a room
     ReturnCode
-    removePlayerFromRoom (PlayerID kicking_player_id, PlayerID player_id);
+    removePlayerFromRoom(PlayerID kicking_player_id, PlayerID player_id);
 
     //Gets the username of the plaer in the room. Returns nullopt if player not in room.
     std::pair<std::optional<std::string>, ReturnCode>
     getRoomUsernameOfPlayer(PlayerID player_id);
 
-    //get a player's player_id from their username in a room. 
-    std::pair<std::optional<PlayerID>, ReturnCode> 
+    //get a player's player_id from their username in a room.
+    std::pair<std::optional<PlayerID>, ReturnCode>
     getPlayerIDFromRoomUsername(const std::string& username, RoomID room_id);
 
     //Changes a player's username in a room
@@ -143,9 +139,7 @@ public:
     const std::vector<PlayerID>* getPlayersInRoom(RoomID room_id);
 
 
-
 private:
-
     static std::string random_name_generator();
 
     Room* getRoomFromRoomID(RoomID room_id);
@@ -164,5 +158,4 @@ private:
     int max_rooms;
 
     std::optional<PlayerID> admin;
-
 };

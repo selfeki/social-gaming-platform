@@ -1,7 +1,6 @@
 #pragma once
 
 #include "MapWrapper.h"
-#include <boost/variant.hpp>
 
 #include <boost/variant.hpp>
 #include <boost/variant/recursive_wrapper.hpp>
@@ -20,8 +19,7 @@ using Expression = boost::variant<
     bool,
     std::string,
     boost::recursive_wrapper<ExpMap>,
-    boost::recursive_wrapper<ExpList>
-    >;
+    boost::recursive_wrapper<ExpList>>;
 
 struct ExpMap {
     MapWrapper<std::string, Expression> map;
@@ -32,4 +30,4 @@ struct ExpList {
 };
 
 
-}   // namespace gameSpecification
+}    // namespace gameSpecification

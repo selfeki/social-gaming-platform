@@ -6,10 +6,10 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #include "GameManager.h"
-#include "commands.h"
 #include "arepa/game_spec/GameSpecification.h"
 #include "arepa/serializer/jsonSerializer.h"
 #include "arepa/server_config/Config.h"
+#include "commands.h"
 
 #include <arepa/command/Command.hpp>
 #include <arepa/server/Server.h>
@@ -96,60 +96,58 @@ void onDisconnect(shared_ptr<Connection> c) {
 
 void processMessages(const std::deque<Message>& incoming) {
 
-  for(auto message : incoming) {
+    for (auto message : incoming) {
 
-    ConnectionId sentFrom = message.connection;
+        ConnectionId sentFrom = message.connection;
 
-    // If it's not a command, handle it as a game message.
+        // If it's not a command, handle it as a game message.
 
-    //game manager refactored so it does not handle constructing messages, must do it here or somewhere else
-    if (!Command::is_command(message.text)) {
-        
-        std::string text;
+        //game manager refactored so it does not handle constructing messages, must do it here or somewhere else
+        if (!Command::is_command(message.text)) {
 
-        std::optional<RoomID> room_id = gameManager.getRoomIDOfPlayer(sentFrom);
+            std::string text;
 
-        if(!room_id) {
-          text += "You are not in a room. Join one with /join, type /help for help.";
-          networkMessageQueue.emplace_back(sentFrom, text);
-        } else {
-          std::pair<std::optional<std::string>, GameManager::ReturnCode> username_result = gameManager.getRoomUsernameOfPlayer(sentFrom);
-          const std::vector<PlayerID>* players = gameManager.getPlayersInRoom(*room_id);
-          text += (*(username_result.first) + ": " + message.text);
+            std::optional<RoomID> room_id = gameManager.getRoomIDOfPlayer(sentFrom);
 
-          for(auto player : *players) {
-            networkMessageQueue.emplace_back(player, text);
-          }
+            if (!room_id) {
+                text += "You are not in a room. Join one with /join, type /help for help.";
+                networkMessageQueue.emplace_back(sentFrom, text);
+            } else {
+                std::pair<std::optional<std::string>, GameManager::ReturnCode> username_result = gameManager.getRoomUsernameOfPlayer(sentFrom);
+                const std::vector<PlayerID>* players = gameManager.getPlayersInRoom(*room_id);
+                text += (*(username_result.first) + ": " + message.text);
 
+                for (auto player : *players) {
+                    networkMessageQueue.emplace_back(player, text);
+                }
+            }
+            continue;
         }
-        continue;
-    }
 
-    // If it is a command, parse it and execute it.
-    auto command = Command::parse(message.text);
-    if (!command) {
-        // This means the command string was invalid (not alphanumeric command name).
-        // TODO(nikolkam): Send the user an error message.
-        std::cout << "Invalid command: " << message.text << std::endl;
-        continue;
-    }
+        // If it is a command, parse it and execute it.
+        auto command = Command::parse(message.text);
+        if (!command) {
+            // This means the command string was invalid (not alphanumeric command name).
+            // TODO(nikolkam): Send the user an error message.
+            std::cout << "Invalid command: " << message.text << std::endl;
+            continue;
+        }
 
-    // Get the command executor.
-    auto executor = COMMAND_MAP.find(command->name());
-    if (executor == COMMAND_MAP.end()) {
-        // This means the command couldn't be found.
-        // TODO(nikolkam): Send the user an error message.
-        std::cout << "Unknown command: " << message.text << std::endl;
-        continue;
-    }
+        // Get the command executor.
+        auto executor = COMMAND_MAP.find(command->name());
+        if (executor == COMMAND_MAP.end()) {
+            // This means the command couldn't be found.
+            // TODO(nikolkam): Send the user an error message.
+            std::cout << "Unknown command: " << message.text << std::endl;
+            continue;
+        }
 
-    // Execute the command.
-    CommandUser user(sentFrom);
-    executor->second->execute(gameManager, user, command->arguments());
-    std::copy(user.outgoing_message_queue().begin(), user.outgoing_message_queue().end(), std::back_inserter(networkMessageQueue));
-  }
+        // Execute the command.
+        CommandUser user(sentFrom);
+        executor->second->execute(gameManager, user, command->arguments());
+        std::copy(user.outgoing_message_queue().begin(), user.outgoing_message_queue().end(), std::back_inserter(networkMessageQueue));
+    }
 }
-
 
 
 using json = nlohmann::json;

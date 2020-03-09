@@ -9,26 +9,25 @@ namespace gameSpecification::rule {
 
 class InterpretVisitor : public RuleVisitor {
 public:
-  InterpretVisitor(GameState& state)
-    : state{state},
-      needUserInput{false}
-      { }
-  
-  void visitImpl(const rule::ForEach&);
+    InterpretVisitor(GameState& state)
+        : state { state }
+        , needUserInput { false } {}
 
-  void visitImpl(const rule::GlobalMessage&);
+    void visitImpl(const rule::ForEach&);
 
-  void
-  setGameState(const GameState&);
+    void visitImpl(const rule::GlobalMessage&);
+
+    void
+    setGameState(const GameState&);
 
 private:
-  GameState& state;
+    GameState& state;
 
-  bool needUserInput;
-  
-  ExpMap context;
+    bool needUserInput;
 
-  std::stack<const Rule*> scope;
+    ExpMap context;
+
+    std::stack<const Rule*> scope;
 };
 
-} // namespace gameSpecification::rule
+}    // namespace gameSpecification::rule

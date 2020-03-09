@@ -4,7 +4,7 @@
 #include <iostream>
 #include <unordered_map>
 
-template<class keyTy, class valTy>
+template <class keyTy, class valTy>
 using MapWrapper = std::unordered_map<keyTy, valTy>;
 
 // template <class keyTy, class valTy>
