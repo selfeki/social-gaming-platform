@@ -10,10 +10,12 @@ namespace gameSpecification {
 
 struct GamePlayer {
     std::string name;
+    std::vector<std::string> messages;
 };
 
 struct GameAudience {
     std::string name;
+    std::vector<std::string> messages;
 };
 
 using Environment = MapWrapper<std::string, Expression>;

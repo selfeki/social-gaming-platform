@@ -40,29 +40,34 @@ struct Scores;
 
 class RuleVisitor {
 public:
-  void visit(const ForEach& forEach) { visitImpl(forEach); }
-  virtual ~RuleVisitor();
+  virtual ~RuleVisitor() = default;
+
+  void visit(const ForEach& rule) { visitImpl(rule); }
+  void visit(const GlobalMessage& rule) { visitImpl(rule); }
 
 private:
-  virtual void visitImpl(const ForEach& forEach) { }
+  virtual void visitImpl(const ForEach& rule) { }
+  virtual void visitImpl(const GlobalMessage& rule) { }
 };
 
 
 struct Rule {
-    virtual void accept(RuleVisitor& visitor) const = 0;
-    virtual ~Rule();
+  virtual ~Rule() = default;
+  
+  virtual void accept(RuleVisitor& visitor) const = 0;
 };
 
-
+using RuleID  = int;
 using RuleList = std::vector<Rule>;
 
-struct ForEach : public Rule {
+struct ForEach final : public Rule {
   virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
 
-  // std::unique_ptr<Rule> parent;
+  // raw pointer is fine because it is non-owning 
+  Rule*        parent;
   Expression   elemList;
   Expression   elem;
-  RuleList 	 rules;
+  RuleList 	   rules;
 };
 
 
@@ -233,11 +238,12 @@ struct ForEach : public Rule {
 //     Expression content;
 // };
 
-// struct GlobalMessage {
-//     int id;
-//     Rule& 		 parent;
-//     Expression content;
-// };
+struct GlobalMessage final : public Rule {
+  virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+
+  Rule* 		 parent;
+  Expression content;
+};
 
 // struct Scores {
 //     int id;

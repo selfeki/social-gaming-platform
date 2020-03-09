@@ -4,18 +4,19 @@
 #include "arepa/game_spec/Rule.h"
 
 #include <stack>
-#include <functional>
 
 namespace gameSpecification::rule {
-
 
 class InterpretVisitor : public RuleVisitor {
 public:
   InterpretVisitor(GameState& state)
-    : state{state}
+    : state{state},
+      needUserInput{false}
       { }
   
-  void visitImpl(const rule::ForEach& forEach);
+  void visitImpl(const rule::ForEach&);
+
+  void visitImpl(const rule::GlobalMessage&);
 
   void
   setGameState(const GameState&);
@@ -23,7 +24,11 @@ public:
 private:
   GameState& state;
 
-  std::stack<rule::Rule> context;
+  bool needUserInput;
+  
+  ExpMap context;
+
+  std::stack<const Rule*> scope;
 };
 
 } // namespace gameSpecification::rule
