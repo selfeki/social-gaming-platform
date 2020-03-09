@@ -1,3 +1,4 @@
+#pragma once
 
 #include "MapWrapper.h"
 #include <boost/variant.hpp>
@@ -11,15 +12,24 @@ namespace gameSpecification {
 
 // An Expression is a R-value in game specification
 
-using ExpMap = MapWrapper<std::string, boost::recursive_variant_>;
-using ExpList = std::vector<boost::recursive_variant_>;
+struct ExpMap;
+struct ExpList;
 
-using Expression = boost::make_recursive_variant<
-    ExpMap,
-    ExpList,
-    std::string,
+using Expression = boost::variant<
     int,
-    bool>::type;
+    bool,
+    std::string,
+    boost::recursive_wrapper<ExpMap>,
+    boost::recursive_wrapper<ExpList>
+    >;
+
+struct ExpMap {
+    MapWrapper<std::string, Expression> map;
+};
+
+struct ExpList {
+    std::vector<Expression> list;
+};
 
 
 }   // namespace gameSpecification
