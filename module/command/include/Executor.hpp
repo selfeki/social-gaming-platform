@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CommandArguments.hpp"
+
 #include <functional>
 #include <memory>
 

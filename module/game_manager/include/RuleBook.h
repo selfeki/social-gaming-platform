@@ -1,9 +1,13 @@
+#pragma once
+
 #include <iostream>
 #include <iterator>
 #include <map>
 #include <optional>
 #include <sstream>
 #include <string>
+#include <string>
+#include <utility>
 #include <utility>
 #include <vector>
 
@@ -99,14 +103,14 @@ public:
         , arithmeticVarMap { st.arithmeticVarMap } {}
 };
 
-class GlobalMessage {
-public:
+class GlobalMessage {    // 1. GlobalMessage only takes in a 'Message' as String.
+public:                  // 2. Take the message and get the variable out.
     DataPacket message;
     GlobalMessage(DataPacket message)
         : message { message } {}
 };
 
-class MessageRule {
+class MessageRule {    // Message requires 'Message' as String & 'Receipents' as Player
 public:
     DataPacket message;
     PlayersListPacket recipents;

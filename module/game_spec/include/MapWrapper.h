@@ -5,24 +5,27 @@
 #include <unordered_map>
 
 template <class keyTy, class valTy>
-struct MapWrapper {
-public:
-    void
-    set(keyTy key, valTy value) {
-        assignments[key] = value;
-    }
+using MapWrapper = std::unordered_map<keyTy, valTy>;
 
-    valTy
-    get(const keyTy& key) const {
-        auto found = assignments.find(key);
-        if (found != assignments.end()) {
-            return { found->second };
-        } else {
-            std::cerr << "Invalid key: " << key << '\n';
-            throw;
-        }
-    }
+// template <class keyTy, class valTy>
+// struct MapWrapper {
+// public:
+//     void
+//     set(keyTy key, valTy value) {
+//         assignments[key] = value;
+//     }
 
-private:
-    std::unordered_map<keyTy, valTy> assignments;
-};
+//     valTy
+//     get(const keyTy& key) const {
+//         auto found = assignments.find(key);
+//         if (found != assignments.end()) {
+//             return { found->second };
+//         } else {
+//             std::cerr << "Invalid key: " << key << '\n';
+//             throw;
+//         }
+//     }
+
+// private:
+//     std::unordered_map<keyTy, valTy> assignments;
+// };

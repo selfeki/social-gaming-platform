@@ -3,6 +3,7 @@
 #include "arepa/game_spec/Rule.h"
 
 using namespace gameSpecification;
+using rule::InterpretVisitor;
 
 class GameInstance {
 public:
@@ -22,6 +23,5 @@ public:
 
 private:
     //   GameState&      gameState;
-    Interpreter interpreter;
-    rule::Rule currentRule;
+    InterpretVisitor interpreter;
 };

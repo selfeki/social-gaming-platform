@@ -1,6 +1,7 @@
 #include "commands.h"
-#include <unordered_map>
+
 #include <tuple>
+#include <unordered_map>
 
 using Arguments = arepa::command::CommandArguments;
 using Context = CommandContext;
@@ -20,93 +21,89 @@ std::unordered_map<std::string, std::unique_ptr<CommandExecutor>> COMMAND_MAP;
 void init_commands() {
     COMMAND_MAP.insert(COMMAND("ping", [](Context& game_manager, User& user, const Arguments& args) {
         std::cout << "Received /ping" << std::endl;
-
     }));
 
     //example of the "members" command. TODO: the rest of the commands.
     COMMAND_MAP.insert(COMMAND("members", [](Context& game_manager, User& user, const Arguments& args) {
-                
         std::string text;
 
         std::optional<RoomID> room_id = game_manager.getRoomIDOfPlayer(*user);
-        
-        if(!room_id) {
+
+        if (!room_id) {
             user.outgoing_message_queue().emplace_back(*user, "You are not in a room");
             return;
         }
 
         const std::vector<PlayerID>* players = game_manager.getPlayersInRoom(*room_id);
 
-        if(!players) {
+        if (!players) {
             //should probably throw an exception here because in this case everything is messed up
             return;
         }
 
         text += *room_id + " players: \n";
-        for(auto player : *players) {
+        for (auto player : *players) {
             getRoomUsernameReturnType username_return = game_manager.getRoomUsernameOfPlayer(player);
             text += *(username_return.first) + "\n";
         }
-        
-        user.outgoing_message_queue().emplace_back(*user, text);
 
+        user.outgoing_message_queue().emplace_back(*user, text);
     }));
 
-    COMMAND_MAP.insert(COMMAND("room", [](Context& game_manager, User& user, const Arguments& args){
+    COMMAND_MAP.insert(COMMAND("room", [](Context& game_manager, User& user, const Arguments& args) {
         //auto responses = game_manager.returnRoomCommand(*user);
         //std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
         //return responses;
     }));
 
-    COMMAND_MAP.insert(COMMAND("create", [](Context& game_manager, User& user, const Arguments& args){
+    COMMAND_MAP.insert(COMMAND("create", [](Context& game_manager, User& user, const Arguments& args) {
         createRoomReturnType room_ret = game_manager.createRoom(*user);
 
-        if(room_ret.second != GameManager::ReturnCode::SUCCESS) {
+        if (room_ret.second != GameManager::ReturnCode::SUCCESS) {
             user.outgoing_message_queue().emplace_back(*user, "Failed to create room.");
             return;
         }
 
         user.outgoing_message_queue().emplace_back(*user, "Created room " + *(room_ret.first));
         return;
-
     }));
 
-    COMMAND_MAP.insert(COMMAND("room", [](Context& game_manager, User& user, const Arguments& args){
+    COMMAND_MAP.insert(COMMAND("room", [](Context& game_manager, User& user, const Arguments& args) {
         //auto responses = game_manager.returnRoomCommand(*user);
         //std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
         //return responses;
     }));
 
-    COMMAND_MAP.insert(COMMAND("join", [](Context& game_manager, User& user, const Arguments& args){
+    COMMAND_MAP.insert(COMMAND("join", [](Context& game_manager, User& user, const Arguments& args) {
         //auto responses = game_manager.joinRoomCommand(*user, args.front());
         //std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
         //return responses;
     }));
 
-    COMMAND_MAP.insert(COMMAND("kick", [](Context& game_manager, User& user, const Arguments& args){
+    COMMAND_MAP.insert(COMMAND("kick", [](Context& game_manager, User& user, const Arguments& args) {
         //auto responses = game_manager.kickPlayerCommand(*user, args.front());
         //std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
         //return responses;
     }));
 
-    COMMAND_MAP.insert(COMMAND("clear", [](Context& game_manager, User& user, const Arguments& args){
+    COMMAND_MAP.insert(COMMAND("clear", [](Context& game_manager, User& user, const Arguments& args) {
         //auto responses = game_manager.clearCommand(*user);
         //std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
         //return responses;
     }));
 
-    COMMAND_MAP.insert(COMMAND("quit", [](Context& game_manager, User& user, const Arguments& args){
+    COMMAND_MAP.insert(COMMAND("quit", [](Context& game_manager, User& user, const Arguments& args) {
         //auto responses = game_manager.leaveRoomCommand(*user);
         //std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
         //return responses;
-    }));   
+    }));
 
-    COMMAND_MAP.insert(COMMAND("shutdown", [](Context& game_manager, User& user, const Arguments& args){
+    COMMAND_MAP.insert(COMMAND("shutdown", [](Context& game_manager, User& user, const Arguments& args) {
         //auto responses = game_manager.shutdownServerCommand(*user);
         //std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
         //return responses;
     }));
-    
+
     // TODO(nikolkam): Port the rest of these.
     //                 Also, maybe refactor some of them if you can?
 

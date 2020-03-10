@@ -75,8 +75,13 @@ parseConfig(const json& j) {
 gameSpecification::Setup
 parseSetup(const json& j) {
     Setup setup;
+<<<<<<< HEAD
     for (const auto& [key, val] : j["setup"].items()) {
         setup.set(key, parseSetupValue(val));
+=======
+    for (const auto& [key, val] : j.at("setup").items()) {
+        setup[key] = parseSetupValue(val);
+>>>>>>> origin/selfeki/interpreter
     }
     return setup;
 }
@@ -142,7 +147,7 @@ parseEnvironment(const json& j) {
         auto key = item.key();
         auto value = item.value();
         auto exp = parseExpression(value);
-        env.set(key, exp);
+        env[key] = exp;
     }
     return env;
 }
@@ -167,22 +172,22 @@ parseExpression(const json& j) {
 
 gameSpecification::Expression
 parseExpMap(const json& j) {
-    auto expMap = MapWrapper<std::string, Expression>();
+    ExpMap expMap;
     for (const auto& [key, val] : j.items()) {
         Expression exp = parseExpression(val);
-        expMap.set(key, exp);
+        expMap.map[key] = exp;
     }
     return expMap;
 }
 
 gameSpecification::Expression
 parseExpList(const json& j) {
-    auto expList = std::vector<Expression>();
+    ExpList expList;
     for (const auto& [_, val] : j.items()) {
         // todo: change to std::transform
         // todo: test expressions are serialized in right order
         Expression exp = parseExpression(val);
-        expList.emplace_back(exp);
+        expList.list.emplace_back(exp);
     }
     return expList;
 }
