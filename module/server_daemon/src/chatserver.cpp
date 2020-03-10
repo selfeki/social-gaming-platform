@@ -5,14 +5,16 @@
 // for details.
 /////////////////////////////////////////////////////////////////////////////
 
+#include "./commands.h"
+#include "./logging.hpp"
 #include "GameManager.h"
 #include "arepa/game_spec/GameSpecification.h"
 #include "arepa/serializer/jsonSerializer.h"
 #include "arepa/server_config/Config.h"
-#include "commands.h"
 
 #include <arepa/command/Command.hpp>
 #include <arepa/server/Server.h>
+#include <arepa/server/ServerLoop.hpp>
 
 #include <boost/uuid/uuid_io.hpp>
 
@@ -21,18 +23,17 @@
 #include <atomic>
 #include <cstdint>
 #include <deque>
-#include <fstream>
 #include <iostream>
 #include <iterator>
-#include <sstream>
 #include <string>
-#include <unistd.h>
 #include <vector>
 
 using arepa::command::Command;
+using arepa::server::ServerLoop;
 using networking::ConnectionId;
 using networking::Message;
 using networking::Server;
+
 
 typedef networking::ConnectionId UniqueConnectionID;
 //typedef MessageReturn<UniqueConnectionID> GameManager::MessageReturn;
@@ -53,10 +54,10 @@ std::deque<Message> networkMessageQueue;
 
 
 //message types possible (tentative)
-enum MessageType { 
+enum MessageType {
     COMMAND,
     GAME_CONFIG,
-    NORMAL 
+    NORMAL
 };
 
 
@@ -80,7 +81,7 @@ std::deque<Message> sendToClient(const ConnectionId& client, const std::string& 
 void onConnect(shared_ptr<Connection> c) {
     auto id = ++unique_connection_id_counter;
 
-    std::cout << "New connection found: " << c->session_token() << "\n";
+    clout << "New connection found: " << c->session_token() << "\n";
 
     //override game manager and send back server welcome message...
     networkMessageQueue.emplace_back(c->session_id(), "Welcome to the server! Enter a command...");
@@ -90,25 +91,23 @@ void onConnect(shared_ptr<Connection> c) {
 
 //Called whenenver a client disconnects. Should handle disconneting player from game room
 void onDisconnect(shared_ptr<Connection> c) {
-    std::cout << "Connection lost: " << c->session_token() << "\n";
-
-    //command.leaveRoom(c->session_id(), networkMessageQueue);
+    clout << "Connection lost: " << c->session_token() << "\n";
 }
 
 
 void processMessages(const std::deque<Message>& incoming) {
-    for(auto& message : incoming) {
+    for (auto& message : incoming) {
         ConnectionId sentFrom = message.connection;
 
         // If it's not a command, handle it as a game message.
         //game manager refactored so it does not handle constructing messages, must do it here or somewhere else
         if (!Command::is_command(message.text)) {
-            
-            
+
+
             std::optional<RoomID> room_id = gameManager.getRoomIDOfPlayer(sentFrom);
             CommandUser user(sentFrom);
-            if(!room_id) {
-                std::cout<<"Player not in a room\n";
+            if (!room_id) {
+                std::cout << "Player not in a room\n";
                 user.formMessageToSender("You are not in a room. Create a room with '/create', join one with '/join', type '/help' for help.\n");
             } else {
                 std::pair<std::optional<std::string>, GameManager::ReturnCode> username_result = gameManager.getRoomUsernameOfPlayer(sentFrom);
@@ -127,23 +126,21 @@ void processMessages(const std::deque<Message>& incoming) {
         // This means the command string was invalid (not alphanumeric command name).
         if (!command) {
             invalidCommand(user);
-            std::cout<<"["<<(*user).name()<<"] Invalid command:" << message.text << std::endl;
+            std::cout << "[" << (*user).name() << "] Invalid command:" << message.text << std::endl;
         }
         // This means the command couldn't be found.
-        else if(executor == COMMAND_MAP.end()){
+        else if (executor == COMMAND_MAP.end()) {
             unknownCommand(user);
-            std::cout<<"["<<(*user).name()<<"] Unknown command:" << message.text << std::endl;
+            std::cout << "[" << (*user).name() << "] Unknown command:" << message.text << std::endl;
         }
         //Execute the command and store the result in user.outgoing_message_queue()
-        else
-        {
+        else {
             executor->second->execute(gameManager, user, command->arguments());
         }
-        //Create outgoing message queue         
+        //Create outgoing message queue
         std::copy(user.outgoing_message_queue().begin(), user.outgoing_message_queue().end(), std::back_inserter(networkMessageQueue));
-  }
+    }
 }
-
 
 
 using json = nlohmann::json;
@@ -153,7 +150,7 @@ loadJSONConfigFile(const std::string& filepath) {
     serverConfig::Configuration config;
     std::ifstream s(filepath);
     if (s.fail()) {
-        std::cerr << "Error: " << strerror(errno) << std::endl;
+        std::cerr << "Error: " << strerror(errno) << endl;
         return config;
     }
 
@@ -171,29 +168,32 @@ loadJSONConfigFile(const std::string& filepath) {
     return config;
 }
 
-
 int main(int argc, char* argv[]) {
+    init_logging();
 
     serverConfig::Configuration server_config;
 
     if (argc < 2) {
+        clout << "Loading server configuration from default config file." << endl;
         server_config = loadJSONConfigFile(default_json);
     } else {
+        clout << "Loading server configuration from " << argv[1] << "." << endl;
         server_config = loadJSONConfigFile(argv[1]);
     }
 
     if (server_config.err) {
+        clout << "Failed to load server configuration." << endl;
         return -1;
     }
 
     //example
     //g_config game = game_config::load_file("templates/game/rps.json", true);
-    //std::cout << game.player_count["min"] << std::endl;
+    //clout << game.player_count["min"] << endl;
 
     /*
-  Try to configurate game_manager... with custom error handling to give useful
-  error messages?
-  */
+     * Try to configurate game_manager... with custom error handling to give useful
+     * error messages?
+     */
     try {
         //game_manager.setUp(server_config);
     } catch (... /*const GameManagerException& e*/) {
@@ -206,7 +206,12 @@ int main(int argc, char* argv[]) {
     arepa::networking::websocket::Options opts;
     opts.bind_port = port;
 
+    clout << "Creating server instance."
+          << data(std::make_pair("Port", opts.bind_port))
+          << endl;
+
     Server server(opts, &onConnect, &onDisconnect);
+    clout << "Successfully created server instance." << endl;
 
     // Initialize commands
     init_commands();
@@ -215,10 +220,8 @@ int main(int argc, char* argv[]) {
      * Main Game Server Loop
      */
 
-    while (true) {
-        bool shouldQuit = false;
-
-
+    clout << "Initialization is complete." << endl;
+    ServerLoop main([&main, &server]() {
         //Get all messages.
         auto incoming = server.receive();
 
@@ -230,13 +233,11 @@ int main(int argc, char* argv[]) {
         server.send(networkMessageQueue);
         networkMessageQueue.clear();
 
-        if (shouldQuit) {
-            break;
-        }
+        //        if (shouldQuit) {
+        //            main.stop();
+        //        }
+    });
 
-        // Sleep to not burn out the CPU.
-        constexpr int ONE_HUNDRED_MILLISECONDS = 1000 * 100;
-        usleep(ONE_HUNDRED_MILLISECONDS);
-    }
+    main.start();
     return 0;
 }
