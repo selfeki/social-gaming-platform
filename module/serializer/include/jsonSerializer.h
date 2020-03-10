@@ -55,10 +55,23 @@ gameSpecification::Expression
 parseExpList(const json&);
 
 gameSpecification::rule::Rule
-ruleSelector(const json&, std::string, gameSpecification::rule::Rule&);
+ruleSelector(const json&, const std::string&);
 
 gameSpecification::rule::RuleList
 parseRule(const json&);
+
+//parse rules
+gameSpecification::rule::Rule
+parseRuleForEach(const json& );
+
+gameSpecification::rule::Rule
+parseRuleParallelFor(const json& );
+
+gameSpecification::rule::Rule
+parseRuleGlobalMessage(const json&);
+
+gameSpecification::rule::Rule
+parseRuleInputChoice(const json& );
 
 bool isValidServerConfig(const json&);
 

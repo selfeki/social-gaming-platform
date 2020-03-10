@@ -2,13 +2,14 @@
 
 #include "Expression.h"
 #include "MapWrapper.h"
-
 #include <boost/variant.hpp>
 #include <boost/variant/recursive_wrapper.hpp>
 #include <boost/variant/variant.hpp>
+#include <boost/optional.hpp>
+
+
 
 namespace gameSpecification::rule {
-
 // Control flow
 struct ForEach;
 struct Loop;
@@ -36,7 +37,6 @@ struct Message;
 struct GlobalMessage;
 struct Scores;
 
-
 using Rule = boost::make_recursive_variant<
     ForEach,
     Loop,
@@ -62,7 +62,7 @@ using Rule = boost::make_recursive_variant<
 using RuleList = std::vector<Rule>;
 
 struct ForEach {
-    Rule& 		 parent;
+    //Rule& 		 parent;
     Expression elemList;
     Expression elem;
     RuleList 	 rules;
@@ -74,18 +74,18 @@ enum LoopType {
 };
 
 struct Loop {
-    Rule& 	 parent;
+    //Rule& 	 parent;
     LoopType type;    // Until or While
     RuleList rules;
 };
 
 struct InParallel {
-    Rule& 	 parent;
+    //Rule& 	 parent;
     RuleList rules;
 };
 
 struct ParallelFor {
-    Rule& 		 parent;
+    //Rule& 		 parent;
     Expression elemList;
     Expression elem;
     RuleList 	 rules;
@@ -94,7 +94,7 @@ struct ParallelFor {
 using CaseToRules = MapWrapper<Expression, RuleList>;
 
 struct Switch {
-    Rule& 			parent;
+    //Rule& 			parent;
     Expression 	switchTarget;
     Expression 	valuesList;
     RuleList 		rules;
@@ -104,28 +104,28 @@ struct Switch {
 using ConditionToRules = MapWrapper<Expression, RuleList>;
 
 struct When {
-    Rule& parent;
+    //Rule& parent;
     ConditionToRules condToRules;
 };
 
 struct Extend {
-    Rule& 		 parent;
+    //Rule& 		 parent;
     Expression targetList;
     Expression list;
 };
 
 struct Reverse {
-    Rule& 		 parent;
+    //Rule& 		 parent;
     Expression list;
 };
 
 struct Shuffle {
-    Rule& 		 parent;
+    //Rule& 		 parent;
     Expression list;
 };
 
 struct Sort {
-    Rule& 		 parent;
+    //Rule& 		 parent;
     Expression list;
     // todo: if key provided
     // Validate that the list contains maps
@@ -148,20 +148,20 @@ struct Sort {
 
 // Number is an integer literal?
 struct Deal {
-    Rule& 		 parent;
+    //Rule& 		 parent;
     Expression fromList;
     Expression toList;
     Expression count;
 };
 
 struct Discard {
-    Rule& 		 parent;
+    //Rule& 		 parent;
     Expression fromList;
     Expression count;
 };
 
 struct Add {
-    Rule& 		 parent;
+    //Rule& 		 parent;
     Expression to;
     Expression value;
 };
@@ -173,7 +173,7 @@ enum TimerMode {
 };
 
 struct Timer {
-    Rule& 		 parent;
+    //Rule& 		 parent;
     Expression duration;
     TimerMode  mode;
     RuleList 	 rules;
@@ -186,7 +186,7 @@ using UserIDList = std::vector<UserID>;
 
 
 struct InputChoice {
-    Rule& 		 parent;
+    //Rule& 		 parent;
     UserIDList targetUsers;
     Expression prompt;
     Expression choiceList;
@@ -195,7 +195,7 @@ struct InputChoice {
 };
 
 struct InputText {
-    Rule& 		 parent;
+    //Rule& 		 parent;
     UserID 		 targetUser;
     Expression prompt;
     Expression result;
@@ -204,7 +204,7 @@ struct InputText {
 };
 
 struct InputVote {
-    Rule& 		 parent;
+    //Rule& 		 parent;
     UserIDList targetUsers;
     Expression prompt;
     Expression choiceList;
@@ -212,20 +212,19 @@ struct InputVote {
 };
 
 struct Message {
-    Rule& 		 parent;
+    //Rule& 		 parent;
     UserIDList targetUsers;
     Expression content;
 };
 
 struct GlobalMessage {
-    Rule& 		 parent;
+    //Rule& 		 parent;
     Expression content;
 };
 
 struct Scores {
-    Rule&      parent;
+    //Rule&      parent;
     Expression scoreAttribute;
     Expression isAscending;
 };
-
 }    // namespace rule
