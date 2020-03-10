@@ -44,11 +44,11 @@ std::optional<Command> Command::parse(std::string_view input) {
         // Parse the command arguments.
         CommandArguments args(split.begin(), split.end());
         return { Command(std::move(name), std::move(args), std::string(rawArgs)) };
-    } catch (std::bad_alloc& ex) {
+    } catch (std::runtime_error& ex) {
         return std::nullopt;
     }
 }
 
 bool Command::is_command(const std::string& message) {
-    return message.size() >= 1 && message[0] == '/';
+    return !message.empty() && message[0] == '/';
 }
