@@ -64,6 +64,12 @@ bool hasAllRequiredFields(const json&);
 
 bool hasNoExtraFields(const json&);
 
+//json configuration requirements:
+//used by hasAllRequiredFields() and hasNoExtraFields() to validate json fields
+const std::vector<std::string> FIELDS = {"configuration","constants","variables","per-player","per-audience","rules"};
+const std::vector<std::string> FIELDS_configuration = {"name", "player count"};
+const std::vector<std::string> FIELDS_playerCount = {"min","max"};
+
 // enum FIELDS {
 //     CONF,
 //     NAME,

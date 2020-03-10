@@ -197,18 +197,53 @@ bool isValidGameSpec(const json& j) {
 }
 
 bool hasAllRequiredFields(const json& j) {
-    json flat = j.flatten();
-    // use std::all_of or any_of to implement this
-    for (auto element : enum_to_str) {
-        if (flat[element.second] == NULL) {
-            return false;
-        }
+    //check json contains all top level fields
+    std::vector<std::string>::const_iterator it;
+    it = find_if(FIELDS.begin(), FIELDS.end(), [&j](const std::string& target) {
+        return !j.contains(target);
+    });
+    if (it != FIELDS.end()) {
+        //a field is missing from json object
+        return false;
     }
+    
+    //check json contains all subfields
+    //subfield check: "configuration" contains all fields
+    json config = j.at("configuration");
+    it = find_if(FIELDS_configuration.begin(), FIELDS_configuration.end(), [&config](const std::string& target) {
+        return !config.contains(target);
+    });
+    if (it != FIELDS_configuration.end()) {
+        //a field is missing from json object
+        return false;
+    }
+    
+    //subfield check: "configuration"->"player count" contains all fields
+    json playerCount = (j.at("configuration")).at("player count");
+    it = find_if(FIELDS_playerCount.begin(), FIELDS_playerCount.end(),[&playerCount](const std::string& target) {
+        return !playerCount.contains(target);
+    });
+    if (it != FIELDS_playerCount.end()) {
+        //a field is missing from json object
+        return false;
+    }
+    
     return true;
 }
 
 bool hasNoExtraFields(const json& j) {
-    // need to check for duplicate keys, as that would be invalid
+    // json duplicate keys do not exist. Check to see if all field counts match
+    int num_fields = FIELDS.size();
+    int num_fields_configuration = FIELDS_configuration.size();
+    int num_fields_playerCount = FIELDS_playerCount.size();
+    bool eq_topFields = (num_fields == j.size());
+    bool eq_configFields = (num_fields_configuration == j.at("configuration").size());
+    bool eq_playerCountFields = (num_fields_playerCount == ((j.at("configuration")).at("player count")).size());
+    if (eq_topFields && eq_configFields && eq_playerCountFields) {
+        std::cout << "all field sizes match" << std::endl;
+        return true;
+    }
+    return false;
 }
 
 
