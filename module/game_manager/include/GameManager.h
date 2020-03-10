@@ -28,7 +28,6 @@ typedef networking::ConnectionId PlayerID;
 //on for each client that is to be sent a message
 
 
-
 //Custom error handling might be good for the future?
 class GameManagerException : public std::exception {
 public:
@@ -142,6 +141,9 @@ public:
     //returns pointer to vector of players in a room, null pointer if room does not exist.
     const std::vector<PlayerID>* getPlayersInRoom(RoomID room_id);
 
+    //
+    std::unordered_map<RoomID, Room>& getRoomIdToRoomMap();
+            
 
 
 private:

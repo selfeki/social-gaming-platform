@@ -39,7 +39,7 @@ void BeastSocketListener::start() {
         this->_acceptor.bind(this->_context.endpoint);                        // Bind the endpoint.
         this->_acceptor.listen(boost_socket_base::max_listen_connections);    // Start listening.
     } catch (boost::system::system_error& error) {
-        throw NetworkException(NetworkException::BIND_ERROR);
+        throw NetworkException(NetworkException::BIND_ERROR, error.what());
     }
 
     this->_do_async_accept();
@@ -61,7 +61,7 @@ void BeastSocketListener::_on_async_accept(beast::error_code ec, boost_socket tc
 
     // Handle any potential error.
     if (ec) {
-        this->on_error.emit(NetworkException(NetworkException::ESTABLISH_ERROR));
+        this->on_error.emit(NetworkException(NetworkException::ESTABLISH_ERROR, ec.message()));
         return;
     }
 
@@ -79,7 +79,7 @@ void BeastSocketListener::_on_async_accept(beast::error_code ec, boost_socket tc
 
 void BeastSocketListener::_on_async_accept_websocket(shared_ptr<BeastSocketConnection> socket, boost::beast::error_code ec) {
     if (ec) {
-        this->on_error.emit(NetworkException(NetworkException::ESTABLISH_ERROR));
+        this->on_error.emit(NetworkException(NetworkException::ESTABLISH_ERROR, ec.message()));
         return;
     }
 
