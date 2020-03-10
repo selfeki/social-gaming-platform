@@ -11,11 +11,11 @@
 #include "arepa/server_config/Config.h"
 #include "commands.h"
 
+#include <arepa/command/Command.hpp>
 #include <arepa/log/LogStream.hpp>
 #include <arepa/log/LogStreamFactory.hpp>
 #include <arepa/log/console/ConsoleAdapter.hpp>
 #include <arepa/log/console/FormatterWithColor.hpp>
-#include <arepa/command/Command.hpp>
 #include <arepa/server/Server.h>
 #include <arepa/server/ServerLoop.hpp>
 
@@ -26,15 +26,13 @@
 #include <atomic>
 #include <cstdint>
 #include <deque>
-#include <fstream>
 #include <iostream>
 #include <iterator>
-#include <sstream>
 #include <string>
-#include <unistd.h>
 #include <vector>
 
 using arepa::command::Command;
+using arepa::server::ServerLoop;
 using networking::ConnectionId;
 using networking::Message;
 using networking::Server;
@@ -104,7 +102,7 @@ void onDisconnect(shared_ptr<Connection> c) {
 
 
 void processMessages(const std::deque<Message>& incoming) {
-    for(auto& message : incoming) {
+    for (auto& message : incoming) {
         ConnectionId sentFrom = message.connection;
 
         // If it's not a command, handle it as a game message.
@@ -114,8 +112,8 @@ void processMessages(const std::deque<Message>& incoming) {
 
             std::optional<RoomID> room_id = gameManager.getRoomIDOfPlayer(sentFrom);
             CommandUser user(sentFrom);
-            if(!room_id) {
-                std::cout<<"Player not in a room\n";
+            if (!room_id) {
+                std::cout << "Player not in a room\n";
                 user.formMessageToSender("You are not in a room. Create a room with '/create', join one with '/join', type '/help' for help.\n");
             } else {
                 std::pair<std::optional<std::string>, GameManager::ReturnCode> username_result = gameManager.getRoomUsernameOfPlayer(sentFrom);
@@ -134,23 +132,21 @@ void processMessages(const std::deque<Message>& incoming) {
         // This means the command string was invalid (not alphanumeric command name).
         if (!command) {
             invalidCommand(user);
-            std::cout<<"["<<(*user).name()<<"] Invalid command:" << message.text << std::endl;
+            std::cout << "[" << (*user).name() << "] Invalid command:" << message.text << std::endl;
         }
         // This means the command couldn't be found.
-        else if(executor == COMMAND_MAP.end()){
+        else if (executor == COMMAND_MAP.end()) {
             unknownCommand(user);
-            std::cout<<"["<<(*user).name()<<"] Unknown command:" << message.text << std::endl;
+            std::cout << "[" << (*user).name() << "] Unknown command:" << message.text << std::endl;
         }
         //Execute the command and store the result in user.outgoing_message_queue()
-        else
-        {
+        else {
             executor->second->execute(gameManager, user, command->arguments());
         }
         //Create outgoing message queue
         std::copy(user.outgoing_message_queue().begin(), user.outgoing_message_queue().end(), std::back_inserter(networkMessageQueue));
-  }
+    }
 }
-
 
 
 using json = nlohmann::json;
@@ -207,9 +203,9 @@ int main(int argc, char* argv[]) {
     //clout << game.player_count["min"] << endl;
 
     /*
-  Try to configurate game_manager... with custom error handling to give useful
-  error messages?
-  */
+     * Try to configurate game_manager... with custom error handling to give useful
+     * error messages?
+     */
     try {
         //game_manager.setUp(server_config);
     } catch (... /*const GameManagerException& e*/) {
@@ -249,9 +245,9 @@ int main(int argc, char* argv[]) {
         server.send(networkMessageQueue);
         networkMessageQueue.clear();
 
-        if (shouldQuit) {
-            main.stop();
-        }
+        //        if (shouldQuit) {
+        //            main.stop();
+        //        }
     });
 
     main.start();
