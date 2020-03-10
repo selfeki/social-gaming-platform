@@ -103,7 +103,6 @@ void processMessages(const std::deque<Message>& incoming) {
         //game manager refactored so it does not handle constructing messages, must do it here or somewhere else
         if (!Command::is_command(message.text)) {
 
-
             std::optional<RoomID> room_id = gameManager.getRoomIDOfPlayer(sentFrom);
             CommandUser user(sentFrom);
             if (!room_id) {

@@ -17,7 +17,7 @@ private:
     std::deque<networking::Message> _messages_to_send;
 
 public:
-    CommandUser(::networking::ConnectionId& connection_id)
+    explicit CommandUser(::networking::ConnectionId& connection_id)
         : _connection_id(connection_id) {}
 
     ::networking::ConnectionId operator*() const {
@@ -28,17 +28,17 @@ public:
         return this->_messages_to_send;
     }
 
-    //pushes message to the queue to send back to sender 
-    void formMessageToSender(const std::string message) {
-        this->_messages_to_send.push_back({this->_connection_id, message});
+    //pushes message to the queue to send back to sender
+    void formMessageToSender(const std::string& message) {
+        this->_messages_to_send.emplace_back(this->_connection_id, message);
     }
 
     //pushes message to the queue to send to room members
-    void formMessageToRoom (GameManager& gameManager, std::string message){
+    void formMessageToRoom(GameManager& gameManager, const std::string& message) {
         std::optional<RoomID> room_id = gameManager.getRoomIDOfPlayer(_connection_id);
         const std::vector<::networking::ConnectionId>* players = gameManager.getPlayersInRoom(*room_id);
-        for(auto player : *players) {
-            _messages_to_send.push_back({player, message});
+        for (auto player : *players) {
+            _messages_to_send.emplace_back(player, message);
         }
     }
 };
