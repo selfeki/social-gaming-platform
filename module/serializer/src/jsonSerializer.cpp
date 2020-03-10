@@ -240,7 +240,7 @@ bool hasNoExtraFields(const json& j) {
     bool eq_configFields = (num_fields_configuration == j.at("configuration").size());
     bool eq_playerCountFields = (num_fields_playerCount == ((j.at("configuration")).at("player count")).size());
     if (eq_topFields && eq_configFields && eq_playerCountFields) {
-        std::cout << "all field sizes match" << std::endl;
+        //all field sizes match
         return true;
     }
     return false;
