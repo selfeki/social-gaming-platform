@@ -188,6 +188,53 @@ parseExpList(const json& j) {
 }
 
 //all other parseRule__RULENAME__ will be similar with different fields
+gameSpecification::rule::Rule
+parseRuleReverse(const json& j){
+    gameSpecification::Expression list = parseExpression(j.value("list", ""));
+    gameSpecification::rule::Reverse reverseRule = {list};
+    return reverseRule;
+}
+
+gameSpecification::rule::Rule
+parseRuleShuffle(const json& j){
+    gameSpecification::Expression list = parseExpression(j.value("list", ""));
+    gameSpecification::rule::Shuffle shuffleRule = {list};
+    return shuffleRule;
+}
+
+gameSpecification::rule::Rule
+parseRuleAdd(const json& j){
+    gameSpecification::Expression to = parseExpression(j.value("to", ""));
+    gameSpecification::Expression value = parseExpression(j.value("value", 0));
+    gameSpecification::rule::Add addRule= {to, value};
+    return addRule;
+}
+
+//TODO: Finish off when
+gameSpecification::rule::Rule
+parseRuleWhen(const json& j){
+        std::cout << j;
+        //placeholder
+        gameSpecification::rule::Extend extendRule = {"target", "list"};
+        return extendRule;
+}
+
+gameSpecification::rule::Rule
+parseRuleExtend(const json& j){
+    gameSpecification::Expression target = parseExpression(j.value("target", ""));
+    gameSpecification::Expression list = parseExpression(j.value("list", ""));
+    gameSpecification::rule::Extend extendRule= {target, list};
+    return extendRule;
+}
+
+gameSpecification::rule::Rule
+parseRuleDiscard(const json& j){
+    gameSpecification::Expression from = parseExpression(j.value("from", ""));
+    gameSpecification::Expression count = parseExpression(j.value("count", ""));
+    gameSpecification::rule::Discard discardRule = {from, count};
+    return discardRule;
+}
+
 //todo: properly parse player/ player list. could be single value or list nlohmann isArray or something like that
 gameSpecification::rule::Rule
 parseRuleInputChoice(const json& j){
@@ -268,21 +315,21 @@ ruleSelector(const json& j, const std::string& ruleName) {
         else if (ruleName == "switch")
             std::cout << "switch";
         else if (ruleName == "when")
-            std::cout << "when";
+            return parseRuleWhen(j);
         else if (ruleName == "extend")
-            std::cout << "extend";
+            return parseRuleExtend(j);
         else if (ruleName == "reverse")
-            std::cout << "reverse";
+            return parseRuleReverse(j);
         else if (ruleName == "shuffle")
-            std::cout << "shuffle";
+            return parseRuleShuffle(j);
         else if (ruleName == "sort")
             std::cout << "sort";
         else if (ruleName == "deal")
             std::cout << "deal";
         else if (ruleName == "discard")
-            std::cout << "discard";
+            return parseRuleDiscard(j);
         else if (ruleName == "add")
-            std::cout << "add";
+            return parseRuleAdd(j);
         else if (ruleName == "input-choice")
             return parseRuleInputChoice(j);
         else if (ruleName == "input-text")
@@ -320,7 +367,7 @@ gameSpecification::rule::RuleList
 parseRule(const json& j){
     auto parsed_rules = gameSpecification::rule::RuleList();
     auto jsonRules = j["rules"].get<std::vector<json>>();
-
+    std::cout <<"parseRule";
     for (auto rule : jsonRules) {
         std::string ruleName = rule["rule"].get<std::string>();
         parsed_rules.push_back(ruleSelector(rule, ruleName));

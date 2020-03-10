@@ -73,6 +73,24 @@ parseRuleGlobalMessage(const json&);
 gameSpecification::rule::Rule
 parseRuleInputChoice(const json& );
 
+gameSpecification::rule::Rule
+parseRuleDiscard(const json& );
+
+gameSpecification::rule::Rule
+parseRuleExtend(const json&);
+
+gameSpecification::rule::Rule
+parseRuleWhen(const json&);
+
+gameSpecification::rule::Rule
+parseRuleAdd(const json&);
+
+gameSpecification::rule::Rule
+parseRuleReverse(const json&);
+
+gameSpecification::rule::Rule
+parseRuleShuffle(const json&);
+
 bool isValidServerConfig(const json&);
 
 bool isValidGameSpec(const json&);
