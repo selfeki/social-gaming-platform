@@ -53,9 +53,11 @@ std::deque<Message> networkMessageQueue;
 
 
 //message types possible (tentative)
-enum MessageType { COMMAND,
+enum MessageType { 
+    COMMAND,
     GAME_CONFIG,
-    NORMAL };
+    NORMAL 
+};
 
 
 MessageType getMessageType(const std::string& _message) {
@@ -95,58 +97,50 @@ void onDisconnect(shared_ptr<Connection> c) {
 
 
 void processMessages(const std::deque<Message>& incoming) {
+    for(auto& message : incoming) {
+        ConnectionId sentFrom = message.connection;
 
-  for(auto message : incoming) {
-
-    ConnectionId sentFrom = message.connection;
-
-    // If it's not a command, handle it as a game message.
-
-    //game manager refactored so it does not handle constructing messages, must do it here or somewhere else
-    if (!Command::is_command(message.text)) {
-        
-        std::string text;
-
-        std::optional<RoomID> room_id = gameManager.getRoomIDOfPlayer(sentFrom);
-
-        if(!room_id) {
-          text += "You are not in a room. Join one with /join, type /help for help.";
-          networkMessageQueue.emplace_back(sentFrom, text);
-        } else {
-          std::pair<std::optional<std::string>, GameManager::ReturnCode> username_result = gameManager.getRoomUsernameOfPlayer(sentFrom);
-          const std::vector<PlayerID>* players = gameManager.getPlayersInRoom(*room_id);
-          text += (*(username_result.first) + ": " + message.text);
-
-          for(auto player : *players) {
-            networkMessageQueue.emplace_back(player, text);
-          }
-
+        // If it's not a command, handle it as a game message.
+        //game manager refactored so it does not handle constructing messages, must do it here or somewhere else
+        if (!Command::is_command(message.text)) {
+            
+            
+            std::optional<RoomID> room_id = gameManager.getRoomIDOfPlayer(sentFrom);
+            CommandUser user(sentFrom);
+            if(!room_id) {
+                std::cout<<"Player not in a room\n";
+                user.formMessageToSender("You are not in a room. Create a room with '/create', join one with '/join', type '/help' for help.\n");
+            } else {
+                std::pair<std::optional<std::string>, GameManager::ReturnCode> username_result = gameManager.getRoomUsernameOfPlayer(sentFrom);
+                const std::vector<PlayerID>* players = gameManager.getPlayersInRoom(*room_id);
+                std::string text = (*(username_result.first) + ": " + message.text);
+                user.formMessageToRoom(gameManager, text);
+            }
+            std::copy(user.outgoing_message_queue().begin(), user.outgoing_message_queue().end(), std::back_inserter(networkMessageQueue));
+            continue;
         }
-        continue;
-    }
 
-    // If it is a command, parse it and execute it.
-    auto command = Command::parse(message.text);
-    if (!command) {
+        CommandUser user(sentFrom);
+        auto command = Command::parse(message.text);
+        auto executor = COMMAND_MAP.find(command->name());
+
         // This means the command string was invalid (not alphanumeric command name).
-        // TODO(nikolkam): Send the user an error message.
-        std::cout << "Invalid command: " << message.text << std::endl;
-        continue;
-    }
-
-    // Get the command executor.
-    auto executor = COMMAND_MAP.find(command->name());
-    if (executor == COMMAND_MAP.end()) {
+        if (!command) {
+            invalidCommand(user);
+            std::cout<<"["<<(*user).name()<<"] Invalid command:" << message.text << std::endl;
+        }
         // This means the command couldn't be found.
-        // TODO(nikolkam): Send the user an error message.
-        std::cout << "Unknown command: " << message.text << std::endl;
-        continue;
-    }
-
-    // Execute the command.
-    CommandUser user(sentFrom);
-    executor->second->execute(gameManager, user, command->arguments());
-    std::copy(user.outgoing_message_queue().begin(), user.outgoing_message_queue().end(), std::back_inserter(networkMessageQueue));
+        else if(executor == COMMAND_MAP.end()){
+            unknownCommand(user);
+            std::cout<<"["<<(*user).name()<<"] Unknown command:" << message.text << std::endl;
+        }
+        //Execute the command and store the result in user.outgoing_message_queue()
+        else
+        {
+            executor->second->execute(gameManager, user, command->arguments());
+        }
+        //Create outgoing message queue         
+        std::copy(user.outgoing_message_queue().begin(), user.outgoing_message_queue().end(), std::back_inserter(networkMessageQueue));
   }
 }
 

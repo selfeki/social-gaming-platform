@@ -2,16 +2,10 @@
 
 #include "GameInstance.h"
 #include "arepa/game_spec/GameSpecification.h"
-<<<<<<< HEAD
-#include "arepa/server_config/Config.h"
-
-#include <arepa/command/Executor.hpp>
-=======
 //#include "jsonconfig.h"
 #include <arepa/server/Server.h>
 #include <arepa/command/Executor.hpp>
 #include "arepa/server_config/Config.h"
->>>>>>> master
 
 #include <algorithm>
 #include <exception>
@@ -32,24 +26,6 @@ typedef networking::ConnectionId PlayerID;
 
 //message return struct, game_manager returns a vector of these to the daemon,
 //on for each client that is to be sent a message
-<<<<<<< HEAD
-template <typename IDType>
-struct messageReturn {
-    IDType sendTo;
-    std::string message;
-    bool shouldShutdown;
-
-    explicit messageReturn(IDType recipient, std::string message)
-        : messageReturn(recipient, message, false) {}
-
-    explicit messageReturn(IDType recipient, std::string message, bool shouldShutdown)
-        : sendTo(recipient)
-        , message(std::move(message))
-        , shouldShutdown(shouldShutdown) {}
-};
-=======
-
->>>>>>> master
 
 
 //Custom error handling might be good for the future?
@@ -165,6 +141,9 @@ public:
     //returns pointer to vector of players in a room, null pointer if room does not exist.
     const std::vector<PlayerID>* getPlayersInRoom(RoomID room_id);
 
+    //
+    std::unordered_map<RoomID, Room>& getRoomIdToRoomMap();
+            
 
 
 private:

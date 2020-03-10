@@ -76,7 +76,7 @@ Room::ReturnCode Room::addPlayer(PlayerID player_id, std::string& username) {
     players.push_back(player_id);
 
     assert(username_to_player_id_map.size() == player_id_to_username_map.size());
-    assert(player_id_to_username_map.size() == player.size());
+    //assert(player_id_to_username_map.size() == player.size());
     assert(username_to_player_id_map.at(username) == player_id);
     assert(player_id_to_username_map.at(player_id) == username);
 
@@ -97,9 +97,9 @@ Room::ReturnCode Room::changePlayerUsername(PlayerID player_id, const std::strin
     player_id_to_username_map[player_id] = new_username;
 
     assert(username_to_player_id_map.size() == player_id_to_username_map.size());
-    assert(player_id_to_username_map.size() == player.size());
-    assert(username_to_player_id_map.at(username) == player_id);
-    assert(player_id_to_username_map.at(player_id) == username);
+    //assert(player_id_to_username_map.size() == player.size());
+    //assert(username_to_player_id_map.at(username) == player_id);
+    //assert(player_id_to_username_map.at(player_id) == username);
 
     return ReturnCode::SUCCESS;
 }
@@ -115,7 +115,7 @@ std::optional<PlayerID> Room::removePlayer(PlayerID player_id) {
     player_id_to_username_map.erase(player_id);
 
     assert(username_to_player_id_map.size() == player_id_to_username_map.size());
-    assert(player_id_to_username_map.size() == player.size());
+    //assert(player_id_to_username_map.size() == player.size());
     assert(username_to_player_id_map.count(find->second) == 0);
     assert(player_id_to_username_map.count(player_id) == 0);
 
@@ -241,7 +241,7 @@ GameManager::createRoom (PlayerID creator){
     } while (roomid_to_room_map.count(room_code) > 0);
 
     roomid_to_room_map.insert({ room_code, Room(creator, room_code) });
-    //playerid_to_roomid_map.insert({ creator, room_code });
+    playerid_to_roomid_map.insert({ creator, room_code });
 
     if(roomid_to_room_map.count(room_code) == 1) {
         return {room_code, GameManager::ReturnCode::SUCCESS};
@@ -344,6 +344,11 @@ const std::vector<PlayerID>* GameManager::getPlayersInRoom(RoomID room_id){
     const std::vector<PlayerID>& players = room.getPlayers();
     //return &(room.getPlayers());
     return (&players);
+}
+
+std::unordered_map<RoomID, Room>&
+GameManager::getRoomIdToRoomMap(){
+    return this->roomid_to_room_map;
 }
 
 GameManager::ReturnCode
