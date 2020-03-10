@@ -28,6 +28,13 @@ public:
     explicit ServerLoop(std::function<void()> tickFunction);
     virtual ~ServerLoop() = default;
 
+#pragma mark - Methods (Private) -
+private:
+    /**
+     * The server loop's main function.
+     */
+    void _main();
+
 #pragma mark - Methods -
 public:
     /**

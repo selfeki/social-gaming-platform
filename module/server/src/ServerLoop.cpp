@@ -25,22 +25,9 @@ ServerLoop::ServerLoop(std::function<void()> tickFunction)
 #pragma mark - Methods -
 // ---------------------------------------------------------------------------------------------------------------------
 
-void ServerLoop::start() {
-    bool yes = false;
-    if (!this->_running.compare_exchange_weak(yes, true)) {
-        throw std::runtime_error("The server is already running.");
-    }
-
-    // Initialize the server.
-    yes = false;
-    if (this->_started.compare_exchange_weak(yes, true)) {
-        // Initialize things here?
-    }
-
-    // Start the server.
-    log::info("Entering main loop.", pair("Ticks", this->_tick_rate));
+void ServerLoop::_main() {
     while (this->_running) {
-        const auto tickDelay = 1000 / this->_tick_rate;
+        const long long tickDelay = 1000 / this->_tick_rate;
         const auto timestamp = system_clock::now();
 
         // Run the tick.
@@ -48,7 +35,7 @@ void ServerLoop::start() {
             this->_tick();
         } catch (std::exception& ex) {
             log::fatal("Uncaught exception in server tick.", ex);
-            return;
+            throw;
         }
 
         // Calculate the time taken.
@@ -64,7 +51,23 @@ void ServerLoop::start() {
         // Wait for the next tick.
         usleep((tickDelay - tickTime) * 1000);
     }
+}
 
+void ServerLoop::start() {
+    bool yes = false;
+    if (!this->_running.compare_exchange_weak(yes, true)) {
+        throw std::runtime_error("The server is already running.");
+    }
+
+    // Initialize the server.
+    yes = false;
+    if (this->_started.compare_exchange_weak(yes, true)) {
+        // Initialize things here?
+    }
+
+    // Start the server.
+    log::info("Entering main loop.", pair("Ticks", this->_tick_rate));
+    this->_main();
     log::info("Exiting main loop.");
 }
 
