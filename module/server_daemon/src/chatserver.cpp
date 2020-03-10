@@ -5,17 +5,14 @@
 // for details.
 /////////////////////////////////////////////////////////////////////////////
 
+#include "./commands.h"
+#include "./logging.hpp"
 #include "GameManager.h"
 #include "arepa/game_spec/GameSpecification.h"
 #include "arepa/serializer/jsonSerializer.h"
 #include "arepa/server_config/Config.h"
-#include "commands.h"
 
 #include <arepa/command/Command.hpp>
-#include <arepa/log/LogStream.hpp>
-#include <arepa/log/LogStreamFactory.hpp>
-#include <arepa/log/console/ConsoleAdapter.hpp>
-#include <arepa/log/console/FormatterWithColor.hpp>
 #include <arepa/server/Server.h>
 #include <arepa/server/ServerLoop.hpp>
 
@@ -37,9 +34,6 @@ using networking::ConnectionId;
 using networking::Message;
 using networking::Server;
 
-arepa::log::LogStreamFactory clout;
-using data = arepa::log::LogStream::data<>;
-constexpr auto endl = arepa::log::LogStream::endl;
 
 typedef networking::ConnectionId UniqueConnectionID;
 //typedef MessageReturn<UniqueConnectionID> GameManager::MessageReturn;
@@ -172,12 +166,6 @@ loadJSONConfigFile(const std::string& filepath) {
     config = jsonSerializer::parseServerConfig(jsonServerConfig);
     config.err = false;
     return config;
-}
-
-void init_logging() {
-    auto adapter = std::make_shared<arepa::log::console::ConsoleAdapter>();
-    adapter->use_formatter(std::make_unique<arepa::log::console::FormatterWithColor>());
-    arepa::log::global = adapter;
 }
 
 int main(int argc, char* argv[]) {
