@@ -1,7 +1,7 @@
 #include "DSLInterpreter.h"
 
 #include <numeric>
-#include <string>
+#include <string_view>
 
 namespace gameSpecification::rule {
 
@@ -15,7 +15,7 @@ void InterpretVisitor::visitImpl(const ForEach& forEach) {
         visit rule
   */
     auto elemList = boost::get<ExpList>(forEach.elemList);
-    auto element = boost::get<std::string>(forEach.elem);
+    auto element = boost::get<std::string_view>(forEach.elem);
     for (const auto& exp : elemList.list) {
         context.map[element] = exp;
         for (const auto& rule : forEach.rules) {
@@ -28,21 +28,21 @@ void InterpretVisitor::visitImpl(const ForEach& forEach) {
 }
 
 std::string
-interpolateString(std::string str) {
+interpolateString(const std::string_view str) {
     // parses strings like
     // "Round {round}. Choose your weapon!"
     // to "Round 1. Choose your weapon!"
 }
 
 Expression
-evaluateExpression(std::string str) {
+evaluateExpression(const std::string_view str) {
     // parses string like
     // "configuration.Rounds.upfrom(1)"
     // into an actual expression
 }
 
 void InterpretVisitor::visitImpl(const GlobalMessage& globalMessage) {
-    auto content = boost::get<std::string>(globalMessage.content);
+    auto content = boost::get<std::string_view>(globalMessage.content);
     auto message = interpolateString(content);
 }
 
