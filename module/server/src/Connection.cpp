@@ -81,6 +81,27 @@ ConnectionSocket& Connection::socket() {
     return this->_socket;
 }
 
+void Connection::send_message(const std::string& message) {
+    this->send_message(string_view(message));
+}
+
+void Connection::send_message(const char* message) {
+    this->send_message(string_view(message));
+}
+
+
+// ---------------------------------------------------------------------------------------------------------------------
+#pragma mark - Methods (PlayerNetworking) -
+// ---------------------------------------------------------------------------------------------------------------------
+
+void Connection::send_message(const std::string_view& message) {
+    this->send_packet(Packet(string(message)));
+}
+
+void Connection::send_packet(const arepa::protocol::Packet& packet) {
+    this->_socket.send(packet);
+}
+
 
 // ---------------------------------------------------------------------------------------------------------------------
 #pragma mark - Operators -

@@ -4,6 +4,7 @@
 
 #include <arepa/communication/ChannelMultiQueue.hpp>
 #include <arepa/communication/ChannelSingleQueue.hpp>
+#include <arepa/game/room/interface/PlayerNetworking.hpp>
 #include <arepa/networking/Session.hpp>
 #include <arepa/networking/Socket.hpp>
 #include <arepa/protocol/Message.hpp>
@@ -17,7 +18,7 @@ namespace arepa::server {
 /**
  * A client connection.
  */
-class Connection {
+class Connection : public arepa::game::room::PlayerNetworking {
 #pragma mark - Types -
 public:
     typedef std::shared_ptr<arepa::communication::ChannelSingleQueue<arepa::protocol::Packet>> PacketQueue;
@@ -106,15 +107,25 @@ public:
      */
     [[nodiscard]] const arepa::networking::SessionToken::Id& session_id() const;
 
+    void send_message(const std::string& message);
+    void send_message(const char* message);
+
+
+#pragma mark - Methods (PlayerNetworking) -
+public:
+    void send_message(const std::string_view& message) override;
+    void send_packet(const arepa::protocol::Packet& packet) override;
 
 #pragma mark - Operators -
 public:
+    // TODO(ethan): Remove the below operators in favor of just using send_* methods.
     Connection& operator<<(const arepa::protocol::Packet& message);
     Connection& operator<<(const std::string& message);
     Connection& operator<<(const std::string_view& message);
     Connection& operator<<(const char* message);
 };
 
+// TODO(ethan): Remove the operator template below.
 template <typename T>
 Connection& operator<<(const std::shared_ptr<Connection>& connection, const T& data) {
     return *connection << data;
