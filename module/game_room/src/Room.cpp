@@ -229,12 +229,12 @@ bool Room::process_command(Player::Id player, const arepa::command::Command& com
 
     // Get the executor for the command.
     auto executor = this->commands.find(command.name());
-    if (executor == this->commands.end()) {
+    if (!executor) {
         return false;
     }
 
     // Execute the command.
-    executor->second->execute(*this, **playerPtr, command.arguments());
+    (*executor)->execute(*this, **playerPtr, command.arguments());
     return true;
 }
 

@@ -4,6 +4,7 @@
 #include "RoomId.hpp"
 
 #include <arepa/command/Command.hpp>
+#include <arepa/command/CommandMap.hpp>
 #include <arepa/command/Executor.hpp>
 
 #include <chrono>
@@ -22,6 +23,7 @@ class Room {
 public:
     using Id = RoomId;
     using CommandExecutor = arepa::command::Executor<Player&, Room&>;
+    using CommandMap = arepa::command::CommandMap<Player&, Room&>;
 
     enum class LimitBehavior {
         /**
@@ -51,7 +53,7 @@ private:
 
 #pragma mark - Fields (Public) -
 public:
-    std::unordered_map<std::string, std::unique_ptr<CommandExecutor>> commands;
+    CommandMap commands;
 
 
 #pragma mark - Constructors -
