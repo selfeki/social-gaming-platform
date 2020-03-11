@@ -49,26 +49,6 @@ public:
 
 #pragma mark - Result: _OkResult -
 
-/**
- * The Ok result-type.
- * This should be used to construct Results with a present value.
- *
- * ## Example
- * <code>
- * Result<std::string, int> success = Ok("Good job!");
- * </code>
- *
- * @tparam V The value type.
- */
-template <typename V>
-_OkResult<V> Ok(V value) {
-    return _OkResult<V>(value);
-};
-
-_OkResult<void> Ok() {
-    return _OkResult<void>();
-}
-
 template <typename V = void>
 class _OkResult {
 public:
@@ -93,28 +73,28 @@ public:
     _OkResult(std::enable_if_t<std::is_void_v<V>, Enabled> _ = Empty {}) {}
 };
 
-
-#pragma mark - Result: Error -
-
 /**
- * The Error result-type.
- * This should be used to construct Results with an error value.
+ * The Ok result-type.
+ * This should be used to construct Results with a present value.
  *
  * ## Example
  * <code>
- * Result<std::string, int> success = Error(3);
+ * Result<std::string, int> success = Ok("Good job!");
  * </code>
  *
- * @tparam E The error value type.
+ * @tparam V The value type.
  */
-template <typename E>
-_ErrorResult<T> Error(T value) {
-    return _ErrorResult<T>(std::move(T));
+template <typename V>
+_OkResult<V> Ok(V value) {
+    return _OkResult<V>(value);
 };
 
-_ErrorResult<void> Error() {
-    return _ErrorResult<void>();
+_OkResult<void> Ok() {
+    return _OkResult<void>();
 }
+
+
+#pragma mark - Result: Error -
 
 template <typename E = void>
 class _ErrorResult {
@@ -139,6 +119,26 @@ public:
     template <typename Enabled>
     _ErrorResult(std::enable_if_t<std::is_void_v<E>, Enabled> _ = Empty {}) {}
 };
+
+/**
+ * The Error result-type.
+ * This should be used to construct Results with an error value.
+ *
+ * ## Example
+ * <code>
+ * Result<std::string, int> success = Error(3);
+ * </code>
+ *
+ * @tparam E The error value type.
+ */
+template <typename E>
+_ErrorResult<T> Error(T value) {
+    return _ErrorResult<T>(std::move(T));
+};
+
+_ErrorResult<void> Error() {
+    return _ErrorResult<void>();
+}
 
 
 #pragma mark - Result -
