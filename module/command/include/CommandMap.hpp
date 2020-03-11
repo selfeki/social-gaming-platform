@@ -3,6 +3,7 @@
 #include "CommandArguments.hpp"
 #include "CommandName.hpp"
 #include "Executor.hpp"
+#include "LambdaExecutor.hpp"
 
 #include <arepa/Util.hpp>
 
@@ -18,8 +19,8 @@ namespace arepa::command {
  */
 template <typename User, typename Context = void>
 class CommandMap {
-public:
 #pragma mark - Types -
+public:
     using Executor = arepa::command::Executor<User, Context>;
 
 
@@ -53,11 +54,9 @@ public:
      * @param command_name The command.
      * @param executor The lambda command executor.
      */
-    template <typename _Lambda = std::conditional_t<std::is_void_v<Context>,
-                  std::function<void(User&, const CommandArguments&)>,
-                  std::function<void(Context&, User&, const CommandArguments&)>>>
-    void insert(const CommandName& command_name, _Lambda executor) {
-        this->insert(command_name, lambda_executor(executor));
+    void insert(const CommandName& command_name, typename Executor::lambda_type executor) {
+        std::unique_ptr<Executor> lambdaExecutor = arepa::command::lambda_executor<User, Context>(executor);
+        this->insert(command_name, std::shared_ptr<Executor>(std::move(lambdaExecutor)));
     }
 
     /**
@@ -66,11 +65,8 @@ public:
      * @param command_name The command.
      * @param executor The lambda command executor.
      */
-    template <typename _Lambda = std::conditional_t<std::is_void_v<Context>,
-                  std::function<void(User&, const CommandArguments&)>,
-                  std::function<void(Context&, User&, const CommandArguments&)>>>
-    void insert(const char* command_name, _Lambda executor) {
-        this->insert(CommandName(std::string_view(command_name)), arepa::command::lambda_executor(executor));
+    void insert(const char* command_name, typename Executor::lambda_type executor) {
+        this->insert(CommandName(std::string(command_name)), executor);
     }
 
     /**
