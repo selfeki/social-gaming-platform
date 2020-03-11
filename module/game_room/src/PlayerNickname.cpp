@@ -13,6 +13,9 @@ using namespace arepa::game::room;
 PlayerNickname::PlayerNickname(const std::string& name)
     : PlayerNickname(std::string_view(name)) {}
 
+PlayerNickname::PlayerNickname(const char* name)
+    : PlayerNickname(std::string_view(name)) {}
+
 PlayerNickname::PlayerNickname(const std::string_view& name) {
     auto found = std::find_if_not(name.begin(), name.end(), [](auto& character) {
         return std::isalnum(character) || character == '_' || character == '-';
@@ -47,7 +50,7 @@ std::optional<PlayerNickname> PlayerNickname::parse(const std::string_view& name
 #pragma mark - Operators -
 // ---------------------------------------------------------------------------------------------------------------------
 
-const std::string& PlayerNickname::operator*() {
+const std::string& PlayerNickname::operator*() const {
     return this->_name;
 }
 

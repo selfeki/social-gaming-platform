@@ -29,6 +29,7 @@ public:
      * @param name The player name.
      */
     explicit PlayerNickname(const std::string& name);
+    explicit PlayerNickname(const char* name);
     explicit PlayerNickname(const std::string_view& name);
 
 
@@ -51,7 +52,7 @@ public:
      * Returns the player nickname string.
      * @return The player name.
      */
-    [[nodiscard]] const std::string& operator*();
+    [[nodiscard]] const std::string& operator*() const;
 
     operator std::string() const;
 

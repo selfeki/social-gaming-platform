@@ -43,7 +43,12 @@ public:
         /**
          * The game room is full.
          */
-        ROOM_FULL
+        ROOM_FULL,
+
+        /**
+         * That can't be done during a game.
+         */
+        NOT_ALLOWED_DURING_GAME,
 
     };
 

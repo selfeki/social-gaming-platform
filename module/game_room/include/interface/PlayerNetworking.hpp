@@ -15,6 +15,11 @@ public:
     using Packet = arepa::protocol::Packet;
 
 
+#pragma mark - Constructors -
+public:
+    virtual ~PlayerNetworking() = default;
+
+
 #pragma mark - Virtual Methods -
 public:
     /**

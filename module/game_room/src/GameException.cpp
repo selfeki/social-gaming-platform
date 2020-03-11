@@ -17,6 +17,8 @@ constexpr const char* what_message(Kind kind) noexcept {
         return "The room is full.";
     case Kind::ROOM_NOT_FOUND:
         return "The specified room code is invalid.";
+    case Kind::NOT_ALLOWED_DURING_GAME:
+        return "You can't do that during a game.";
     default:
         return "Some error";    // TODO(ethan): Error handling.
     }

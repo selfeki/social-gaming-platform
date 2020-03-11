@@ -233,6 +233,14 @@ public:
     [[nodiscard]] bool is_full() const;
 
     /**
+     * Broadcasts a message to all players and spectators in the room.
+     * @param message The message to broadcast.
+     */
+    void broadcast_message(const std::string& message);
+
+    // TODO(ethan): broadcast_packet
+
+    /**
      * Sets the room owner.
      * @throws GameException::PLAYER_NOT_FOUND
      * @param owner The new owner.

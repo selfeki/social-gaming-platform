@@ -203,6 +203,16 @@ std::optional<std::shared_ptr<Player>> Room::find_spectator(Player::Id spectator
     });
 }
 
+void Room::broadcast_message(const std::string& message) {
+    for (auto& user : this->_players) {
+        user->send(message);
+    }
+
+    for (auto& user : this->_spectators) {
+        user->send(message);
+    }
+}
+
 bool Room::process_command(Player::Id player, const arepa::command::Command& command) {
     // Get the player object.
     std::optional<std::shared_ptr<Player>> playerPtr = this->_find_player_or_spectator(player);
@@ -225,16 +235,33 @@ bool Room::process_command(Player::Id player, const arepa::command::Command& com
 
     // Execute the command.
     executor->second->execute(*this, **playerPtr, command.arguments());
+    return true;
 }
 
 bool Room::process_message(Player::Id player, const std::string& message) {
     // Get the player object.
-    std::optional<std::shared_ptr<Player>> playerPtr = this->_find_player_or_spectator(player);
-    if (!playerPtr) {
+    std::optional<std::shared_ptr<Player>> find = this->_find_player_or_spectator(player);
+    if (!find) {
         // Player isn't in the room.
         // TODO(ethan): Log the warning.
         return false;
     }
+
+    // Try processing it through the game instance.
+    auto playerPtr = *find;
+    if (playerPtr->is_playing()) {
+        // Player isn't in the room.
+        // TODO(ethan): Try game instance messages.
+    }
+
+    // Create a regular player message.
+    std::string messagePrefix = playerPtr->is_spectator() ? "[spectator] " : "";
+    std::string messageSender = playerPtr->name();
+    std::string outbound = messagePrefix + messageSender + ": " + message;
+
+    // Handle it normally.
+    this->broadcast_message(outbound);
+    return true;
 }
 
 

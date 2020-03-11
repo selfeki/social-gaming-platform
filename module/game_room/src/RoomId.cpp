@@ -66,7 +66,7 @@ RoomId RoomId::generate(size_t length) {
 #pragma mark - Operators -
 // ---------------------------------------------------------------------------------------------------------------------
 
-const std::string& RoomId::operator*() {
+const std::string& RoomId::operator*() const {
     return this->_id;
 }
 

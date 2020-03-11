@@ -55,10 +55,10 @@ public:
 #pragma mark - Operators -
 public:
     /**
-     * Returns the player nickname string.
-     * @return The player name.
+     * Returns the room ID string.
+     * @return The room ID.
      */
-    [[nodiscard]] const std::string& operator*();
+    [[nodiscard]] const std::string& operator*() const;
 
     operator std::string() const;
 

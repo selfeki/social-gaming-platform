@@ -115,6 +115,14 @@ public:
 
     /**
      * Sends a message to the player.
+     * This is for notifying the player of system events.
+     *
+     * @param message The message.
+     */
+    void send_system_message(const std::string& message) const;
+
+    /**
+     * Sends a system message to the player.
      * @param message The message.
      */
     void send(const std::string& message) const;
