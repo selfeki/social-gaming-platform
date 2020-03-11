@@ -94,7 +94,7 @@ void Room::remove_spectator(Player::Id spectator) {
         return spec->id() == spectator;
     });
 
-    if (find != this->_spectators.end()) {
+    if (find == this->_spectators.end()) {
         throw GameException(GameException::USER_NOT_FOUND);
     }
 
@@ -112,12 +112,22 @@ void Room::add_player(const std::shared_ptr<Player>& player) {
         throw GameException(GameException::ROOM_FULL);
     }
 
-    // Add the player if they aren't already in the room.
-    if (std::find(this->_players.begin(), this->_players.end(), player) == this->_players.end()) {
-        this->_players.push_back(player);
-        player->_status = Player::Status::UNKNOWN;
+    // Silently succeed if the player is already in the room.
+    if (std::find(this->_players.begin(), this->_players.end(), player) != this->_players.end()) {
+        return;
     }
 
+    // Add the owner if nobody is an owner.
+    if (!this->_owner) {
+        this->_owner = player;
+    }
+
+    // Add the player.
+    this->_players.push_back(player);
+    player->_status = Player::Status::UNKNOWN;
+
+    // Broadcast and send an event to the game instance.
+    this->broadcast_message(std::string("[+] ") + std::string(player->name()) + std::string(" joined the room."));
     // TODO(ethan): Player join event.
 }
 
@@ -131,7 +141,7 @@ void Room::remove_player(Player::Id player) {
         return play->id() == player;
     });
 
-    if (find != this->_players.end()) {
+    if (find == this->_players.end()) {
         throw GameException(GameException::USER_NOT_FOUND);
     }
 
@@ -151,6 +161,9 @@ void Room::remove_player(Player::Id player) {
     // Remove the player if they are in the room.
     (*find)->_status = Player::Status::UNKNOWN;
     this->_players.erase(find);
+
+    // Broadcast and send an event to the game instance.
+    this->broadcast_message(std::string("[-] ") + std::string((*find)->name()) + std::string(" left the room."));
     // TODO(ethan): Player leave event.
 
     // Replace player slot with spectator.

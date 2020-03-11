@@ -55,7 +55,11 @@ void Player::send(const std::string& message) const {
 }
 
 void Player::send_system_message(const std::string& message) const {
-    this->_io->send_message("[system] " + message);
+    this->_io->send_message(message);
+}
+
+void Player::send_error_message(const std::string& message) const {
+    this->_io->send_error_message(message);
 }
 
 void Player::send_packet(const PlayerNetworking::Packet& packet) const {

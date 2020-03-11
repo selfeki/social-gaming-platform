@@ -93,7 +93,9 @@ void Connection::send_message(const char* message) {
     this->send_message(string_view(message));
 }
 
-
+void Connection::send_system_message(const std::string& message) {
+    this->send_message(message);
+}
 // ---------------------------------------------------------------------------------------------------------------------
 #pragma mark - Methods (PlayerNetworking) -
 // ---------------------------------------------------------------------------------------------------------------------
@@ -104,6 +106,10 @@ void Connection::send_message(const std::string_view& message) {
 
 void Connection::send_packet(const arepa::protocol::Packet& packet) {
     this->_socket.send(packet);
+}
+
+void Connection::send_error_message(const std::string_view& message) {
+    this->send_message(std::string("Error: ") + std::string(message));
 }
 
 

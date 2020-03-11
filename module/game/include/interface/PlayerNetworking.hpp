@@ -29,6 +29,12 @@ public:
     virtual void send_message(const std::string_view& message) = 0;
 
     /**
+     * Sends the player an error message.
+     * @param message The message to send.
+     */
+    virtual void send_error_message(const std::string_view& message) = 0;
+
+    /**
      * Sends the player a raw packet.
      * @param packet The packet to send.
      */

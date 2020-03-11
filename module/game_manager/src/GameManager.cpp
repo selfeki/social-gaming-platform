@@ -50,7 +50,7 @@ shared_ptr<Player> GameManager::make_player(const shared_ptr<Connection>& connec
 #pragma mark - Methods -
 // ---------------------------------------------------------------------------------------------------------------------
 
-shared_ptr<Room> GameManager::create_room(const std::shared_ptr<Player>& creator) {
+shared_ptr<Room> GameManager::create_room() {
     constexpr size_t ROOM_CODE_LENGTH = 5;
 
     // Generate a random room code.
@@ -63,10 +63,6 @@ shared_ptr<Room> GameManager::create_room(const std::shared_ptr<Player>& creator
     // Create the room object.
     auto room = std::make_pair(room_code, std::make_shared<Room>(room_code));
     this->_roomid_to_room.insert(room);
-
-    // Add the player to the room.
-    room.second->add_player(creator);
-    this->player_join_room(creator, room.second);
     return room.second;
 }
 
@@ -106,6 +102,11 @@ void GameManager::player_leave_room(const std::shared_ptr<Player>& player, const
 }
 
 void GameManager::player_join_room(const std::shared_ptr<Player>& player, const std::shared_ptr<Room>& room) {
+    if (this->find_player_room(player)) {
+        player->send_system_message("Error: You must leave your current room before joining another one.");
+        return;
+    }
+
     // Reset the player's nickname if need be.
     if (room_has_nickname(room, player->name())) {
         player->send_system_message("Your nickname is already used by somebody in the room you are joining.");
@@ -170,6 +171,8 @@ void GameManager::player_set_nickname(const std::shared_ptr<Player>& player, con
         if (player->is_playing()) {
             throw GameException(GameException::NOT_ALLOWED_DURING_GAME);
         }
+
+        (*room)->broadcast_message("[~] " + std::string(player->name()) + " is now known as " + std::string(name) + ".");
     }
 
     player->set_nickname(name);

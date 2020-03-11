@@ -14,6 +14,9 @@ using arepa::server::Server;
 using arepa::server::ServerLoop;
 using Packet = arepa::server::Client::packet_type;
 
+void greet_user(arepa::server::Connection& user) {
+    user.send_system_message("Welcome to the server. /create or /join a room to get started!");
+}
 
 /**
  * Process a client's command.
@@ -37,7 +40,7 @@ void process_command(GameManager& manager, Client& client, Command& command) {
     // Find the command executor.
     auto executor = GLOBAL_COMMAND_MAP.find(command.name());
     if (!executor) {
-        client.connection->send_message("Unknown command. Use /help to see a list of commands.");
+        client.connection->send_error_message("Unknown command. Use /help to see a list of commands.");
         return;
     }
 
@@ -58,7 +61,7 @@ void process_message(GameManager& manager, Client& client, std::string message) 
     auto room = manager.find_player_room(client.connection->id());
 
     if (!room) {
-        client.connection->send_message("You need to be in a room to do that! /create or /join a room.");
+        client.connection->send_system_message("You need to be in a room to send a message! /create or /join a room.");
         return;
     }
 
@@ -81,11 +84,19 @@ void process_packet(GameManager& manager, Client& client, Packet& packet) {
     // Parse the command.
     auto command = Command::parse(packet.text);
     if (!command) {
-        client.connection->send_message("Invalid command. Use /help to see a list of commands.");
+        client.connection->send_error_message("Invalid command. Use /help to see a list of commands.");
         return;
     }
 
-    process_command(manager, client, *command);
+    try {
+        process_command(manager, client, *command);
+    } catch (std::runtime_error& ex) {
+        client.connection->send_error_message("An internal error occurred.");
+        clout << ERROR << "Failed to process a user command."
+              << data(std::make_pair("Command", packet.text))
+              << data(ex.what())
+              << endl;
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -97,7 +108,7 @@ int main(int argc, char* argv[]) {
     arepa::Result<serverConfig::Configuration, std::string> config = load_config_from_json(config_file);
 
     if (!config) {
-        clout << "Failed to load server configuration."
+        clout << ERROR << "Failed to load server configuration."
               << data(config.error())
               << endl;
         return 1;
@@ -107,7 +118,7 @@ int main(int argc, char* argv[]) {
     clout << "Creating game manager." << endl;
     GameManager manager(*config);
 
-    // Start the network server.
+    // Create and start the network server.
     unsigned short port = (*config).port;
     arepa::networking::websocket::Options opts;
     opts.bind_port = port;
@@ -117,6 +128,24 @@ int main(int argc, char* argv[]) {
           << endl;
 
     Server server(opts);
+    server.on_accept([](std::shared_ptr<arepa::server::Connection> connection) {
+        greet_user(*connection);
+    });
+
+    server.on_accept([&manager](std::shared_ptr<arepa::server::Connection> connection) {
+        // Create the connection's player object.
+        auto player = GameManager::make_player(connection);
+        manager.add_player(player);
+    });
+
+    server.on_accept([&manager](std::shared_ptr<arepa::server::Connection> connection) {
+        // Destroy the connection's player object.
+        auto player = manager.find_player(connection->id());
+        if (player) {
+            manager.remove_player(*player);
+        }
+    });
+
     clout << "Successfully created server instance." << endl;
 
     // Initialize commands

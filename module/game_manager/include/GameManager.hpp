@@ -61,7 +61,7 @@ public:
      * @param creator The user who created the room.
      * @return The newly-created room.
      */
-    std::shared_ptr<Room> create_room(const std::shared_ptr<Player>& creator);
+    std::shared_ptr<Room> create_room();
 
     /**
      * Destroys a game room.

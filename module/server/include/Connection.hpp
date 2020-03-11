@@ -117,11 +117,13 @@ public:
 
     void send_message(const std::string& message);
     void send_message(const char* message);
+    void send_system_message(const std::string& message);
 
 
 #pragma mark - Methods (PlayerNetworking) -
 public:
     void send_message(const std::string_view& message) override;
+    void send_error_message(const std::string_view& message) override;
     void send_packet(const arepa::protocol::Packet& packet) override;
 
 
