@@ -90,7 +90,7 @@ public:
      * @param executor The command executor.
      */
     void insert(const char* command_name, std::shared_ptr<Executor> executor) {
-        this->insert.emplace(CommandName(std::string_view(command_name)), executor);
+        this->insert(CommandName(std::string_view(command_name)), executor);
     }
 };
 
@@ -98,7 +98,7 @@ public:
 
 #pragma mark - std::hash -
 template <>
-struct ::std::hash<arepa::command::CommandName> {
+struct std::hash<arepa::command::CommandName> {
     std::size_t operator()(arepa::command::CommandName const& name) const noexcept {
         std::hash<std::string> hash;
         return hash(name);

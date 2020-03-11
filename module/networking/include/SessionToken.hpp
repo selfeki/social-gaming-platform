@@ -78,7 +78,7 @@ std::ostream& operator<<(std::ostream& lhs, const SessionToken& rhs);
 
 #pragma mark - std::hash -
 template <>
-struct ::std::hash<arepa::networking::SessionToken> {
+struct std::hash<arepa::networking::SessionToken> {
     std::size_t operator()(arepa::networking::SessionToken const& token) const noexcept {
         std::hash<arepa::networking::SessionId> hash;
         return hash(token.id());

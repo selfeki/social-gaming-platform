@@ -22,8 +22,8 @@ class Room {
 #pragma mark - Types -
 public:
     using Id = RoomId;
-    using CommandExecutor = arepa::command::Executor<Player&, Room&>;
     using CommandMap = arepa::command::CommandMap<Player&, Room&>;
+    using CommandExecutor = CommandMap::Executor;
 
     enum class LimitBehavior {
         /**

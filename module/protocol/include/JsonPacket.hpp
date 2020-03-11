@@ -64,7 +64,7 @@ public:
         T unpacked;
         this->_packet.UnpackTo(&unpacked);
         return { unpacked };
-    };
+    }
 
     /**
      * Casts the packet to type T.
@@ -82,7 +82,7 @@ public:
         }
 
         return *maybe;
-    };
+    }
 
 
 #pragma mark - Operators -

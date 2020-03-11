@@ -72,7 +72,7 @@ public:
 
 #pragma mark - std::hash -
 template <>
-struct ::std::hash<arepa::game::room::RoomId> {
+struct std::hash<arepa::game::room::RoomId> {
     std::size_t operator()(arepa::game::room::RoomId const& id) const noexcept {
         std::hash<std::string> hash;
         return hash(id);

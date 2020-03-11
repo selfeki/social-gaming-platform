@@ -86,7 +86,7 @@ public:
 template <typename V>
 _OkResult<V> Ok(V value) {
     return _OkResult<V>(value);
-};
+}
 
 _OkResult<void> Ok() {
     return _OkResult<void>();
@@ -133,7 +133,7 @@ public:
 template <typename E>
 _ErrorResult<E> Error(E value) {
     return _ErrorResult<E>(std::move(value));
-};
+}
 
 _ErrorResult<void> Error() {
     return _ErrorResult<void>();
@@ -177,8 +177,8 @@ public:
      * @param value The Ok result.
      */
     Result(_OkResult<V> value)
-        : _value(value.value)
-        , _ok(true) {}
+        : _ok(true)
+        , _value(value.value) {}
 
     /**
      * Creates a new Result with an Error value.
@@ -187,8 +187,8 @@ public:
      * @param value The Error result.
      */
     Result(_ErrorResult<E> value)
-        : _error(value.value)
-        , _ok(false) {}
+        : _ok(false)
+        , _error(value.value) {}
 
     ~Result() {
         if (this->_ok) {
