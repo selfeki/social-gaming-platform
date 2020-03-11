@@ -34,7 +34,7 @@ public:
     /**
      * Constructs a new command map.
      */
-    CommandMap();
+    CommandMap() {};
 
 
 #pragma mark - Methods -
