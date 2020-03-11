@@ -47,21 +47,30 @@ public:
 };
 
 
-#pragma mark - Result: Ok -
+#pragma mark - Result: _OkResult -
 
 /**
- * The Ok-Result type.
+ * The Ok result-type.
  * This should be used to construct Results with a present value.
  *
  * ## Example
  * <code>
- * Result<std::string, int> success = Ok<std::string>("Good job!");
+ * Result<std::string, int> success = Ok("Good job!");
  * </code>
  *
  * @tparam V The value type.
  */
+template <typename V>
+_OkResult<V> Ok(V value) {
+    return _OkResult<V>(value);
+};
+
+_OkResult<void> Ok() {
+    return _OkResult<void>();
+}
+
 template <typename V = void>
-class Ok {
+class _OkResult {
 public:
     using type = std::conditional_t<std::is_void_v<V>, Empty, V>;
 
@@ -69,37 +78,46 @@ public:
     type value;
 
     /**
-     * Creates a new Ok-Result type.
+     * Creates a new Ok result-type.
      * @param value The value.
      */
     template <typename = std::enable_if_t<!std::is_void_v<V>>>
-    Ok(type value)
+    _OkResult(type value)
         : value(std::move(value)) {}
 
     /**
-     * Creates a new empty Ok-Result type.
+     * Creates a new empty Ok result-type.
      * This only exists when V = void.
      */
     template <typename Enabled>
-    Ok(std::enable_if_t<std::is_void_v<V>, Enabled> _ = Empty {}) {}
+    _OkResult(std::enable_if_t<std::is_void_v<V>, Enabled> _ = Empty {}) {}
 };
 
 
 #pragma mark - Result: Error -
 
 /**
- * The Error-Result type.
+ * The Error result-type.
  * This should be used to construct Results with an error value.
  *
  * ## Example
  * <code>
- * Result<std::string, int> success = Error<std::string>(3);
+ * Result<std::string, int> success = Error(3);
  * </code>
  *
  * @tparam E The error value type.
  */
+template <typename E>
+_ErrorResult<T> Error(T value) {
+    return _ErrorResult<T>(std::move(T));
+};
+
+_ErrorResult<void> Error() {
+    return _ErrorResult<void>();
+}
+
 template <typename E = void>
-class Error {
+class _ErrorResult {
 public:
     using type = std::conditional_t<std::is_void_v<E>, Empty, E>;
 
@@ -107,19 +125,19 @@ public:
     type value;
 
     /**
-     * Creates a new Error-Result type.
+     * Creates a new Error result-type.
      * @param value The error.
      */
     template <typename = std::enable_if_t<!std::is_void_v<E>>>
-    Error(type value)
+    _ErrorResult(type value)
         : value(std::move(value)) {}
 
     /**
-     * Creates a new empty Error-Result type.
+     * Creates a new empty Error result-type.
      * This only exists when E = void.
      */
     template <typename Enabled>
-    Error(std::enable_if_t<std::is_void_v<E>, Enabled> _ = Empty {}) {}
+    _ErrorResult(std::enable_if_t<std::is_void_v<E>, Enabled> _ = Empty {}) {}
 };
 
 
@@ -157,9 +175,9 @@ public:
      * Creates a new result with an Ok value.
      * This overload signifies a successful result.
      *
-     * @param value The Ok-value.
+     * @param value The Ok result.
      */
-    Result(Ok<V> value)
+    Result(_OkResult<V> value)
         : _value(value.value)
         , _ok(true) {}
 
@@ -167,9 +185,9 @@ public:
      * Creates a new Result with an Error value.
      * This overload signifies an unsuccessful result.
      *
-     * @param value The Error-value.
+     * @param value The Error result.
      */
-    Result(Error<E> value)
+    Result(_ErrorResult<E> value)
         : _error(value.value)
         , _ok(false) {}
 
@@ -181,12 +199,12 @@ public:
         }
     }
 
-    constexpr void operator=(const Error<E>& error) {
+    constexpr void operator=(const _ErrorResult<E>& error) {
         this->_ok = false;
         this->_error = error;
     }
 
-    constexpr void operator=(const Ok<V>& value) {
+    constexpr void operator=(const _OkResult<V>& value) {
         this->_ok = true;
         this->_value = value;
     }
@@ -200,10 +218,10 @@ public:
     }
 
     /**
-     * Unwraps the Ok-value.
+     * Unwraps the Result.
      * This will throw if the Result is an error.
      *
-     * @return The Ok-value.
+     * @return The Result's value.
      */
     template <typename U = V>
     constexpr typename std::enable_if_t<!std::is_void_v<U>, const U&> operator*() {
@@ -214,10 +232,10 @@ public:
     }
 
     /**
-     * Unwraps the Error-value.
+     * Unwraps the Result.
      * This will throw if the Result is not an error.
      *
-     * @return The Error-value.
+     * @return The Result's error.
      */
     template <typename U = E>
     constexpr typename std::enable_if_t<!std::is_void_v<U>, const U&> error() {
