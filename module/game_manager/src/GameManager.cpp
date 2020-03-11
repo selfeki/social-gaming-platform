@@ -98,6 +98,11 @@ void GameManager::player_leave_room(const std::shared_ptr<Player>& player, const
     if (find != this->_playerid_to_room.end()) {
         this->_playerid_to_room.erase(find);
     }
+
+    // Remove the room (if empty).
+    if (room->players().empty() /* && room->spectators().empty() */) {
+        this->destroy_room(room);
+    }
 }
 
 void GameManager::player_join_room(const std::shared_ptr<Player>& player, const std::shared_ptr<Room>& room) {
@@ -139,6 +144,20 @@ std::optional<std::shared_ptr<Room>> GameManager::find_player_room(const std::sh
 
 void GameManager::add_player(const std::shared_ptr<Player>& player) {
     this->_playerid_to_player.emplace(player->id(), player);
+}
+
+void GameManager::remove_player(const std::shared_ptr<Player>& player) {
+    auto find = this->_playerid_to_player.find(player->id());
+    if (find == this->_playerid_to_player.end()) {
+        // TODO(ethan): Warning about removing a player when they aren't in the list.
+        return;
+    }
+
+    // Remove the player from their room.
+    auto room = this->find_player_room(find->second);
+    if (room) {
+        this->player_leave_room(find->second, *room);
+    }
 }
 
 void GameManager::player_set_nickname(const std::shared_ptr<Player>& player, const Player::Name& name) {

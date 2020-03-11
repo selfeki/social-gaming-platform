@@ -132,6 +132,14 @@ public:
      * @param player The player object.
      */
     void add_player(const std::shared_ptr<Player>& player);
+
+    /**
+     * Removes a Player object from the player map.
+     * This will also kick them from their room.
+     * 
+     * @param player The player object.
+     */
+    void remove_player(const std::shared_ptr<Player>& player);
 };
 
 // }
