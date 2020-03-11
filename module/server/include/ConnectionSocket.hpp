@@ -1,11 +1,10 @@
 #pragma once
 
-#include "UnstructuredPacket.hpp"
-
 #include <arepa/networking/SocketAdapter.hpp>
+#include <arepa/protocol/Packet.hpp>
 
 namespace arepa::server {
 
-typedef arepa::networking::SocketAdapter<UnstructuredPacket> ConnectionSocket;
+typedef arepa::networking::SocketAdapter<arepa::protocol::Packet> ConnectionSocket;
 
 }

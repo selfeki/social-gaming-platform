@@ -11,6 +11,7 @@ using arepa::networking::Session;
 using arepa::networking::SessionToken;
 using arepa::networking::Socket;
 using arepa::protocol::Message;
+using arepa::protocol::Packet;
 using std::shared_ptr;
 using std::string;
 using std::string_view;
@@ -42,7 +43,7 @@ Connection::~Connection() {
 // ---------------------------------------------------------------------------------------------------------------------
 
 void Connection::_attach_signals() {
-    this->_attach_socket_on_message = this->_socket.on_message([this](const UnstructuredPacket& packet) {
+    this->_attach_socket_on_message = this->_socket.on_message([this](const Packet& packet) {
         this->_channel.send(packet);
     });
 }
@@ -56,7 +57,7 @@ Connection::PacketQueue Connection::create_packet_queue() {
     return this->_channel.create_consumer();
 }
 
-Connection::PacketQueue Connection::create_packet_queue(ChannelMultiQueue<UnstructuredPacket>::Filter filter) {
+Connection::PacketQueue Connection::create_packet_queue(ChannelMultiQueue<Packet>::Filter filter) {
     return this->_channel.create_consumer(std::move(filter));
 }
 
@@ -85,13 +86,13 @@ ConnectionSocket& Connection::socket() {
 #pragma mark - Operators -
 // ---------------------------------------------------------------------------------------------------------------------
 
-Connection& Connection::operator<<(const UnstructuredPacket& packet) {
+Connection& Connection::operator<<(const Packet& packet) {
     this->_socket.send(packet);
     return *this;
 }
 
 Connection& Connection::operator<<(const string_view& text) {
-    return *this << UnstructuredPacket(string(text));
+    return *this << Packet(string(text));
 }
 
 Connection& Connection::operator<<(const string& text) {
