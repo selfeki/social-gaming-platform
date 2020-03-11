@@ -1,6 +1,7 @@
 #pragma once
 
 #include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_hash.hpp>
 #include <string>
 
 namespace arepa::networking {
@@ -56,7 +57,6 @@ std::ostream& operator<<(std::ostream& lhs, const SessionId& rhs);
 template <>
 struct ::std::hash<arepa::networking::SessionId> {
     std::size_t operator()(arepa::networking::SessionId const& id) const noexcept {
-        std::hash<std::string> hash;
-        return hash(id.to_string());
+        return boost::uuids::hash_value(id);
     }
 };
