@@ -8,7 +8,7 @@
 using namespace arepa::game::room;
 
 PlayerNicknameGenerator PlayerNicknameGenerator::DEFAULT = PlayerNicknameGenerator(
-    std::vector({ NN("aardwolf"), NN(" beaver "), NN("lemming"), NN("fox"), NN("baboon"), NN("dragon"), NN("elephant"), NN("sloth") }),
+    std::vector({ NN("aardwolf"), NN("beaver"), NN("lemming"), NN("fox"), NN("baboon"), NN("dragon"), NN("elephant"), NN("sloth") }),
     std::vector({ NN("super"), NN("iridescent"), NN("bittersweet"), NN("euphoric"), NN("golden"), NN("temporary"), NN("melancholy") }));
 
 // ---------------------------------------------------------------------------------------------------------------------
