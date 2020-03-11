@@ -6,13 +6,13 @@
 
 namespace arepa {
 
-#pragma mark - Result: Empty -
+#pragma mark - Result: _Empty -
 namespace {
     /**
      * An empty class.
      * This is used because we can't have void types.
      */
-    class Empty {
+    class _Empty {
     };
 }
 
@@ -36,8 +36,7 @@ public:
     ResultException(Kind kind)
         : _kind(kind) {}
 
-
-    const char* what() {
+    const char* what() const noexcept {
         if (_kind == NOT_VALUE) {
             return "Attempted to unwrap value of error-type Result.";
         } else {
@@ -52,25 +51,25 @@ public:
 template <typename V = void>
 class _OkResult {
 public:
-    using type = std::conditional_t<std::is_void_v<V>, Empty, V>;
+    using value_type = std::conditional_t<std::is_void_v<V>, _Empty, V>;    // NO_LINT
 
 public:
-    type value;
+    value_type value;
 
     /**
      * Creates a new Ok result-type.
      * @param value The value.
      */
-    template <typename = std::enable_if_t<!std::is_void_v<V>>>
-    _OkResult(type value)
+    template <typename = std::conditional_t<!std::is_void_v<V>, V, _Empty>>
+    _OkResult(value_type value)
         : value(std::move(value)) {}
 
     /**
      * Creates a new empty Ok result-type.
      * This only exists when V = void.
      */
-    template <typename Enabled>
-    _OkResult(std::enable_if_t<std::is_void_v<V>, Enabled> _ = Empty {}) {}
+    template <typename Enabled = _Empty>
+    _OkResult(std::enable_if_t<std::is_void_v<V>, Enabled> _ = _Empty {}) {}
 };
 
 /**
@@ -99,25 +98,25 @@ _OkResult<void> Ok() {
 template <typename E = void>
 class _ErrorResult {
 public:
-    using type = std::conditional_t<std::is_void_v<E>, Empty, E>;
+    using value_type = std::conditional_t<std::is_void_v<E>, _Empty, E>;    // NO_LINT
 
 public:
-    type value;
+    value_type value;
 
     /**
      * Creates a new Error result-type.
      * @param value The error.
      */
-    template <typename = std::enable_if_t<!std::is_void_v<E>>>
-    _ErrorResult(type value)
+    template <typename = std::conditional_t<!std::is_void_v<E>, E, _Empty>>
+    _ErrorResult(value_type value)
         : value(std::move(value)) {}
 
     /**
      * Creates a new empty Error result-type.
      * This only exists when E = void.
      */
-    template <typename Enabled>
-    _ErrorResult(std::enable_if_t<std::is_void_v<E>, Enabled> _ = Empty {}) {}
+    template <typename Enabled = _Empty>
+    _ErrorResult(std::enable_if_t<std::is_void_v<E>, Enabled> _ = _Empty {}) {}
 };
 
 /**
@@ -132,8 +131,8 @@ public:
  * @tparam E The error value type.
  */
 template <typename E>
-_ErrorResult<T> Error(T value) {
-    return _ErrorResult<T>(std::move(T));
+_ErrorResult<E> Error(E value) {
+    return _ErrorResult<E>(std::move(value));
 };
 
 _ErrorResult<void> Error() {
@@ -160,8 +159,8 @@ _ErrorResult<void> Error() {
 template <typename V, typename E>
 class Result {
 public:
-    using value_type = std::conditional_t<std::is_void_v<V>, Empty, V>;
-    using error_type = std::conditional_t<std::is_void_v<E>, Empty, E>;
+    using value_type = std::conditional_t<std::is_void_v<V>, _Empty, V>;
+    using error_type = std::conditional_t<std::is_void_v<E>, _Empty, E>;
 
 private:
     bool _ok;
