@@ -50,3 +50,13 @@ public:
 std::ostream& operator<<(std::ostream& lhs, const SessionId& rhs);
 
 }
+
+
+#pragma mark - std::hash -
+template <>
+struct ::std::hash<arepa::networking::SessionId> {
+    std::size_t operator()(arepa::networking::SessionId const& id) const noexcept {
+        std::hash<std::string> hash;
+        return hash(id.to_string());
+    }
+};

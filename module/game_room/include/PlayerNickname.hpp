@@ -62,3 +62,13 @@ public:
 };
 
 }
+
+
+#pragma mark - std::hash -
+template <>
+struct ::std::hash<arepa::game::room::PlayerNickname> {
+    std::size_t operator()(arepa::game::room::PlayerNickname const& name) const noexcept {
+        std::hash<std::string> hash;
+        return hash(name);
+    }
+};
