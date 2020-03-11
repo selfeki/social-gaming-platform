@@ -16,12 +16,24 @@ public:
         /**
          * The user is not in the game room.
          */
-        PLAYER_NOT_FOUND,
+        USER_NOT_FOUND,
 
         /**
          * The user's nickname was taken already.
          */
-        PLAYER_NICKNAME_TAKEN,
+        USER_NICKNAME_TAKEN,
+
+        /**
+         * The player is already a spectator in the room.
+         * Remove them as a spectator before trying to add them as a player.
+         */
+        PLAYER_IS_SPECTATOR,
+
+        /**
+         * The spectator is already a player in the room.
+         * Remove them as a player before trying to add them as a spectator.
+         */
+        SPECTATOR_IS_PLAYER,
 
         /**
          * The game room is not found.

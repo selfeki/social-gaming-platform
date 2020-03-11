@@ -6,9 +6,10 @@ using namespace arepa::game::room;
 #pragma mark - Constructors -
 // ---------------------------------------------------------------------------------------------------------------------
 
-Player::Player(arepa::networking::SessionId id)
+Player::Player(arepa::networking::SessionId id, std::shared_ptr<PlayerNetworking> networking)
     : _name(PlayerNickname(id.to_string()))
-    , _id(id) {}
+    , _id(id)
+    , _io(std::move(networking)) {}
 
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -42,11 +43,19 @@ bool Player::is_playing() const {
 }
 
 bool Player::is_spectating() const {
-    return this->is_spectator() || this->_status == Player::Status::WAITLIST;
+    return this->is_spectator() || this->_status == Player::Status::SPECTATOR_WAITLIST;
 }
 
 bool Player::is_spectator() const {
     return this->_status == Player::Status::SPECTATOR;
+}
+
+void Player::send(const std::string& message) const {
+    this->_io->send_message(message);
+}
+
+void Player::send_packet(const PlayerNetworking::Packet& packet) const {
+    this->_io->send_packet(packet);
 }
 
 
@@ -58,6 +67,14 @@ bool Player::operator==(const Player& other) const {
     return this->_id == other._id;
 }
 
+bool Player::operator==(const Player::Id& other) const {
+    return this->_id == other;
+}
+
 bool Player::operator!=(const Player& other) const {
+    return !(*this == other);
+}
+
+bool Player::operator!=(const Player::Id& other) const {
     return !(*this == other);
 }

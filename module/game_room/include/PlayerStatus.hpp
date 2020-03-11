@@ -15,6 +15,11 @@ namespace arepa::game::room {
 enum class PlayerStatus : int {
 
     /**
+     * The player status is unknown.
+     */
+    UNKNOWN = 0b0000,
+
+    /**
      * The player is a spectator.
      */
     SPECTATOR = 0b0001,
@@ -22,7 +27,7 @@ enum class PlayerStatus : int {
     /**
      * The player is a spectator who is waiting to join the game.
      */
-    WAITLIST = 0b0011,
+    SPECTATOR_WAITLIST = 0b0011,
 
     /**
      * The player is in game.

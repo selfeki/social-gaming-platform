@@ -24,7 +24,7 @@ public:
      * Returns the number of times a player has won.
      * @return The number of player wins.
      */
-    [[nodiscard]] unsigned int wins();
+    [[nodiscard]] unsigned int wins() const;
 
     /**
      * Returns a mutable reference to the number of times a player has won.

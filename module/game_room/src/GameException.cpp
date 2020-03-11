@@ -5,10 +5,14 @@ using Kind = GameException::Kind;
 
 constexpr const char* what_message(Kind kind) noexcept {
     switch (kind) {
-    case Kind::PLAYER_NOT_FOUND:
+    case Kind::USER_NOT_FOUND:
         return "The specified user is not in the game room.";
-    case Kind::PLAYER_NICKNAME_TAKEN:
+    case Kind::USER_NICKNAME_TAKEN:
         return "The specified nickname is already in use.";
+    case Kind::PLAYER_IS_SPECTATOR:
+        return "That user is already a spectator in the room. Remove them as a spectator first.";
+    case Kind::SPECTATOR_IS_PLAYER:
+        return "That user is already a player in the room. Remove them as a player first.";
     case Kind::ROOM_FULL:
         return "The room is full.";
     case Kind::ROOM_NOT_FOUND:

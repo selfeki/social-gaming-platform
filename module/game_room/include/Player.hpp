@@ -3,17 +3,20 @@
 #include "PlayerNickname.hpp"
 #include "PlayerStats.hpp"
 #include "PlayerStatus.hpp"
+#include "interface/PlayerNetworking.hpp"
 
 #include <arepa/networking/SessionId.hpp>
 
 #include <optional>
 
 namespace arepa::game::room {
+class Room;
 
 /**
  * A player.
  */
 class Player {
+    friend Room;
 
 #pragma mark - Types -
 public:
@@ -30,6 +33,7 @@ private:
     Name _name;
     std::optional<Name> _nickname;
     Id _id;
+    std::shared_ptr<PlayerNetworking> _io;
 
 
 #pragma mark - Fields (Public) -
@@ -45,8 +49,9 @@ public:
     /**
      * Creates a new player instance.
      * @param id The player's session ID.
+     * @param networking The player's networking interface.
      */
-    explicit Player(arepa::networking::SessionId id);
+    explicit Player(arepa::networking::SessionId id, std::shared_ptr<PlayerNetworking> networking);
 
 
 #pragma mark - Methods -
@@ -83,12 +88,6 @@ public:
     void clear_nickname();
 
     /**
-     * Sets the player's status.
-     * @param status The player's new status.
-     */
-    void set_status(Status status);
-
-    /**
      * Checks if the player is a spectator.
      * @return True if the player is a spectator.
      */
@@ -108,11 +107,25 @@ public:
      */
     [[nodiscard]] bool is_playing() const;
 
+    /**
+     * Sends a packet to the player.
+     * @param packet The packet.
+     */
+    void send_packet(const PlayerNetworking::Packet& packet) const;
+
+    /**
+     * Sends a message to the player.
+     * @param message The message.
+     */
+    void send(const std::string& message) const;
+
 
 #pragma mark - Operators -
 public:
     [[nodiscard]] bool operator==(const Player& other) const;
+    [[nodiscard]] bool operator==(const Player::Id& other) const;
     [[nodiscard]] bool operator!=(const Player& other) const;
+    [[nodiscard]] bool operator!=(const Player::Id& other) const;
 };
 
 }
