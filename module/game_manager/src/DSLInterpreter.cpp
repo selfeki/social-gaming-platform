@@ -62,8 +62,8 @@ State Interpreter::operator()(InputVote const& inputVote) const {    // To chang
         return State(st);
     }
     MapOfArithmeticVariables choicesMap(std::pair<DataPacket, ArithmeticValue>(DataPacket("None"), ArithmeticValue(0)));
-    for (Player p1 : players.getPlayers()) {
-        DataPacket choice = State(state).stateMap.getDataMap().find(p1.name)->second;
+    for (Player& p1 : players.getPlayers()) {
+        DataPacket choice = State(state).stateMap.getDataMap().find(*(p1.name()))->second;
         if (choicesMap.getDataMap().find(choice) == choicesMap.getDataMap().end()) {
             choicesMap.insertNew(choice, ArithmeticValue(1));
         } else {

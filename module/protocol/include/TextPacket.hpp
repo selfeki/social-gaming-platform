@@ -6,13 +6,13 @@
 
 #include <memory>
 
-namespace arepa::server {
+namespace arepa::protocol {
 
 /**
  * A string.
  * It's literally just a string.
  */
-class UnstructuredPacket {
+class TextPacket {
 
 #pragma mark - Fields -
 public:
@@ -21,7 +21,7 @@ public:
 
 #pragma mark - Constructors -
 public:
-    UnstructuredPacket(std::string text);    // NOLINT
+    TextPacket(std::string text);    // NOLINT
 
 
 #pragma mark - Operators -
@@ -35,7 +35,7 @@ public:
 
 #pragma mark - Serialization -
 public:
-    static UnstructuredPacket from_bytes(const arepa::networking::Socket::Data& data);
-    static arepa::networking::Socket::Data to_bytes(const UnstructuredPacket& data);
+    static TextPacket from_bytes(const arepa::networking::Socket::Data& data);
+    static arepa::networking::Socket::Data to_bytes(const TextPacket& data);
 };
 }
