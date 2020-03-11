@@ -77,6 +77,10 @@ const SessionToken::Id& Connection::session_id() const {
     return this->_session.token().id();
 }
 
+const Connection::Id& Connection::id() const {
+    return this->session_id();
+}
+
 ConnectionSocket& Connection::socket() {
     return this->_socket;
 }

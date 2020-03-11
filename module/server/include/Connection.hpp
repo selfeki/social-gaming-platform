@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ConnectionId.hpp"
 #include "ConnectionSocket.hpp"
 
 #include <arepa/communication/ChannelMultiQueue.hpp>
@@ -21,7 +22,8 @@ namespace arepa::server {
 class Connection : public arepa::game::room::PlayerNetworking {
 #pragma mark - Types -
 public:
-    typedef std::shared_ptr<arepa::communication::ChannelSingleQueue<arepa::protocol::Packet>> PacketQueue;
+    using PacketQueue = std::shared_ptr<arepa::communication::ChannelSingleQueue<arepa::protocol::Packet>>;
+    using Id = ConnectionId;
 
 
 #pragma mark - Fields -
@@ -107,6 +109,12 @@ public:
      */
     [[nodiscard]] const arepa::networking::SessionToken::Id& session_id() const;
 
+    /**
+     * Returns the connection ID.
+     * @return A reference to the connection ID.
+     */
+    [[nodiscard]] const Id& id() const;
+
     void send_message(const std::string& message);
     void send_message(const char* message);
 
@@ -115,6 +123,7 @@ public:
 public:
     void send_message(const std::string_view& message) override;
     void send_packet(const arepa::protocol::Packet& packet) override;
+
 
 #pragma mark - Operators -
 public:
