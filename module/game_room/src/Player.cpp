@@ -37,6 +37,18 @@ void Player::clear_nickname() {
     this->_nickname = std::nullopt;
 }
 
+bool Player::is_playing() const {
+    return this->_status == Player::Status::PLAYING;
+}
+
+bool Player::is_spectating() const {
+    return this->is_spectator() || this->_status == Player::Status::WAITLIST;
+}
+
+bool Player::is_spectator() const {
+    return this->_status == Player::Status::SPECTATOR;
+}
+
 
 // ---------------------------------------------------------------------------------------------------------------------
 #pragma mark - Operators -
