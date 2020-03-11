@@ -44,7 +44,7 @@ public:
      * @return The corresponding command executor, or nullopt if none was set.
      */
     [[nodiscard]] std::optional<std::shared_ptr<Executor>> find(const CommandName& command_name) const {
-        return arepa::find_in_map<std::shared_ptr<Executor>>(this->_map, command_name);
+        return arepa::find_in_map(this->_map, command_name);
     }
 
     /**
