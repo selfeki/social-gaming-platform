@@ -4,7 +4,7 @@
 #include <arepa/game/room/GameException.hpp>
 #include <arepa/game/room/PlayerNicknameGenerator.hpp>
 #include <arepa/game/room/interface/PlayerNetworking.hpp>
-#include <arepa/server/Server.h>
+#include <arepa/server/Connection.hpp>
 
 using arepa::game::room::GameException;
 using arepa::game::room::PlayerNetworking;
@@ -123,15 +123,15 @@ void GameManager::player_join_room(const std::shared_ptr<Player>& player, const 
 }
 
 std::optional<std::shared_ptr<Player>> GameManager::find_player(const PlayerId& player) {
-    return arepa::find_in_map<std::shared_ptr<Player>>(this->_playerid_to_player, player);
+    return arepa::find_in_map(this->_playerid_to_player, player);
 }
 
 std::optional<std::shared_ptr<Room>> GameManager::find_room(const RoomId& room) {
-    return arepa::find_in_map<std::shared_ptr<Room>>(this->_roomid_to_room, room);
+    return arepa::find_in_map(this->_roomid_to_room, room);
 }
 
 std::optional<std::shared_ptr<Room>> GameManager::find_player_room(const PlayerId& player) {
-    return arepa::find_in_map<std::shared_ptr<Room>>(this->_playerid_to_room, player);
+    return arepa::find_in_map(this->_playerid_to_room, player);
 }
 
 std::optional<std::shared_ptr<Room>> GameManager::find_player_room(const std::shared_ptr<Player>& player) {
