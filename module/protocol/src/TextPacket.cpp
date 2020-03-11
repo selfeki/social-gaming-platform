@@ -14,7 +14,7 @@ using std::vector;
 #pragma mark - Constructors -
 // ---------------------------------------------------------------------------------------------------------------------
 
-UnstructuredPacket::UnstructuredPacket(string text)
+TextPacket::TextPacket(string text)
     : text(std::move(text)) {}
 
 
@@ -22,23 +22,23 @@ UnstructuredPacket::UnstructuredPacket(string text)
 #pragma mark - Operators -
 // ---------------------------------------------------------------------------------------------------------------------
 
-string* UnstructuredPacket::operator*() {
+string* TextPacket::operator*() {
     return &this->text;
 }
 
-string* UnstructuredPacket::operator->() {
+string* TextPacket::operator->() {
     return &this->text;
 }
 
-const string* UnstructuredPacket::operator*() const {
+const string* TextPacket::operator*() const {
     return &this->text;
 }
 
-const string* UnstructuredPacket::operator->() const {
+const string* TextPacket::operator->() const {
     return &this->text;
 }
 
-UnstructuredPacket::operator string() const {
+TextPacket::operator string() const {
     return this->text;
 }
 
@@ -47,10 +47,10 @@ UnstructuredPacket::operator string() const {
 #pragma mark - Serialization -
 // ---------------------------------------------------------------------------------------------------------------------
 
-UnstructuredPacket UnstructuredPacket::from_bytes(const Data& bytes) {
+TextPacket TextPacket::from_bytes(const Data& bytes) {
     return string(reinterpret_cast<const char*>(bytes.data()), bytes.size());
 }
 
-Data UnstructuredPacket::to_bytes(const UnstructuredPacket& packet) {
+Data TextPacket::to_bytes(const TextPacket& packet) {
     return vector<uint8_t>(packet.text.begin(), packet.text.end());
 }
