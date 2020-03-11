@@ -8,7 +8,7 @@
 #include <google/protobuf/any.pb.h>
 #include <memory>
 
-namespace arepa::server {
+namespace arepa::protocol {
 
 /**
  * A wrapper around a network packet.

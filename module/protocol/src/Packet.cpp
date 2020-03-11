@@ -3,7 +3,7 @@
 #include <google/protobuf/util/json_util.h>
 #include <string>
 
-using namespace arepa::server;
+using namespace arepa::protocol;
 
 using std::basic_string_view;
 using std::ostream;

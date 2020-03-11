@@ -1,6 +1,6 @@
 #include "PacketException.hpp"
 
-using namespace arepa::server;
+using namespace arepa::protocol;
 using Kind = PacketException::Kind;
 
 // ---------------------------------------------------------------------------------------------------------------------
