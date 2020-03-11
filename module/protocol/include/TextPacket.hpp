@@ -6,7 +6,7 @@
 
 #include <memory>
 
-namespace arepa::server {
+namespace arepa::protocol {
 
 /**
  * A string.

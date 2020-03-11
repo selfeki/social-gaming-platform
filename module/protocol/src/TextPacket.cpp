@@ -1,9 +1,9 @@
-#include "UnstructuredPacket.hpp"
+#include "TextPacket.hpp"
 
 #include <google/protobuf/util/json_util.h>
 #include <string>
 
-using namespace arepa::server;
+using namespace arepa::protocol;
 
 using Data = arepa::networking::Socket::Data;
 

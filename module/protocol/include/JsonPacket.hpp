@@ -13,7 +13,7 @@ namespace arepa::protocol {
 /**
  * A wrapper around a network packet.
  */
-class Packet {
+class JsonPacket {
 
 #pragma mark - Fields -
 private:
@@ -22,9 +22,9 @@ private:
 
 #pragma mark - Constructors -
 public:
-    Packet(google::protobuf::Any packet);    // NOLINT
+    JsonPacket(google::protobuf::Any packet);    // NOLINT
 
-    Packet(const google::protobuf::Message& packet);    // NOLINT
+    JsonPacket(const google::protobuf::Message& packet);    // NOLINT
 
 
 #pragma mark - Methods -
@@ -95,8 +95,8 @@ public:
 
 #pragma mark - Serialization -
 public:
-    static Packet from_bytes(const arepa::networking::Socket::Data& data);
-    static arepa::networking::Socket::Data to_bytes(const Packet& data);
+    static JsonPacket from_bytes(const arepa::networking::Socket::Data& data);
+    static arepa::networking::Socket::Data to_bytes(const JsonPacket& data);
     static arepa::networking::Socket::Data to_bytes(const google::protobuf::Any& data);
 };
 }
