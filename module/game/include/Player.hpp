@@ -9,7 +9,7 @@
 
 #include <optional>
 
-namespace arepa::game::room {
+namespace arepa::game {
 class Room;
 
 /**

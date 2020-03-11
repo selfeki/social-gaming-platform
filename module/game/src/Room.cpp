@@ -4,7 +4,7 @@
 
 #include <arepa/Util.hpp>
 
-using namespace arepa::game::room;
+using namespace arepa::game;
 
 // ---------------------------------------------------------------------------------------------------------------------
 #pragma mark - Constructors -

@@ -7,7 +7,7 @@
 
 #include <optional>
 
-namespace arepa::game::room {
+namespace arepa::game {
 
 /**
  * A player's game Room status.

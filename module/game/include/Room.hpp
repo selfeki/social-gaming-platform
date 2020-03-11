@@ -12,7 +12,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace arepa::game::room {
+namespace arepa::game {
 
 /**
  * A game room.

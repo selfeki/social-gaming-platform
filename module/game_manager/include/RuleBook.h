@@ -1,4 +1,4 @@
-#include <arepa/game/room/Player.hpp>
+#include <arepa/game/Player.hpp>
 
 #include <iostream>
 #include <iterator>
@@ -9,7 +9,7 @@
 #include <utility>
 #include <vector>
 
-using Player = arepa::game::room::Player;
+using Player = arepa::game::Player;
 
 struct DataPacket {    //  Wrapper for Strings
     std::string data;

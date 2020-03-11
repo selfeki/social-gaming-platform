@@ -4,7 +4,7 @@
 
 #include <string_view>
 
-namespace arepa::game::room {
+namespace arepa::game {
 
 /**
  * An interface for sending data to players.

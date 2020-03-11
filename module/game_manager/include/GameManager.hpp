@@ -1,9 +1,9 @@
 #pragma once
 
 #include <arepa/command/Executor.hpp>
-#include <arepa/game/room/Player.hpp>
-#include <arepa/game/room/Room.hpp>
-#include <arepa/game/room/RoomId.hpp>
+#include <arepa/game/Player.hpp>
+#include <arepa/game/Room.hpp>
+#include <arepa/game/RoomId.hpp>
 #include <arepa/game_spec/GameSpecification.h>
 #include <arepa/server/Connection.hpp>
 #include <arepa/server_config/Config.h>
@@ -22,10 +22,10 @@
 class GameManager {
 #pragma mark - Types -
 public:
-    using Player = arepa::game::room::Player;
-    using PlayerId = arepa::game::room::Player::Id;
-    using Room = arepa::game::room::Room;
-    using RoomId = arepa::game::room::Room::Id;
+    using Player = arepa::game::Player;
+    using PlayerId = arepa::game::Player::Id;
+    using Room = arepa::game::Room;
+    using RoomId = arepa::game::Room::Id;
 
 #pragma mark - Fields -
 private:

@@ -5,7 +5,7 @@
 
 #include <arepa/communication/ChannelMultiQueue.hpp>
 #include <arepa/communication/ChannelSingleQueue.hpp>
-#include <arepa/game/room/interface/PlayerNetworking.hpp>
+#include <arepa/game/interface/PlayerNetworking.hpp>
 #include <arepa/networking/Session.hpp>
 #include <arepa/networking/Socket.hpp>
 #include <arepa/protocol/Message.hpp>
@@ -19,7 +19,7 @@ namespace arepa::server {
 /**
  * A client connection.
  */
-class Connection : public arepa::game::room::PlayerNetworking {
+class Connection : public arepa::game::PlayerNetworking {
 #pragma mark - Types -
 public:
     using PacketQueue = std::shared_ptr<arepa::communication::ChannelSingleQueue<arepa::protocol::Packet>>;

@@ -4,7 +4,7 @@
 #include <optional>
 #include <string>
 
-namespace arepa::game::room {
+namespace arepa::game {
 
 /**
  * An exception for some game issue.

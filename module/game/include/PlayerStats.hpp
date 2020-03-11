@@ -2,7 +2,7 @@
 
 #include <arepa/networking/SessionId.hpp>
 
-namespace arepa::game::room {
+namespace arepa::game {
 
 /**
  * A player's game statistics.

@@ -5,7 +5,7 @@
 
 #define NN(x) PlayerNickname(x)
 
-using namespace arepa::game::room;
+using namespace arepa::game;
 
 PlayerNicknameGenerator PlayerNicknameGenerator::DEFAULT = PlayerNicknameGenerator(
     std::vector({ NN("aardwolf"), NN("beaver"), NN("lemming"), NN("fox"), NN("baboon"), NN("dragon"), NN("elephant"), NN("sloth") }),

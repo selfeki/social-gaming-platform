@@ -5,7 +5,7 @@
 #include <sstream>
 #include <stdexcept>
 
-using namespace arepa::game::room;
+using namespace arepa::game;
 
 // ---------------------------------------------------------------------------------------------------------------------
 #pragma mark - Tables -

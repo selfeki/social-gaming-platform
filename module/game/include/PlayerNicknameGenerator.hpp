@@ -5,7 +5,7 @@
 #include <random>
 #include <vector>
 
-namespace arepa::game::room {
+namespace arepa::game {
 
 /**
  * A class that generates human-friendly player nicknames.

@@ -1,15 +1,14 @@
 #include "GameManager.hpp"
 
 #include <arepa/Util.hpp>
-#include <arepa/game/room/GameException.hpp>
-#include <arepa/game/room/PlayerNicknameGenerator.hpp>
-#include <arepa/game/room/interface/PlayerNetworking.hpp>
+#include <arepa/game/GameException.hpp>
+#include <arepa/game/PlayerNicknameGenerator.hpp>
+#include <arepa/game/interface/PlayerNetworking.hpp>
 #include <arepa/server/Connection.hpp>
 
-using arepa::game::room::GameException;
-using arepa::game::room::PlayerNetworking;
-using arepa::game::room::PlayerNicknameGenerator;
-using arepa::game::room::Room;
+using arepa::game::GameException;
+using arepa::game::PlayerNetworking;
+using arepa::game::PlayerNicknameGenerator;
 using arepa::server::Connection;
 using std::shared_ptr;
 

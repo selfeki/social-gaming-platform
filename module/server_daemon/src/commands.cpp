@@ -1,7 +1,7 @@
 #include "commands.hpp"
 
 using Arguments = arepa::command::CommandArguments;
-using arepa::game::room::Player;
+using arepa::game::Player;
 using arepa::server::Connection;
 using arepa::server::Server;
 

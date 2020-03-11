@@ -1,6 +1,6 @@
 #include "GameException.hpp"
 
-using namespace arepa::game::room;
+using namespace arepa::game;
 using Kind = GameException::Kind;
 
 constexpr const char* what_message(Kind kind) noexcept {

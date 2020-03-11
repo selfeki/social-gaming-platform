@@ -4,7 +4,7 @@
 #include <string>
 #include <string_view>
 
-namespace arepa::game::room {
+namespace arepa::game {
 
 /**
  * A structured representation of a player's nickname name.
@@ -67,8 +67,8 @@ public:
 
 #pragma mark - std::hash -
 template <>
-struct std::hash<arepa::game::room::PlayerNickname> {
-    std::size_t operator()(arepa::game::room::PlayerNickname const& name) const noexcept {
+struct std::hash<arepa::game::PlayerNickname> {
+    std::size_t operator()(arepa::game::PlayerNickname const& name) const noexcept {
         std::hash<std::string> hash;
         return hash(name);
     }
