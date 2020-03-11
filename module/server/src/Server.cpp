@@ -46,6 +46,8 @@ Server::Server(const arepa::networking::websocket::Options& options)
 // ---------------------------------------------------------------------------------------------------------------------
 
 std::vector<Client> Server::clients() const {
+    std::shared_lock guard(this->_clients_lock);
+
     // Create a copy.
     // This prevents concurrency issues.
     std::vector<Client> clients;
