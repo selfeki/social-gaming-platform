@@ -84,11 +84,11 @@ public:
  * @tparam V The value type.
  */
 template <typename V>
-_OkResult<V> Ok(V value) {
+inline _OkResult<V> Ok(V value) {
     return _OkResult<V>(value);
 }
 
-_OkResult<void> Ok() {
+inline _OkResult<void> Ok() {
     return _OkResult<void>();
 }
 
@@ -131,11 +131,11 @@ public:
  * @tparam E The error value type.
  */
 template <typename E>
-_ErrorResult<E> Error(E value) {
+inline _ErrorResult<E> Error(E value) {
     return _ErrorResult<E>(std::move(value));
 }
 
-_ErrorResult<void> Error() {
+inline _ErrorResult<void> Error() {
     return _ErrorResult<void>();
 }
 
