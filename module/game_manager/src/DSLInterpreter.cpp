@@ -17,7 +17,7 @@ void InterpretVisitor::visitImpl(const ForEach& forEach) {
     auto elemList = boost::get<ExpList>(forEach.elemList);
     auto element = boost::get<std::string_view>(forEach.elem);
     for (const auto& exp : elemList.list) {
-        context.map[element] = exp;
+        state.context.map[element] = exp;
         for (const auto& rule : forEach.rules) {
             rule->accept(*this);
         }
@@ -25,6 +25,11 @@ void InterpretVisitor::visitImpl(const ForEach& forEach) {
     if (!needUserInput) {
         scope.pop();
     }
+}
+
+void InterpretVisitor::visitImpl(const InputChoice& inputChoice) {
+    scope.push(&inputChoice);
+    // todo
 }
 
 std::string

@@ -44,10 +44,12 @@ public:
 
     void visit(const ForEach& rule) { visitImpl(rule); }
     void visit(const GlobalMessage& rule) { visitImpl(rule); }
+    void visit(const InputChoice& rule) { visitImpl(rule); }
 
 private:
     virtual void visitImpl(const ForEach& rule) {}
     virtual void visitImpl(const GlobalMessage& rule) {}
+    virtual void visitImpl(const InputChoice& rule) {}
 };
 
 
@@ -196,20 +198,18 @@ struct ForEach final : public Rule {
 //     Expression flag;
 // };
 
-// // todo: make consistent with GameManager user ID?
-// using UserID = std::string;
-// using UserIDList = std::vector<UserID>;
 
 
-// struct InputChoice {
-//     int id;
-//     Rule& 		 parent;
-//     UserIDList targetUsers;
-//     Expression prompt;
-//     Expression choiceList;
-//     Expression result;
-//     std::optional<Expression> timeout;
-// };
+struct InputChoice : public Rule {
+    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+
+    Rule* parent;
+    uniqueName targetUser;
+    Expression prompt;
+    Expression choiceList;
+    Expression result;
+    std::optional<Expression> timeout;
+};
 
 // struct InputText {
 //     int id;

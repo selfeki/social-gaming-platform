@@ -17,6 +17,8 @@ public:
 
     void visitImpl(const rule::GlobalMessage&);
 
+    void visitImpl(const rule::InputChoice&);
+
     void
     setGameState(const GameState&);
 
@@ -24,8 +26,6 @@ private:
     GameState& state;
 
     bool needUserInput;
-
-    ExpMap context;
 
     std::stack<const Rule*> scope;
 };

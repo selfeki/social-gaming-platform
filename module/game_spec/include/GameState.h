@@ -22,13 +22,14 @@ struct GameAudience {
     std::vector<GameMessage> messages;
 };
 
-using Environment = MapWrapper<std::string, Expression>;
+using Environment = ExpMap;
 
 struct GameState {
     Environment constants;
     Environment variables;
     Environment perPlayer;
     Environment perAudience;
+    Environment context;
 
     // player exclusive data contained here or in userStates?
     // A user might have game-agnostic data

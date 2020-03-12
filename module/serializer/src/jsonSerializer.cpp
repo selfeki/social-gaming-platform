@@ -141,7 +141,7 @@ parseEnvironment(const json& j) {
         auto key = item.key();
         auto value = item.value();
         auto exp = parseExpression(value);
-        env[key] = exp;
+        env.map[key] = exp;
     }
     return env;
 }
