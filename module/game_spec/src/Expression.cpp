@@ -1,6 +1,7 @@
 // A stub namespace to silence a couple CMake warnings.
 
 #include "Expression.h"
+
 #include <iostream>
 #include <string>
 
@@ -28,19 +29,19 @@ int main() {
     boost::apply_visitor(printExpVisitor(), stringExp);
     std::cout << std::endl;
 
-    Expression expMap = ExpMap({ {{"a", 1}} });
+    Expression expMap = ExpMap({ { { "a", 1 } } });
     boost::apply_visitor(printExpVisitor(), expMap);
     std::cout << std::endl;
 
-    Expression expList = ExpList({ {1, false, std::string_view("hello")} });
+    Expression expList = ExpList({ { 1, false, std::string_view("hello") } });
     boost::apply_visitor(printExpVisitor(), expList);
     std::cout << std::endl;
 
-    Expression nestedMap = ExpMap({ {{"a", expMap}} });
+    Expression nestedMap = ExpMap({ { { "a", expMap } } });
     boost::apply_visitor(printExpVisitor(), nestedMap);
     std::cout << std::endl;
 
-    Expression nestedList = ExpList({ {expList, std::string("hello"), nestedMap, 1, false} });
+    Expression nestedList = ExpList({ { expList, std::string("hello"), nestedMap, 1, false } });
     boost::apply_visitor(printExpVisitor(), nestedList);
     std::cout << std::endl;
 
