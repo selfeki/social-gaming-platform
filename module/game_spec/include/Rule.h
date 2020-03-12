@@ -6,7 +6,7 @@
     #include "Expression.h"
     #include "MapWrapper.h"
 
-// #include <memory>
+#include <memory>
 
 namespace gameSpecification::rule {
 
@@ -58,7 +58,7 @@ struct Rule {
 };
 
 using RuleID = int;
-using RuleList = std::vector<Rule>;
+using RuleList = std::vector<std::unique_ptr<Rule>>;
 
 struct ForEach final : public Rule {
     virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }

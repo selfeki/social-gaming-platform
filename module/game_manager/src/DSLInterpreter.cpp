@@ -19,7 +19,7 @@ void InterpretVisitor::visitImpl(const ForEach& forEach) {
     for (const auto& exp : elemList.list) {
         context.map[element] = exp;
         for (const auto& rule : forEach.rules) {
-            rule.accept(*this);
+            rule->accept(*this);
         }
     }
     if (!needUserInput) {

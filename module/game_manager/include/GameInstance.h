@@ -27,7 +27,7 @@ public:
             isTerminated = true;
             return;
         }
-        rules[ruleInd].accept(interpreter);
+        rules[ruleInd]->accept(interpreter);
         ruleInd++;
     }
 
