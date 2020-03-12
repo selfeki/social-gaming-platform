@@ -5,7 +5,7 @@
 
     #include "Expression.h"
     #include "MapWrapper.h"
-
+    #include <memory>
 // #include <memory>
 
 namespace gameSpecification::rule {
@@ -44,10 +44,14 @@ public:
 
     void visit(const ForEach& rule) { visitImpl(rule); }
     void visit(const GlobalMessage& rule) { visitImpl(rule); }
+    void visit(const ParallelFor& rule) { visitImpl(rule); }
+    void visit(const InputChoice& rule) { visitImpl(rule); }
 
 private:
     virtual void visitImpl(const ForEach& rule) {}
     virtual void visitImpl(const GlobalMessage& rule) {}
+    virtual void visitImpl(const ParallelFor& rule) {}
+    virtual void visitImpl(const InputChoice& rule) {}
 };
 
 
@@ -58,7 +62,7 @@ struct Rule {
 };
 
 using RuleID = int;
-using RuleList = std::vector<Rule>;
+using RuleList = std::vector<std::unique_ptr<Rule>>;
 
 struct ForEach final : public Rule {
     virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
@@ -70,6 +74,25 @@ struct ForEach final : public Rule {
     RuleList rules;
 };
 
+struct ParallelFor final : public Rule {
+    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+     //int id;
+     Rule* 		 parent;
+     Expression elemList;
+     Expression elem;
+     RuleList 	 rules;
+};
+
+struct InputChoice  : public Rule {
+    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+//     int id;
+        Rule*		 parent;
+        //UserIDList targetUsers;
+        Expression prompt;
+        Expression choiceList;
+        Expression result;
+        std::optional<Expression> timeout;
+};
 
 // enum LoopType {
 //     UNTIL,
@@ -89,13 +112,7 @@ struct ForEach final : public Rule {
 //     RuleList rules;
 // };
 
-// struct ParallelFor {
-//     int id;
-//     Rule& 		 parent;
-//     Expression elemList;
-//     Expression elem;
-//     RuleList 	 rules;
-// };
+
 
 // using CaseToRules = MapWrapper<Expression, RuleList>;
 
@@ -201,15 +218,7 @@ struct ForEach final : public Rule {
 // using UserIDList = std::vector<UserID>;
 
 
-// struct InputChoice {
-//     int id;
-//     Rule& 		 parent;
-//     UserIDList targetUsers;
-//     Expression prompt;
-//     Expression choiceList;
-//     Expression result;
-//     std::optional<Expression> timeout;
-// };
+
 
 // struct InputText {
 //     int id;

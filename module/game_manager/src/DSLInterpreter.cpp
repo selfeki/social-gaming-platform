@@ -8,7 +8,7 @@ namespace gameSpecification::rule {
 
 void InterpretVisitor::visitImpl(const ForEach& forEach) {
     scope.push(&forEach);
-    /*  
+    /*
     for each expression in elemList:
       set loop variable to that expression by updating context
       for each rule:
@@ -19,7 +19,7 @@ void InterpretVisitor::visitImpl(const ForEach& forEach) {
     for (const auto& exp : elemList.list) {
         context.map[element] = exp;
         for (const auto& rule : forEach.rules) {
-            rule.accept(*this);
+            rule->accept(*this);
         }
     }
     if (!needUserInput) {
