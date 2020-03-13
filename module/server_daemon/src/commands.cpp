@@ -1,175 +1,180 @@
-#include "commands.h"
+#include "commands.hpp"
 
-#include <sstream>
-#include <unordered_map>
-#include <tuple>
+#include "logging.hpp"
+
+#include <arepa/game/GameException.hpp>
+#include <arepa/game/Room.hpp>
 
 using Arguments = arepa::command::CommandArguments;
-using Context = CommandContext;
-using Executor = CommandExecutor;
-using User = CommandUser;
-using arepa::command::lambda_executor;
+using arepa::game::Player;
+using arepa::game::Room;
+using arepa::server::Connection;
+using arepa::server::Server;
 
-typedef std::pair<std::optional<std::string>, GameManager::ReturnCode> getRoomUsernameReturnType;
-typedef std::pair<std::optional<RoomID>, GameManager::ReturnCode> createRoomReturnType;
+GlobalCommandMap GLOBAL_COMMAND_MAP;    // NOLINT
 
+constexpr const char* SEPARATOR = "============================================================";
 
-std::unordered_map<std::string, std::unique_ptr<CommandExecutor>> COMMAND_MAP;
+// ---------------------------------------------------------------------------------------------------------------------
+#pragma mark - Global Commands -
+// ---------------------------------------------------------------------------------------------------------------------
 
-#define COMMAND(name, fn) \
-    { name, lambda_executor<User, Context>(fn) }
+void stub_room_only(GlobalCommandMap& map, std::string name) {
+    map.insert(arepa::command::CommandName(name), [name](Connection& connection, const Arguments& args) -> void {
+        connection.send_system_message(std::string("You need to be in a room to use /") + name);
+    });
+}
 
-void init_commands() {
-    COMMAND_MAP.insert(COMMAND("ping", [](Context& game_manager, User& user, const Arguments& args) {
-        std::cout << "Received /ping" << std::endl;
-        user.formMessageToSender("Pong.");
-    }));
+void init_global_commands(GlobalCommandMap& map, GameManager& manager, Server& server) {
+    stub_room_only(map, "nick");
+    stub_room_only(map, "kick");
+    stub_room_only(map, "members");
 
-    //example of the "members" command. TODO: the rest of the commands.
-    COMMAND_MAP.insert(COMMAND("members", [](Context& game_manager, User& user, const Arguments& args) {
-                
-        std::stringstream result;
+    map.insert("ping", [](Connection& connection, const Arguments& args) -> void {
+        connection.send_system_message("Pong.");
+    });
 
-        std::optional<RoomID> room_id = game_manager.getRoomIDOfPlayer(*user);
-        
-        if(!room_id) {
-            result<<"You are not in a room"<<std::endl;
-            user.formMessageToSender(result.str());
+    map.insert("clear", [](Connection& connection, const Arguments& args) -> void {
+        connection.send_message("/clear");
+    });
+
+    map.insert("create", [&manager](Connection& connection, const Arguments& args) -> void {
+        if (manager.find_player_room(connection.id())) {
+            connection.send_error_message("You need to leave your room before you can create another one.");
             return;
         }
 
-        const std::vector<PlayerID>* players = game_manager.getPlayersInRoom(*room_id);
+        auto player = manager.find_player(connection.id());
+        auto room = manager.create_room();
+        init_room_commands(room->commands, manager);
+        connection.send_system_message(std::string("Your room is: ") + std::string(room->id()));
+        manager.player_join_room(*player, room);
 
-        if(!players) {
-            result<<"No one in the room"<<std::endl;
-            
+        clout << "User created room."
+              << data(std::make_pair("User", std::string(connection.id())))
+              << data(std::make_pair("Room", std::string(room->id())))
+              << endl;
+    });
+
+    map.insert("join", [&manager](Connection& connection, const Arguments& args) -> void {
+        if (manager.find_player_room(connection.id())) {
+            connection.send_error_message("You need to leave your room before you can join another one.");
+            return;
         }
-        else {
-            result<<" Players in room "<<(*room_id)<<std::endl;
-            for(auto player : *players) {
-                getRoomUsernameReturnType username_return = game_manager.getRoomUsernameOfPlayer(player);
-                result<<*(username_return.first)<<std::endl;
+
+        if (args.size() != 1) {
+            connection.send_error_message("Invalid command usage. Example: /join ABCDE");
+            return;
+        }
+
+        auto room_id = Room::Id::parse(args.front());
+        if (!room_id) {
+            connection.send_error_message("Invalid room code. Example: 'ABCDE'");
+            return;
+        }
+
+        auto player = manager.find_player(connection.id());
+        auto room = manager.find_room(*room_id);
+
+        if (!room) {
+            connection.send_error_message("Could not find room '" + args.front() + "'. Are you sure it exists?");
+            return;
+        }
+
+        if ((*room)->is_full()) {
+            connection.send_error_message("Room '" + args.front() + "' is full.");
+            return;
+        }
+
+        manager.player_join_room(*player, *room);
+        connection.send_system_message(std::string("You joined '") + std::string((*room)->id()) + "'.");
+    });
+
+    map.insert("leave", [&manager](Connection& connection, const Arguments& args) -> void {
+        if (!manager.find_player_room(connection.id())) {
+            connection.send_error_message("You are not in any room.");
+            return;
+        }
+
+        auto player = manager.find_player(connection.id());
+        auto room = manager.find_player_room(*player);
+
+        manager.player_leave_room(*player, *room);
+        connection.send_system_message(std::string("You left '") + std::string((*room)->id()) + "'.");
+    });
+
+    // TODO(anyone): Re-create /help
+}
+
+
+// ---------------------------------------------------------------------------------------------------------------------
+#pragma mark - Room Commands -
+// ---------------------------------------------------------------------------------------------------------------------
+
+void init_room_commands(RoomCommandMap& map, GameManager& manager) {
+    map.insert("members", [](Room& room, Player& player, const Arguments& args) {
+        player.send_system_message("Members:");
+        auto owner = room.owner();
+
+        // List players.
+        for (auto& member : room.players()) {
+            if (owner && *owner == member) {
+                player.send_system_message(" - " + std::string(member->name()) + " [owner]");
+            } else {
+                player.send_system_message(" - " + std::string(member->name()));
             }
         }
-        user.formMessageToSender(result.str());
-    }));
 
-
-    COMMAND_MAP.insert(COMMAND("create", [](Context& game_manager, User& user, const Arguments& args){
-        createRoomReturnType room_ret = game_manager.createRoom(*user);
-
-        if(room_ret.second != GameManager::ReturnCode::SUCCESS) {
-            user.outgoing_message_queue().emplace_back(*user, "Failed to create room.");
-            return;
-        }
-        game_manager.addPlayerToRoom(*user, *(room_ret.first));
-        user.formMessageToSender("Created room " + *(room_ret.first));
-        
-    
-
-        return;
-
-    }));
-
-    COMMAND_MAP.insert(COMMAND("room", [](Context& game_manager, User& user, const Arguments& args){
-        std::stringstream result;
-        auto roomIDList = game_manager.getRoomIdToRoomMap();
-        if(roomIDList.empty()){
-            result<<"There is no room so far"<<std::endl;
-        }
-        else{
-            result<<"Room List"<<std::endl;
-            for(auto roomID : roomIDList){
-                result<<roomID.first<<std::endl;
+        // List spectators.
+        for (auto& member : room.spectators()) {
+            if (owner && *owner == member) {
+                player.send_system_message(" - " + std::string(member->name()) + " [owner]");
+            } else {
+                player.send_system_message(" - " + std::string(member->name()) + " [spectator]");
             }
         }
-        user.formMessageToSender(result.str());
-    }));
+    });
 
-    COMMAND_MAP.insert(COMMAND("join", [](Context& game_manager, User& user, const Arguments& args){
-        std::stringstream result;
-        if(args.empty()){
-            result<<"You need to provide room id as an argument eg. /join 'roomid'"<<std::endl;
-            user.formMessageToSender(result.str());
+    map.insert("nick", [&manager](Room& room, Player& player, const Arguments& args) {
+        if (args.size() != 1) {
+            player.send_error_message("Invalid command usage. Example: /nick name_100");
             return;
         }
-        
-        RoomID room = args.front();
-        GameManager::ReturnCode returnCode = game_manager.addPlayerToRoom(*user, room);
-        if(returnCode == GameManager::ReturnCode::FAILURE)
-        {
-            result<<"You couldn't enter the room"<<std::endl;
-            user.formMessageToSender(result.str());
+
+        auto nickname = Player::Name::parse(args.front());
+        if (!nickname) {
+            player.send_error_message("Invalid nickname.");
+            return;
         }
-        else {
-            result<<(*user).name()<<" entered the room"<<std::endl;
-            user.formMessageToRoom(game_manager, result.str());
+
+        try {
+            manager.player_set_nickname(*room.find_player(player.id()), *nickname);
+        } catch (arepa::game::GameException& ex) {
+            player.send_error_message(std::string(ex.what()));
         }
-    }));
+    });
 
-    COMMAND_MAP.insert(COMMAND("kick", [](Context& game_manager, User& user, const Arguments& args){
-        //auto responses = game_manager.kickPlayerCommand(*user, args.front());
-        //std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
-        //return responses;
-    }));
-
-    COMMAND_MAP.insert(COMMAND("clear", [](Context& game_manager, User& user, const Arguments& args){
-        //auto responses = game_manager.clearCommand(*user);
-        //std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
-        //return responses;
-    }));
-
-    COMMAND_MAP.insert(COMMAND("quit", [](Context& game_manager, User& user, const Arguments& args){
-        //auto responses = game_manager.leaveRoomCommand(*user);
-        //std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
-        //return responses;
-    }));   
-
-    COMMAND_MAP.insert(COMMAND("shutdown", [](Context& game_manager, User& user, const Arguments& args){
-        //auto responses = game_manager.shutdownServerCommand(*user);
-        //std::copy(responses.begin(), responses.end(), std::back_inserter(user.outgoing_message_queue()));
-        //return responses;
-    }));
-
-
-    COMMAND_MAP.insert(COMMAND("help", [](Context& game_manager, User& user, const Arguments& args) {
-        std::stringstream message;
-
-        message << "Help Commands:\n"
-                << "  /help        -- view the command list\n"
-                << "\n"
-
-                << "Room Commands:\n"
-                << "  /create      -- create a new room\n"
-                << "  /join [id]   -- join an existing room\n"
-                << "  /room        -- get the current room ID\n"
-                << "  /member      -- get the current room members\n"
-                << "  /quit        -- leave the current room\n"
-                << "\n"
-
-                << "Room Admin Commands:\n"
-                << "  /kick [user] -- kick a user from the room";
-
-        user.formMessageToSender(message.str());
-    }));
+    // TODO(anyone): Re-create /kick
 }
 
-void invalidCommand(User& user){
-    user.formMessageToSender("Invalid command. Command must be alphanumeric. \n");
-}
-void unknownCommand(User& user){
-    user.formMessageToSender("Unknown command. '/help' for command list. \n");
-}
-
-
-//std::deque<Message> networkMessageQueue;
-
-
-
-// void formMessageToRoomMembers(std::string& message, IDType& room_id)
-//     std::pair<std::optional<std::string>, GameManager::ReturnCode> username_result = gameManager.getRoomUsernameOfPlayer(sentFrom);
-//     const std::vector<PlayerID>* players = gameManager.getPlayersInRoom(*room_id);
-//     text += (*(username_result.first) + ": " + message.text);
-//     for(auto player : *players) {
-//         networkMessageQueue.emplace_back(player, text);
-//     }
+//    COMMAND_MAP.insert(COMMAND("help", [](Context& game_manager, User& user, const Arguments& args) {
+//        std::stringstream message;
+//
+//        message << "Help Commands:\n"
+//                << "  /help        -- view the command list\n"
+//                << "\n"
+//
+//                << "Room Commands:\n"
+//                << "  /create      -- create a new room\n"
+//                << "  /join [id]   -- join an existing room\n"
+//                << "  /room        -- get the current room ID\n"
+//                << "  /member      -- get the current room members\n"
+//                << "  /quit        -- leave the current room\n"
+//                << "\n"
+//
+//                << "Room Admin Commands:\n"
+//                << "  /kick [user] -- kick a user from the room";
+//
+//        user.formMessageToSender(message.str());
+//    }));
+//}

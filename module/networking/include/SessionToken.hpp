@@ -1,5 +1,7 @@
 #pragma once
 
+#include "SessionId.hpp"
+
 #include <boost/uuid/uuid.hpp>
 #include <iostream>
 
@@ -18,18 +20,18 @@ public:
     /**
      * A type alias for a token's ID typename.
      */
-    typedef boost::uuids::uuid Id;
+    using Id = SessionId;
 
     /**
      * A type alias for a token's auth secret typename.
      */
-    typedef boost::uuids::uuid Secret;
+    using Secret = boost::uuids::uuid;
 
 
 #pragma mark - Fields -
 private:
-    boost::uuids::uuid _id;
-    boost::uuids::uuid _secret;
+    Id _id;
+    Secret _secret;
 
 
 #pragma mark - Constructors -
@@ -62,11 +64,23 @@ public:
 
 #pragma mark - Operators -
 public:
-    operator std::string() const;    // NOLINT
+    [[nodiscard]] operator std::string() const;    // NOLINT
+    [[nodiscard]] bool operator==(const SessionToken& rhs) const;
+    [[nodiscard]] bool operator==(const SessionToken::Id& rhs) const;
+    [[nodiscard]] bool operator!=(const SessionToken& rhs) const;
+    [[nodiscard]] bool operator!=(const SessionToken::Id& rhs) const;
 };
 
-bool operator==(const SessionToken& lhs, const SessionToken& rhs);
-bool operator==(const SessionToken& lhs, const SessionToken::Id& rhs);
 std::ostream& operator<<(std::ostream& lhs, const SessionToken& rhs);
 
 }
+
+
+#pragma mark - std::hash -
+template <>
+struct std::hash<arepa::networking::SessionToken> {
+    std::size_t operator()(arepa::networking::SessionToken const& token) const noexcept {
+        std::hash<arepa::networking::SessionId> hash;
+        return hash(token.id());
+    }
+};

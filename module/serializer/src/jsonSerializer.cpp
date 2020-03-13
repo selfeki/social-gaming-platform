@@ -28,10 +28,10 @@ parseServerConfig(const json& j) {
     serverConfig::Configuration config;
     j.at("port").get_to(config.port);
     j.at("html").get_to(config.htmlPath);
-    auto games = j.at("games");
-    std::transform(
-        games.begin(), games.end(), std::back_inserter(config.gameSpecs),
-        [](const json& spec) { return parseGameSpecification(spec); });
+    //    auto games = j.at("games");
+    //    std::transform(
+    //        games.begin(), games.end(), std::back_inserter(config.gameSpecs),
+    //        [](const json& spec) { return parseGameSpecification(spec); });
     return config;
 }
 
