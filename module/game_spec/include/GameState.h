@@ -2,6 +2,7 @@
 
 #include "Expression.h"
 #include "MapWrapper.h"
+#include <stack>
 
 namespace gameSpecification {
 
@@ -29,12 +30,21 @@ struct GameState {
     Environment variables;
     Environment perPlayer;
     Environment perAudience;
-    Environment context;
+    // keeps track of which variables are in scope
+    std::stack<Environment> context;
 
     // player exclusive data contained here or in userStates?
     // A user might have game-agnostic data
     std::vector<GamePlayer> players;
     std::vector<GameAudience> audience;
+
+    void enterScope() {
+        context.emplace();
+    }
+
+    void exitScope() {
+        context.pop();
+    }
 
     void enqueueMessage(uniqueName name, GameMessage message) {
         auto it = std::find_if(players.begin(), players.end(),

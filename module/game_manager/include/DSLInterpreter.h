@@ -3,10 +3,14 @@
 #include "arepa/game_spec/GameState.h"
 #include "arepa/game_spec/Rule.h"
 
+#include <boost/variant/polymorphic_get.hpp>
 #include <stack>
 
-namespace gameSpecification::rule {
 
+using namespace gameSpecification;
+
+
+// todo: move this somewhere else
 struct ObjectPointer {
     std::vector<std::string_view> indices;
 
@@ -14,35 +18,53 @@ struct ObjectPointer {
     // I'm trying to dereference the pointer
     // https://stackoverflow.com/questions/550859/reference-to-value-of-stl-map-element
 
-    std::optional<ExpMap>
-    getExpMap(const Expression& exp) {
-        const ExpMap* res;
+    std::optional<ExpMap*>
+    getExpMap(Expression& exp) {
+        ExpMap* res;
         try {
-            res = &boost::get<ExpMap>(exp);
+            res = &boost::polymorphic_strict_get<ExpMap>(exp);
         } catch(boost::bad_get e) {
             return { };
          }
-        return *res;
+        return res;
     }
 
-    std::optional<Expression>
-    dereferenceFromContext(const ExpMap& expMap) {
-        Expression exp = expMap;
+    std::optional<Expression*>
+    dereferenceFromContext(ExpMap& expMap) {
+        std::cout << &(expMap.map["a"]) << std::endl;
+        ExpMap* exp = &expMap;
+        std::cout << &(exp->map["a"]) << std::endl;
         for (const auto& ind : indices) {
-            auto nestedMap = getExpMap(exp);
-            if (!nestedMap) {
+            // const auto& m = mapPtr.value()->map;
+            // check if ind is a key in the expMap
+            auto it = exp->map.find(ind);
+            if (it == exp->map.end()) { 
                 return { };
             }
-            auto m = nestedMap.value().map;
-            auto it = m.find(ind);
-            if (it == m.end()) { 
+            // std::cout << "found " << ind << std::endl;
+
+            Expression& temp= it->second;
+            std::cout << ind << " " << indices[indices.size()-1] << std::endl;
+
+            assert(indices.size() > 0);
+            if (&ind == &indices.back()) { return &temp; }
+
+            // std::cout << ind << " " << indices[indices.size()-1] << std::endl;
+
+            // check if found Expression is an expMap 
+            auto mapPtr = getExpMap(temp);
+            if (!mapPtr) {
                 return { };
             }
-            exp = it->second;
+            exp = mapPtr.value();
         }
-        return exp;
+        return { };
     }
 };
+
+
+namespace gameSpecification::rule {
+
 
 class InterpretVisitor : public RuleVisitor {
 public:
