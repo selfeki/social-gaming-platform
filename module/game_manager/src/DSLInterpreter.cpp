@@ -87,38 +87,3 @@ void InterpretVisitor::visitImpl(const GlobalMessage& globalMessage) {
 // }
 
 }    // namespace gameSpecification::rule
-
-
-using namespace gameSpecification;
-
-int main() {
-
-    Expression expMap    = ExpMap({ { { "c", 1 } } });
-    Expression nestedMap = ExpMap({ { { "b", expMap } } });
-    ExpMap   nestederMap = ExpMap({ { { "a", nestedMap } } });
-    
-    // ExpMap& map = boost::polymorphic_strict_get<ExpMap>(expMap);
-    // std::cout << &expMap << std::endl;
-
-    ObjectPointer objPtr{{"a", "b", "c"}};
-
-    auto refPtr = objPtr.dereferenceFromContext(nestederMap);
-
-    if (!refPtr) {
-        std::cout << "null";
-    } else {
-        // std::cout << "orig" << std::endl;
-        // std::cout << &(expMap.map["a"]) << std::endl;
-        // std::cout << "refPtr" << std::endl;
-        // std::cout << refPtr.value() << std::endl;
-        *(refPtr.value()) = 42;
-        // std::cout << boost::get<int>(expMap.map["a"]);
-        // Expression newExpMap = expMap;
-        boost::apply_visitor(printExpVisitor(), static_cast<Expression>(nestederMap));
-    }
-    
-
-    // refPtr.value() = 
-    // ref 
-    // std::cout << std::endl;
-}
