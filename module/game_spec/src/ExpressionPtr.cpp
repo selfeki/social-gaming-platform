@@ -19,7 +19,14 @@ castToExpMap(Expression& exp) {
     return res;
 }
 
-
+/*  
+    Basic idea of algorithm:
+    
+    exp = expMap
+    for ind in indices
+        exp = exp[ind]
+    return &exp
+*/
 std::optional<Expression*>
 ExpressionPtr::getPtr(ExpMap& expMap) {
     assert(indices.size() > 0);
@@ -30,6 +37,8 @@ ExpressionPtr::getPtr(ExpMap& expMap) {
         if (it == exp->map.end()) { 
             return { };
         }
+        // get expression at map[ind]
+        // and return it if no more indices
         Expression& temp= it->second;
         if (&ind == &indices.back()) { return &temp; }
         // check if found Expression is an expMap 
