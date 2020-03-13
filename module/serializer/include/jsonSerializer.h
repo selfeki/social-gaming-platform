@@ -118,6 +118,17 @@ parseRuleInputText(const json&, gameSpecification::rule::Rule*);
 std::unique_ptr<gameSpecification::rule::Rule>
 parseRuleInputVote(const json&, gameSpecification::rule::Rule*);
 
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleLoop(const json&, gameSpecification::rule::Rule*);
+
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleTimer(const json&, gameSpecification::rule::Rule*);
+
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleSwitch(const json&, gameSpecification::rule::Rule*);
+
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleWhen(const json&, gameSpecification::rule::Rule*);
 
 bool isValidServerConfig(const json&);
 

@@ -58,7 +58,10 @@ public:
     void visit(const Scores& rule) { visitImpl(rule); }
     void visit(const InputText& rule) { visitImpl(rule); }
     void visit(const InputVote& rule) { visitImpl(rule); }
-
+    void visit(const Loop& rule) { visitImpl(rule); }
+    void visit(const Switch& rule) { visitImpl(rule); }
+    void visit(const Timer& rule) { visitImpl(rule); }
+    void visit(const When& rule) { visitImpl(rule); }
 
 private:
     virtual void visitImpl(const ForEach& rule) {}
@@ -77,6 +80,10 @@ private:
     virtual void visitImpl(const Scores& rule) {}
     virtual void visitImpl(const InputText& rule) {}
     virtual void visitImpl(const InputVote& rule) {}
+    virtual void visitImpl(const Loop& rule) {}
+    virtual void visitImpl(const Switch& rule) {}
+    virtual void visitImpl(const Timer& rule) {}
+    virtual void visitImpl(const When& rule) {}
 };
 
 struct Rule {
@@ -150,17 +157,19 @@ struct Shuffle : public Rule{
 };
 
 
-// enum LoopType {
-//     UNTIL,
-//     WHILE
-// };
+enum LoopType {
+     UNTIL,
+     WHILE
+};
 
-// struct Loop : public Rule {
+struct Loop : public Rule {
+    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+
 //     int id;
-//     Rule& 	 parent;
-//     LoopType type;    // Until or While
-//     RuleList rules;
-// };
+    Rule* 	 parent;
+    LoopType type;    // Until or While
+    RuleList rules;
+};
 
 struct InParallel : public Rule{
     virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
@@ -209,24 +218,26 @@ struct Deal : public Rule{
      Expression count;
 };
 
-// using CaseToRules = MapWrapper<Expression, RuleList>;
+using CaseToRules = MapWrapper<Expression, RuleList>;
 
-// struct Switch {
+ struct Switch : public Rule{
+     virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
 //     int id;
-//     Rule& 			parent;
-//     Expression 	switchTarget;
-//     Expression 	valuesList;
-//     RuleList 		rules;
-//     CaseToRules caseToRules;
-// };
+     Rule*			parent;
+     Expression 	switchTarget;
+     Expression 	valuesList;
+     RuleList 		rules;
+     CaseToRules caseToRules;
+};
 
-// using ConditionToRules = MapWrapper<Expression, RuleList>;
+using ConditionToRules = MapWrapper<Expression, RuleList>;
 
-// struct When {
+struct When : public Rule{
+    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
 //     int id;
-//     Rule& parent;
-//     ConditionToRules condToRules;
-// };
+     Rule* parent;
+     ConditionToRules condToRules;
+};
 
 
 struct Sort : public Rule{
@@ -266,20 +277,21 @@ struct InputVote : public Rule {
 
 
 
-// enum TimerMode {
-//     EXACT,
-//     AT_MOST,
-//     TRACK
-// };
+enum TimerMode {
+     EXACT,
+     AT_MOST,
+     TRACK
+};
 
-// struct Timer {
-//     int id;
-//     Rule& 		 parent;
-//     Expression duration;
-//     TimerMode  mode;
-//     RuleList 	 rules;
-//     Expression flag;
-// };
+struct Timer : public Rule {
+    virtual void accept(RuleVisitor &visitor) const { return visitor.visit(*this); }
+     //int id;
+     Rule*		 parent;
+     Expression duration;
+     TimerMode  mode;
+     RuleList 	 rules;
+     Expression flag;
+};
 
 // // todo: make consistent with GameManager user ID?
 // using UserID = std::string;
