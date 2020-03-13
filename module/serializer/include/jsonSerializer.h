@@ -55,48 +55,69 @@ parseExpMap(const json&);
 gameSpecification::Expression
 parseExpList(const json&);
 
-//gameSpecification::rule::Rule
-//gameSpecification::rule::Rule&
+
 std::unique_ptr<gameSpecification::rule::Rule>
 ruleSelector(const json&, const std::string&, gameSpecification::rule::Rule*);
 
 gameSpecification::rule::RuleList
 parseRule(const json&);
 
-
-//gameSpecification::rule::Rule
+//make rules
 std::unique_ptr<gameSpecification::rule::Rule>
-parseRuleGlobalMessage(const json&);
-
-std::unique_ptr<gameSpecification::rule::Rule>
-parseRuleForEach(const json& ,gameSpecification::rule::Rule* parent);
-
+parseRuleGlobalMessage(const json&, gameSpecification::rule::Rule*);
 
 std::unique_ptr<gameSpecification::rule::Rule>
-parseRuleParallelFor(const json& ,gameSpecification::rule::Rule* parent);
+parseRuleForEach(const json& ,gameSpecification::rule::Rule*);
 
-/*
-gameSpecification::rule::Rule
-parseRuleInputChoice(const json& );
 
-gameSpecification::rule::Rule
-parseRuleDiscard(const json& );
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleParallelFor(const json& ,gameSpecification::rule::Rule*);
 
-gameSpecification::rule::Rule
-parseRuleExtend(const json&);
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleDiscard(const json&, gameSpecification::rule::Rule*);
 
-gameSpecification::rule::Rule
-parseRuleWhen(const json&);
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleReverse(const json&, gameSpecification::rule::Rule*);
 
-gameSpecification::rule::Rule
-parseRuleAdd(const json&);
 
-gameSpecification::rule::Rule
-parseRuleReverse(const json&);
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleInputChoice(const json&, gameSpecification::rule::Rule*);
 
-gameSpecification::rule::Rule
-parseRuleShuffle(const json&);
- */
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleInParallel(const json&, gameSpecification::rule::Rule*);
+
+
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleExtend(const json&, gameSpecification::rule::Rule*);
+
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleAdd(const json&, gameSpecification::rule::Rule*);
+
+
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleWhen(const json&, gameSpecification::rule::Rule*);
+
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleShuffle(const json&, gameSpecification::rule::Rule*);
+
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleMessage(const json&, gameSpecification::rule::Rule*);
+
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleSort(const json&, gameSpecification::rule::Rule*);
+
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleDeal(const json&, gameSpecification::rule::Rule*);
+
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleScores(const json&, gameSpecification::rule::Rule*);
+
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleInputText(const json&, gameSpecification::rule::Rule*);
+
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleInputVote(const json&, gameSpecification::rule::Rule*);
+
 
 bool isValidServerConfig(const json&);
 

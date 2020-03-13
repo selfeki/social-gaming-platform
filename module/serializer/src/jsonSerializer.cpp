@@ -152,13 +152,8 @@ parseEnvironment(const json& j) {
 gameSpecification::Expression
 parseExpression(const json& j) {
     switch (j.type()) {
-    case json::value_t::string:{
-      std::string_view strr= j.get<std::string_view>();
-      //std::cout << strr;
+    case json::value_t::string:
       return std::string_view(j.get<std::string_view>());
-    }
-        //return j.get<std::string>();
-
     case json::value_t::number_integer:
         return j.get<int>();
     case json::value_t::boolean:
@@ -213,35 +208,13 @@ parseRuleInputChoice(const json& j, gameSpecification::rule::Rule* parent){
     inputChoiceRule->choiceList = parseExpression(j.value("choices", ""));
     inputChoiceRule->result = parseExpression(j.value("result", ""));
     inputChoiceRule->timeout = parseExpression(j.value("timeout", 0));
+    inputChoiceRule->parent = parent;
 
-        //std::vector<gameSpecification::rule::UserID> playerStub;
-
-
-        return inputChoiceRule;
+    //std::vector<gameSpecification::rule::UserID> playerStub;
+    return inputChoiceRule;
     }
 /*
 //all other parseRule__RULENAME__ will be similar with different fields
-gameSpecification::rule::Rule
-parseRuleReverse(const json& j){
-    gameSpecification::Expression list = parseExpression(j.value("list", ""));
-    gameSpecification::rule::Reverse reverseRule = {list};
-    return reverseRule;
-}
-
-gameSpecification::rule::Rule
-parseRuleShuffle(const json& j){
-    gameSpecification::Expression list = parseExpression(j.value("list", ""));
-    gameSpecification::rule::Shuffle shuffleRule = {list};
-    return shuffleRule;
-}
-
-gameSpecification::rule::Rule
-parseRuleAdd(const json& j){
-    gameSpecification::Expression to = parseExpression(j.value("to", ""));
-    gameSpecification::Expression value = parseExpression(j.value("value", 0));
-    gameSpecification::rule::Add addRule= {to, value};
-    return addRule;
-}
 
 //TODO: Finish off when
 gameSpecification::rule::Rule
@@ -252,31 +225,8 @@ parseRuleWhen(const json& j){
         return extendRule;
 }
 
-gameSpecification::rule::Rule
-parseRuleExtend(const json& j){
-    gameSpecification::Expression target = parseExpression(j.value("target", ""));
-    gameSpecification::Expression list = parseExpression(j.value("list", ""));
-    gameSpecification::rule::Extend extendRule= {target, list};
-    return extendRule;
-}
-
-gameSpecification::rule::Rule
-parseRuleDiscard(const json& j){
-    gameSpecification::Expression from = parseExpression(j.value("from", ""));
-    gameSpecification::Expression count = parseExpression(j.value("count", ""));
-    gameSpecification::rule::Discard discardRule = {from, count};
-    return discardRule;
-}
 
 
-
-gameSpecification::rule::Rule
-parseRuleGlobalMessage(const json& j){
-    gameSpecification::Expression content = parseExpression(j.value("global-message", ""));
-    gameSpecification::rule::GlobalMessage globMsg = {content};
-    return globMsg;
-
-}
 */
 std::unique_ptr<gameSpecification::rule::Rule>
 parseRuleParallelFor(const json& j, gameSpecification::rule::Rule* parent){
@@ -284,6 +234,7 @@ parseRuleParallelFor(const json& j, gameSpecification::rule::Rule* parent){
     parallelForRule->elemList = parseExpression(j.value("list", ""));
     parallelForRule->elem = parseExpression(j.value("element", ""));
     parallelForRule->parent = parent;
+    parallelForRule->rules = gameSpecification::rule::RuleList();
     /*
     gameSpecification::rule::RuleList parsedSubRules = gameSpecification::rule::RuleList();
     auto subRules = j["rules"].get<std::vector<json>>();
@@ -298,29 +249,138 @@ parseRuleParallelFor(const json& j, gameSpecification::rule::Rule* parent){
 };
 
 std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleReverse(const json& j, gameSpecification::rule::Rule* parent){
+    auto reverseRule = std::make_unique<gameSpecification::rule::Reverse>();
+    reverseRule->list = parseExpression(j.value("list", ""));
+    reverseRule->parent = parent;
+    return reverseRule;
+}
+
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleInParallel(const json& j, gameSpecification::rule::Rule* parent){
+    auto inParallelRule = std::make_unique<gameSpecification::rule::InParallel>();
+    auto subRules = j["rules"].get<std::vector<json>>();
+    for(auto& rule : subRules){
+        std::string ruleName = rule["rule"].get<std::string>();
+        //inParallelRule->rules.push_back(ruleSelector(rule, ruleName, inParallelRule.get()));
+    }
+}
+
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleExtend(const json& j, gameSpecification::rule::Rule* parent){
+    auto extendRule = std::make_unique<gameSpecification::rule::Extend>();
+    extendRule->targetList = parseExpression(j.value("target", ""));
+    extendRule->list = parseExpression(j.value("list", ""));
+    extendRule->parent = parent;
+    return extendRule;
+}
+
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleAdd(const json& j, gameSpecification::rule::Rule* parent){
+    auto addRule = std::make_unique<gameSpecification::rule::Add>();
+    addRule->to = parseExpList(j.value("to", ""));
+    addRule->value = parseExpList(j.value("value", ""));
+    addRule->parent = parent;
+    return addRule;
+}
+
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleShuffle(const json& j, gameSpecification::rule::Rule* parent){
+    auto shuffleRule = std::make_unique<gameSpecification::rule::Shuffle>();
+    shuffleRule->list = parseExpression(j.value("list", ""));
+    shuffleRule->parent = parent;
+    return shuffleRule;
+}
+
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleDiscard(const json& j, gameSpecification::rule::Rule* parent){
+        auto discardRule = std::make_unique<gameSpecification::rule::Discard>();
+        discardRule->fromList = parseExpression(j.value("from", ""));
+        discardRule->count = parseExpression(j.value("count", ""));
+        discardRule->parent = parent;
+        return discardRule;
+    }
+
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleMessage(const json& j, gameSpecification::rule::Rule* parent){
+    auto messageRule = std::make_unique<gameSpecification::rule::Message>();
+    messageRule->content = parseExpList(j.value("value", ""));
+    messageRule->parent = parent;
+    return messageRule;
+}
+
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleSort(const json& j, gameSpecification::rule::Rule* parent){
+    auto sortRule = std::make_unique<gameSpecification::rule::Sort>();
+    sortRule->list = parseExpression(j.value("list",""));
+    sortRule->key = parseExpression(j.value("key",""));
+    sortRule->parent = parent;
+    return sortRule;
+}
+
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleDeal(const json& j, gameSpecification::rule::Rule* parent){
+    auto dealRule = std::make_unique<gameSpecification::rule::Deal>();
+    dealRule->fromList = parseExpression(j.value("from",""));
+    dealRule->toList = parseExpression(j.value("to",""));
+    dealRule->count = parseExpression(j.value("count",0));
+    dealRule->parent = parent;
+    return dealRule;
+}
+
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleScores(const json& j, gameSpecification::rule::Rule* parent){
+    auto scoresRule = std::make_unique<gameSpecification::rule::Scores>();
+    scoresRule->scoreAttribute = parseExpression(j.value("score",""));
+    scoresRule->isAscending = parseExpression(j.value("ascending",""));
+    scoresRule->parent = parent;
+    return scoresRule;
+}
+
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleInputText(const json& j, gameSpecification::rule::Rule* parent){
+    auto inputTextRule = std::make_unique<gameSpecification::rule::InputText>();
+    //inputTextRule->targetUser = parseExpression(j.value("to", ""));
+    inputTextRule->prompt = parseExpression(j.value("prompt", ""));
+    inputTextRule->result = parseExpression(j.value("result", ""));
+    inputTextRule->timeout = parseExpression(j.value("timeout",""));
+    inputTextRule->parent = parent;
+    return inputTextRule;
+}
+
+std::unique_ptr<gameSpecification::rule::Rule>
+parseRuleInputVote(const json& j, gameSpecification::rule::Rule* parent){
+    auto inputVoteRule = std::make_unique<gameSpecification::rule::InputVote>();
+    //inputVoteRule->targetUsers = parseExpression(j.value("to",""));
+    inputVoteRule->prompt = parseExpression(j.value("prompt", ""));
+    inputVoteRule->choiceList = parseExpression(j.value("choices", ""));
+    inputVoteRule->resultMap = parseExpression(j.value("result", ""));
+    inputVoteRule->timeout = parseExpression(j.value("timeout",""));
+    inputVoteRule->parent = parent;
+    return inputVoteRule;
+}
+
+std::unique_ptr<gameSpecification::rule::Rule>
 parseRuleForEach(const json& j, gameSpecification::rule::Rule* parent){
     auto forEachRule = std::make_unique<gameSpecification::rule::ForEach>();
-    forEachRule->elemList = parseExpList(j.value("list", ""));
-    forEachRule->elem = parseExpList(j.value("element", ""));
+    forEachRule->elemList = parseExpression(j.value("list", ""));
+    forEachRule->elem = parseExpression(j.value("element", ""));
     forEachRule->parent = parent;
-    //std::cout << boost::get<std::string>(list);
+    forEachRule->rules = gameSpecification::rule::RuleList();
 
-    //gameSpecification::rule::RuleList parsedSubRules = gameSpecification::rule::RuleList();
-
-    //std::cout << j["rules"].get<std::vector<json>>() << "AT END";
-
-    //auto subRules = j["rules"].get<std::vector<json>>();
+    auto subRules = j["rules"].get<std::vector<json>>();
     //std::cout << subRules;
-    //for(auto& rule : subRules){
-        //std::string ruleName = rule["rule"].get<std::string>();
-        //parsedSubRules.push_back(ruleSelector(rule, ruleName));
-    //}
+    for(auto& rule : subRules){
+        std::string ruleName = rule["rule"].get<std::string>();
+        forEachRule->rules.push_back(ruleSelector(rule, ruleName, forEachRule.get()));
+    }
     //TODO: call ruleSelector on each of the rules of THIS rule
     //and push into RulesList of THIS rule
     //ie: global-message, parallelfor, etc in the rock paper scissors example
-    //gameSpecification::rule::ForEach forEachRule = {list, elem, parsedSubRules};
     return forEachRule;
 }
+
+
 
 //think of this as the phone book of rules
 //gameSpecification::rule::Rule&
@@ -337,39 +397,39 @@ ruleSelector(const json& j, const std::string& ruleName, gameSpecification::rule
             return parseRuleGlobalMessage(j, parent);
         else if (ruleName == "input-choice")
             return parseRuleInputChoice(j, parent);
+        else if (ruleName == "discard")
+            return parseRuleDiscard(j, parent);
+        else if (ruleName == "reverse")
+            return parseRuleReverse(j, parent);
+        else if (ruleName == "inparallel")
+            return parseRuleInParallel(j, parent);
+        else if (ruleName == "extend")
+            return parseRuleExtend(j, parent);
+        else if (ruleName == "add")
+            return parseRuleAdd(j, parent);
+        else if (ruleName == "shuffle")
+            return parseRuleShuffle(j, parent);
+        else if (ruleName == "message")
+            return parseRuleMessage(j, parent);
+        else if (ruleName == "sort")
+            return parseRuleSort(j, parent);
+        else if (ruleName == "deal")
+            return parseRuleDeal(j, parent);
+        else if (ruleName == "scores")
+            return parseRuleScores(j, parent);
+        else if (ruleName == "input-text")
+            return parseRuleInputText(j, parent);
+        else if (ruleName == "input-vote")
+            return parseRuleInputVote(j, parent);
         /*
         else if (ruleName == "loop")
             std::cout << "loop";
-        else if (ruleName == "inparallel")
-            std::cout << "inparallel";
         else if (ruleName == "switch")
             std::cout << "switch";
         else if (ruleName == "when")
             return parseRuleWhen(j);
-        else if (ruleName == "extend")
-            return parseRuleExtend(j);
-        else if (ruleName == "reverse")
-            return parseRuleReverse(j);
-        else if (ruleName == "shuffle")
-            return parseRuleShuffle(j);
-        else if (ruleName == "sort")
-            std::cout << "sort";
-        else if (ruleName == "deal")
-            std::cout << "deal";
-        else if (ruleName == "discard")
-            return parseRuleDiscard(j);
-        else if (ruleName == "add")
-            return parseRuleAdd(j);
-        else if (ruleName == "input-text")
-            std::cout << "input-text";
-        else if (ruleName == "input-vote")
-            std::cout << "input-vote";
-        else if (ruleName == "message")
-            std::cout << "message";*/
 
-            /*
-        else if (ruleName == "scores")
-            std::cout << "scores";*/
+*/
     /*
     auto innerJson = jsonRules[0].get<std::map<std::string, json>>();
     std::cout << "top level \n";
