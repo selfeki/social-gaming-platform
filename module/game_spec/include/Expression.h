@@ -1,11 +1,11 @@
 #pragma once
 
 #include "MapWrapper.h"
-#include <iostream>
 
 #include <boost/variant.hpp>
 #include <boost/variant/recursive_wrapper.hpp>
 #include <boost/variant/variant.hpp>
+#include <iostream>
 #include <string_view>
 
 namespace gameSpecification {
@@ -33,7 +33,6 @@ struct ExpList {
 // For debugging purposes
 class printExpVisitor : public boost::static_visitor<void> {
 public:
-
     // void operator()(const std::string& str) const { }
 
     void operator()(int i) const {
@@ -42,11 +41,11 @@ public:
 
     void operator()(const std::string_view str) const {
         std::cout << str;
-     }
+    }
 
     void operator()(bool b) const {
         std::cout << b;
-     }
+    }
 
     void operator()(const ExpMap& expMap) const {
         std::cout << "{ ";
@@ -67,7 +66,6 @@ public:
         std::cout << " ]";
     }
 };
-
 
 
 }    // namespace gameSpecification

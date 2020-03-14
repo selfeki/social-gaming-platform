@@ -6,7 +6,6 @@
     #include "Expression.h"
     #include "MapWrapper.h"
     #include <memory>
-// #include <memory>
 
 namespace gameSpecification::rule {
 
@@ -292,18 +291,6 @@ struct Timer : public Rule {
      RuleList 	 rules;
      Expression flag;
 };
-
-// // todo: make consistent with GameManager user ID?
-// using UserID = std::string;
-// using UserIDList = std::vector<UserID>;
-
-
-
-
-
-
-
-
 
 struct GlobalMessage final : public Rule {
     virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }

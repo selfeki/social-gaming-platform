@@ -7,6 +7,7 @@
 
 namespace gameSpecification::rule {
 
+
 class InterpretVisitor : public RuleVisitor {
 public:
     InterpretVisitor(GameState& state)
@@ -17,6 +18,8 @@ public:
 
     void visitImpl(const rule::GlobalMessage&);
 
+    void visitImpl(const rule::InputChoice&);
+
     void
     setGameState(const GameState&);
 
@@ -25,9 +28,8 @@ private:
 
     bool needUserInput;
 
-    ExpMap context;
-
-    std::stack<const Rule*> scope;
+    std::stack<const Rule*> ruleStack;
 };
+
 
 }    // namespace gameSpecification::rule
