@@ -28,6 +28,15 @@ public:
         for(auto& pa : gs.perAudience) {
             context.map.insert({std::string_view{pa.first}, pa.second});
         }
+        for(auto& player : gs.players) {
+            context.map.insert({std::string_view{player.first}, player.second});
+        }
+        for(auto& spectator : gs.audience) {
+            context.map.insert({std::string_view{spectator.first}, spectator.second});
+        }
+
+
+
 
     }
 
@@ -39,6 +48,12 @@ public:
 
     void
     setGameState(const GameState&);
+
+    Expression
+    getValueFromContextVariables(std::vector<std::string_view> tokens);
+
+    void
+    setValueaOfContextVariables(std::vector<std::string_view> tokens, Expression value);
 
     std::stack<Rule*> scope;
 

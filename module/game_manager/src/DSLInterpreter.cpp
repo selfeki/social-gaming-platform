@@ -8,6 +8,86 @@
 
 namespace gameSpecification::rule {
 
+std::string
+interpolateString(const std::string_view str) {
+    // parses strings like
+    // "Round {round}. Choose your weapon!"
+    // to "Round 1. Choose your weapon!"
+}
+
+Expression
+evaluateExpression(const std::string_view str) {
+    // parses string like
+    // "configuration.Rounds.upfrom(1)"
+    // into an actual expression
+}
+
+//example, from "players.weapon" to a vector {"players", "weapon"}
+//so that member variables can be accessed
+std::vector<std::string_view> 
+parseDotNotation(const std::string_view str) {
+    std::vector<std::string_view> output;
+    size_t first = 0;
+
+    while(first < str.size()) {
+        const auto second  = str.find_first_of(".", first);
+        if(first != second) {
+            output.emplace_back(str.substr(first, second - first));
+
+            if(second == std::string_view::npos){
+                break;
+            }
+        }
+    }
+
+    return output;
+}
+
+//give a vector of strings like {"player", "weapon", "strength"}, returns that value from the context
+//necessary precondition: every variable but the last is an ExpMap 
+Expression
+InterpretVisitor::getValueFromContextVariables(std::vector<std::string_view> tokens) {
+    Expression exp;
+    ExpMap temp_map;
+
+    for(auto it = tokens.begin(); it != tokens.end(); it++) {
+        if(it == tokens.begin()) {
+            exp = context.map[*it];
+        }
+        else {
+            temp_map = boost::get<ExpMap>(exp);
+            exp = temp_map.map[*it];
+        }
+
+    }
+
+    return exp;
+}
+
+//give a vector of strings like {"player", "weapon", "strength"}, sets player.weapon.strength to the given expression
+//necessary precondition: every variable is an ExpMap
+void
+InterpretVisitor::setValueaOfContextVariables(std::vector<std::string_view> tokens, Expression value) {
+    Expression exp;
+    ExpMap temp_map;
+
+    for(auto it = tokens.begin(); it != tokens.end(); it++) {
+        if(it == tokens.begin()) {
+            exp = context.map[*it];
+        }
+        else {
+            temp_map = boost::get<ExpMap>(exp);
+            exp = temp_map.map[*it];
+        }
+        if(++it == tokens.end()) {
+            temp_map = boost::get<ExpMap>(exp);
+            temp_map.map[*it] = value;
+
+        }
+    }
+
+}
+
 
 void InterpretVisitor::visitImpl(ForEach& forEach) {
     /*  
@@ -47,13 +127,14 @@ void InterpretVisitor::visitImpl(ForEach& forEach) {
 void InterpretVisitor::visitImpl( Add& add) {
 
     auto to = boost::get<std::string_view>(add.to);
+    auto to_tokens = parseDotNotation(to);
     int value;
 
     if(add.value.type() == typeid(int)) {
         value = boost::get<int>(add.value);
     }
     else if(add.value.type() == typeid(std::string_view)) {
-
+        auto value_tokens = parseDotNotation(boost::get<std::string_view>(add.value));
         auto temp = context.map[boost::get<std::string_view>(add.value)];
         value = boost::get<int>(temp);
     } 
@@ -71,21 +152,6 @@ void InterpretVisitor::visitImpl( Add& add) {
     if(add.next != NULL) {
         scope.push(add.next);
     }
-}
-
-
-std::string
-interpolateString(const std::string_view str) {
-    // parses strings like
-    // "Round {round}. Choose your weapon!"
-    // to "Round 1. Choose your weapon!"
-}
-
-Expression
-evaluateExpression(const std::string_view str) {
-    // parses string like
-    // "configuration.Rounds.upfrom(1)"
-    // into an actual expression
 }
 
 

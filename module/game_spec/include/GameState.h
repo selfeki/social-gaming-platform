@@ -31,12 +31,15 @@ struct GameState {
     Environment variables;
     Environment perPlayer;
     Environment perAudience;
+    Environment players;
+    Environment audience;
 
     // player exclusive data contained here or in userStates?
     // A user might have game-agnostic data
-    std::vector<GamePlayer> players;
-    std::vector<GameAudience> audience;
+    //std::vector<Environment> players;
+    //std::vector<Environment> audience;
 
+    /*
     void enqueueMessage(uniqueName name, GameMessage message) {
         auto it = std::find_if(players.begin(), players.end(),
             [&name](const auto& player) { return player.name == name; });
@@ -67,6 +70,7 @@ struct GameState {
         enqueuePlayersMessage(message);
         enqueueAudienceMessage(message);
     }
+    */
 
 
 

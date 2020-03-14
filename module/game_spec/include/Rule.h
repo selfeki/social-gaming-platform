@@ -230,15 +230,14 @@ struct ForEach final : public Rule {
 //     std::optional<Expression> timeout;
 // };
 
-// struct InputText {
-//     int id;
-//     Rule& 		 parent;
-//     UserID 		 targetUser;
-//     Expression prompt;
-//     Expression result;
-//     // optional
-//     std::optional<Expression> timeout;
-// };
+struct InputText {
+    Rule* 		 next;
+    Expression 	 to;
+    Expression   prompt;
+    Expression   result;
+    // optional
+    std::optional<Expression> timeout;
+};
 
 // struct InputVote {
 //     int id;
