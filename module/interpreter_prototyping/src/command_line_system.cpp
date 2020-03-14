@@ -6,6 +6,8 @@ using namespace gameSpecification;
 
 int main(int argc, char* argv[]) {
 
+    std::cout << "Adding values from [1,2,3,4] into 'sum'\n";
+
     Expression elemList = ExpList({{1,2,3,4}});
     Expression elem = std::string_view("number");
     auto forEachRule = new rule::ForEach(elemList, elem);
@@ -30,6 +32,7 @@ int main(int argc, char* argv[]) {
 
     gameInstance.updateState();
     gameInstance.testPrintVariable("sum");
+    std::cout << "\n";
 
     return 0;
 }

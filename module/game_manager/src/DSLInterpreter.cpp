@@ -21,7 +21,6 @@ void InterpretVisitor::visitImpl(ForEach& forEach) {
 
     if(forEach.elemListIndex >= forEach.elemListSize) {
         forEach.finished = true;
-        std::cout <<"finished for each loop\n";
         //remove the element variable from the context (as if leaving scope of for loop)
         context.map.erase(element);
 
@@ -33,7 +32,6 @@ void InterpretVisitor::visitImpl(ForEach& forEach) {
     else {
         forEach.nestedRulesInProgess = true;
     }
-
 
     auto exp = elemList.list[forEach.elemListIndex];
     context.map[element] = exp;
@@ -67,7 +65,7 @@ void InterpretVisitor::visitImpl( Add& add) {
     //add the values
     context.map[to] = temp + value;
     
-    std::cout << temp << ", " << value << "\n";
+    std::cout << "TRACE: " << temp << ", " << value << "\n";
 
     add.finished = true;
     if(add.next != NULL) {

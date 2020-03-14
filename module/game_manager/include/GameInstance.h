@@ -26,8 +26,6 @@ public:
     updateState() {
 
         while(!interpreter.scope.empty()){
-            std::cout << "in update state while loop\n";
-
 
             auto rule = interpreter.scope.top();
         
@@ -42,7 +40,6 @@ public:
             else if (rule->needsInput) {
                 //change the game state to reflect this
             }
-            sleep(1.0);
 
         }
 
