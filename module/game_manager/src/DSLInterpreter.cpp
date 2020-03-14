@@ -23,6 +23,8 @@ void InterpretVisitor::visitImpl(ForEach& forEach) {
 
     if(forEach.elemListIndex >= forEach.elemListSize) {
         forEach.finished = true;
+        //remove the element variable from the context (as if leaving scope of for loop)
+        context.map.erase(element);
         scope.push(forEach.next);
     }
     else {
@@ -31,8 +33,7 @@ void InterpretVisitor::visitImpl(ForEach& forEach) {
 
 }
 
-void InterpretVisitor::visitImpl(const Add& add) {
-    scope.push(&add);
+void InterpretVisitor::visitImpl( Add& add) {
 
     auto to = boost::get<std::string_view>(add.to);
     int value;
@@ -53,7 +54,7 @@ void InterpretVisitor::visitImpl(const Add& add) {
     //add the values
     context.map[to] = temp + value;
     
-    scope.pop();
+    scope.push(add.next);
 }
 
 
@@ -71,7 +72,7 @@ evaluateExpression(const std::string_view str) {
     // into an actual expression
 }
 
-void InterpretVisitor::visitImpl(const GlobalMessage& globalMessage) {
+void InterpretVisitor::visitImpl( GlobalMessage& globalMessage) {
     auto content = boost::get<std::string_view>(globalMessage.content);
     auto message = interpolateString(content);
 }

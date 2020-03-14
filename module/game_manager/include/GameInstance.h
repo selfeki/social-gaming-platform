@@ -9,7 +9,7 @@ using rule::RuleList;
 
 class GameInstance {
 public:
-    GameInstance(GameState state, const RuleList& rs)
+    GameInstance(GameState state, RuleList& rs)
         : gameState { state }
         , interpreter { gameState }
         , rules { rs }
@@ -24,13 +24,23 @@ public:
     void
     updateState() {
 
+        while(!interpreter.scope.empty()){
+            auto rule = interpreter.scope.top();
+        
+            rule->accept(interpreter);
 
-        if (ruleInd >= rules.size()) {
-            isTerminated = true;
-            return;
+            if(rule->finished) {
+                interpreter.scope.pop();
+            }
+            else if (rule->nestedRulesInProgess) {
+                //do nothing, nested rules are now on the stack
+            }
+            else if (rule->needsInput) {
+                //change the game state to reflect this
+            }
+
         }
-        rules[ruleInd]->accept(interpreter);
-        ruleInd++;
+
     }
 
     GameState&
@@ -39,7 +49,7 @@ public:
 private:
     GameState gameState;
     InterpretVisitor interpreter;
-    const RuleList& rules;
+    RuleList& rules;
     std::size_t ruleInd;
     bool isTerminated;
 };

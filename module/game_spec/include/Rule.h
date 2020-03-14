@@ -42,15 +42,15 @@ class RuleVisitor {
 public:
     virtual ~RuleVisitor() = default;
 
-    void visit(const ForEach& rule) { visitImpl(rule); }
-    void visit(const GlobalMessage& rule) { visitImpl(rule); }
-    void visit(const Add& rule) { visitImpl(rule); }
+    void visit( ForEach& rule) { visitImpl(rule); }
+    void visit( GlobalMessage& rule) { visitImpl(rule); }
+    void visit( Add& rule) { visitImpl(rule); }
 
 
 private:
-    virtual void visitImpl(const ForEach& rule) {}
-    virtual void visitImpl(const GlobalMessage& rule) {}
-    virtual void visitImpl(const Add& rule) {}
+    virtual void visitImpl( ForEach& rule) {}
+    virtual void visitImpl( GlobalMessage& rule) {}
+    virtual void visitImpl( Add& rule) {}
 };
 
 
@@ -58,19 +58,24 @@ struct Rule {
 
     Rule() : finished(false), needsInput(false), nestedRulesInProgess(false) {};
     virtual ~Rule() = default;
-    virtual void accept(RuleVisitor& visitor) const = 0;
+    virtual void accept(RuleVisitor& visitor) = 0;
     
-
     bool finished;
     bool needsInput;
     bool nestedRulesInProgess;
 };
 
 using RuleID = int;
-using RuleList = std::vector<std::unique_ptr<Rule>>;
+using RuleList = std::vector<Rule>;
 
 struct ForEach final : public Rule {
-    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+
+    ForEach(Expression _elemList, Expression _elem) : elemList(_elemList), elem(_elem) {
+        elemListIndex = 0;
+        elemListSize = (boost::get<ExpList>(_elemList)).list.size(); //ugly
+    }
+
+    virtual void accept(RuleVisitor& visitor)  { visitor.visit(*this); }
 
     // raw pointer is fine because it is non-owning
     Rule* next;
@@ -79,7 +84,6 @@ struct ForEach final : public Rule {
     Expression elem;
     int elemListSize;
     int elemListIndex;
-    RuleList rules;
 };
 
 
@@ -187,7 +191,9 @@ struct ForEach final : public Rule {
 // };
 
  struct Add final : public Rule {
-    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+    Add(Expression _to, Expression _value) : to(_to), value(_value) {}
+
+    virtual void accept(RuleVisitor& visitor)  { visitor.visit(*this); }
 
      Rule*      next;
      Expression to;
@@ -251,7 +257,7 @@ struct ForEach final : public Rule {
 // };
 
 struct GlobalMessage final : public Rule {
-    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+    virtual void accept(RuleVisitor& visitor)  { visitor.visit(*this); }
 
     Rule* parent;
     Expression content;

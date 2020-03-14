@@ -15,12 +15,14 @@ public:
 
     void visitImpl(rule::ForEach&);
 
-    void visitImpl(const rule::GlobalMessage&);
+    void visitImpl( rule::GlobalMessage&);
 
-    void visitImpl(const rule::Add&);
+    void visitImpl( rule::Add&);
 
     void
     setGameState(const GameState&);
+
+    std::stack<Rule*> scope;
 
 private:
     GameState& state;
@@ -29,7 +31,6 @@ private:
 
     ExpMap context;
 
-    std::stack<const Rule*> scope;
 };
 
 }    // namespace gameSpecification::rule
