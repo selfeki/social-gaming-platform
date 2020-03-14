@@ -6,7 +6,7 @@
     #include "Expression.h"
     #include "MapWrapper.h"
 
-#include <memory>
+    #include <memory>
 
 namespace gameSpecification::rule {
 
@@ -197,7 +197,6 @@ struct ForEach final : public Rule {
 //     RuleList 	 rules;
 //     Expression flag;
 // };
-
 
 
 struct InputChoice : public Rule {

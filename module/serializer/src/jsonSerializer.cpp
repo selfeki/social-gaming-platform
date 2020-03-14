@@ -214,29 +214,29 @@ bool hasNoExtraFields(const json& j) {
 
 bool hasAllRequiredFields(const json& j) {
     //check json contains all top level fields
-    std::map<std::string,json::value_t>::const_iterator it;
-    it = find_if(FIELDS.begin(), FIELDS.end(), [&j](const std::pair<std::string,json::value_t>& target) {
+    std::map<std::string, json::value_t>::const_iterator it;
+    it = find_if(FIELDS.begin(), FIELDS.end(), [&j](const std::pair<std::string, json::value_t>& target) {
         return !j.contains(target.first);
     });
     if (it != FIELDS.end()) {
         //a field is missing from json object
         return false;
     }
-    
+
     //check json contains all subfields
     //subfield check: "configuration" contains all fields
     json config = j.at("configuration");
-    it = find_if(FIELDS_configuration.begin(), FIELDS_configuration.end(), [&config](const std::pair<std::string,json::value_t>& target) {
+    it = find_if(FIELDS_configuration.begin(), FIELDS_configuration.end(), [&config](const std::pair<std::string, json::value_t>& target) {
         return !config.contains(target.first);
     });
     if (it != FIELDS_configuration.end()) {
         //a field is missing from json object
         return false;
     }
-    
+
     //subfield check: "configuration"->"player count" contains all fields
     json playerCount = (j.at("configuration")).at("player count");
-    it = find_if(FIELDS_playerCount.begin(), FIELDS_playerCount.end(),[&playerCount](const std::pair<std::string,json::value_t>& target) {
+    it = find_if(FIELDS_playerCount.begin(), FIELDS_playerCount.end(), [&playerCount](const std::pair<std::string, json::value_t>& target) {
         return !playerCount.contains(target.first);
     });
     if (it != FIELDS_playerCount.end()) {
@@ -249,28 +249,28 @@ bool hasAllRequiredFields(const json& j) {
 
 bool validFieldValues(const json& j) {
     //check json contains all valid top level values
-    for(auto& item : j.items()) {
+    for (auto& item : j.items()) {
         std::string key = item.key();
         json::value_t value = item.value().type();
-        if(value != FIELDS.at(key)) {
+        if (value != FIELDS.at(key)) {
             return false;
         }
     }
 
     //check json contains all valid configuration values
-    for(auto& item : j["configuration"].items()) {
+    for (auto& item : j["configuration"].items()) {
         std::string key = item.key();
         json::value_t value = item.value().type();
-        if(value != FIELDS_configuration.at(key)) {
+        if (value != FIELDS_configuration.at(key)) {
             return false;
         }
     }
-    
+
     //check json contains all valid player count values
-    for(auto& item : j["configuration"]["player count"].items()) {
+    for (auto& item : j["configuration"]["player count"].items()) {
         std::string key = item.key();
         json::value_t value = item.value().type();
-        if(value != FIELDS_playerCount.at(key)) {
+        if (value != FIELDS_playerCount.at(key)) {
             return false;
         }
     }

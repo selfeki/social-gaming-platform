@@ -1,10 +1,11 @@
 #include "DSLInterpreter.h"
+
 #include "arepa/game_spec/ExpressionPtr.h"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/variant/polymorphic_get.hpp>
-#include <string_view>
 #include <iostream>
+#include <string_view>
 
 namespace gameSpecification::rule {
 
@@ -31,8 +32,8 @@ getNameList(std::string_view str) {
     std::vector<std::string_view> names;
     std::stringstream ss(static_cast<std::string>(str));
     std::string buffer;
-    while(std::getline(ss, buffer, '.')) {
-        names.push_back(buffer); 
+    while (std::getline(ss, buffer, '.')) {
+        names.push_back(buffer);
     }
     return names;
 }
@@ -49,8 +50,7 @@ for each expression in elemList:
 */
 
 // todo: change to use Ryan's design
-void 
-InterpretVisitor::visitImpl(const ForEach& forEach) {
+void InterpretVisitor::visitImpl(const ForEach& forEach) {
     auto elemList = boost::get<ExpList>(forEach.elemList);
     auto element = boost::get<std::string_view>(forEach.elem);
     for (const auto& exp : elemList.list) {
@@ -70,26 +70,24 @@ InterpretVisitor::visitImpl(const ForEach& forEach) {
     }
 }
 
-void 
-InterpretVisitor::visitImpl(const InputChoice& rule) {
+void InterpretVisitor::visitImpl(const InputChoice& rule) {
     // load gamestate with input request details
-    auto user      = rule.targetUser;
+    auto user = rule.targetUser;
     auto rawPrompt = boost::get<std::string_view>(rule.prompt);
-    auto prompt    = interpolateString(rawPrompt);
-    auto choices   = boost::get<ExpList>(rule.choiceList);
+    auto prompt = interpolateString(rawPrompt);
+    auto choices = boost::get<ExpList>(rule.choiceList);
     auto resultStr = boost::get<std::string_view>(rule.result);
-    auto names     = getNameList(resultStr);
+    auto names = getNameList(resultStr);
     ExpressionPtr resultPtr(names);
     // set flag indicating need for user input
     needUserInput = true;
-    
+
     // todo: push next rule onto stack
     // todo: create InputRequest and to GameState
     // todo: implement pointers between sibling rules
 }
 
-void 
-InterpretVisitor::visitImpl(const GlobalMessage& globalMessage) {
+void InterpretVisitor::visitImpl(const GlobalMessage& globalMessage) {
     auto content = boost::get<std::string_view>(globalMessage.content);
     auto message = interpolateString(content);
     // todo;

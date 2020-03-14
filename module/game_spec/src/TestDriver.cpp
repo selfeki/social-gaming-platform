@@ -2,9 +2,8 @@
 
 #include "Expression.h"
 #include "ExpressionPtr.h"
+
 #include <boost/variant/polymorphic_get.hpp>
-
-
 #include <iostream>
 #include <string>
 
@@ -13,17 +12,16 @@ using namespace gameSpecification;
 // todo: transfer these to test module once Google Test gets integrated
 
 //  Driver for testing ExpressionPtr
-void 
-testExpressionPtr() {
+void testExpressionPtr() {
     Expression exp1 = ExpMap({ { { "c", 1 } } });
     Expression exp2 = ExpMap({ { { "b", exp1 } } });
     Expression exp3 = ExpMap({ { { "a", exp2 } } });
-    ExpMap& mapRef  = boost::polymorphic_strict_get<ExpMap>(exp3);
-    ExpMap mapCopy  = boost::polymorphic_strict_get<ExpMap>(exp3);
+    ExpMap& mapRef = boost::polymorphic_strict_get<ExpMap>(exp3);
+    ExpMap mapCopy = boost::polymorphic_strict_get<ExpMap>(exp3);
 
-    ExpressionPtr expPtr{{"a", "b", "c"}};
+    ExpressionPtr expPtr { { "a", "b", "c" } };
     auto PtrCopy = expPtr.getPtr(mapCopy);
-    auto PtrRef  = expPtr.getPtr(mapRef);
+    auto PtrRef = expPtr.getPtr(mapRef);
 
     if (!PtrCopy) {
         std::cout << "null";
@@ -44,8 +42,7 @@ testExpressionPtr() {
 }
 
 //  Example usage of boost::variant and boost::apply_visitor
-void 
-testPrintExpVisitor() {
+void testPrintExpVisitor() {
     Expression intExp = 0;
     boost::apply_visitor(printExpVisitor(), intExp);
     std::cout << std::endl;

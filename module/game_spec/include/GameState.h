@@ -3,9 +3,10 @@
 #include "Expression.h"
 #include "ExpressionPtr.h"
 #include "MapWrapper.h"
+
+#include <optional>
 #include <stack>
 #include <string_view>
-#include <optional>
 
 namespace gameSpecification {
 
