@@ -67,21 +67,22 @@ InterpretVisitor::getValueFromContextVariables(std::vector<std::string_view> tok
 //give a vector of strings like {"player", "weapon", "strength"}, sets player.weapon.strength to the given expression
 //necessary precondition: every variable is an ExpMap
 void
-InterpretVisitor::setValueaOfContextVariables(std::vector<std::string_view> tokens, Expression value) {
+InterpretVisitor::setValueOfContextVariables(std::vector<std::string_view> tokens, Expression value) {
     Expression exp;
-    ExpMap temp_map;
+    ExpMap* temp_map = &context;
 
     for(auto it = tokens.begin(); it != tokens.end(); it++) {
         if(it == tokens.begin()) {
             exp = context.map[*it];
         }
         else {
-            temp_map = boost::get<ExpMap>(exp);
-            exp = temp_map.map[*it];
+            temp_map = &(boost::get<ExpMap>(exp));
+            exp = temp_map->map[*it];
         }
-        if(++it == tokens.end()) {
-            temp_map = boost::get<ExpMap>(exp);
-            temp_map.map[*it] = value;
+        if(std::next(it) == tokens.end()) {
+            std::cout << *it << "\n";
+
+            temp_map->map[*it] = value;
 
         }
     }
@@ -135,16 +136,18 @@ void InterpretVisitor::visitImpl( Add& add) {
     }
     else if(add.value.type() == typeid(std::string_view)) {
         auto value_tokens = parseDotNotation(boost::get<std::string_view>(add.value));
-        auto temp = context.map[boost::get<std::string_view>(add.value)];
+        auto temp = this->getValueFromContextVariables(value_tokens);
         value = boost::get<int>(temp);
+
     } 
     else {
         //do nothing
     }
-    auto temp = boost::get<int>(context.map[to]);
+    auto temp = boost::get<int>(this->getValueFromContextVariables(to_tokens));
+    this->setValueOfContextVariables(to_tokens, Expression{temp + value});
+    std::cout << temp << " hi\n";
 
     //add the values
-    context.map[to] = temp + value;
     
     std::cout << "TRACE: " << temp << ", " << value << "\n";
 

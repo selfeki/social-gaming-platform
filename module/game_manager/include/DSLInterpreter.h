@@ -53,7 +53,7 @@ public:
     getValueFromContextVariables(std::vector<std::string_view> tokens);
 
     void
-    setValueaOfContextVariables(std::vector<std::string_view> tokens, Expression value);
+    setValueOfContextVariables(std::vector<std::string_view> tokens, Expression value);
 
     std::stack<Rule*> scope;
 
