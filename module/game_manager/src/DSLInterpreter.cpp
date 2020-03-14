@@ -2,6 +2,9 @@
 
 #include <numeric>
 #include <string_view>
+#include <iterator>
+#include <algorithm>
+
 
 namespace gameSpecification::rule {
 
@@ -12,24 +15,34 @@ void InterpretVisitor::visitImpl(ForEach& forEach) {
     so it can increment its index to the next in the list. 
   */
 
+
     auto elemList = boost::get<ExpList>(forEach.elemList);
     auto element = boost::get<std::string_view>(forEach.elem);
 
-    auto exp = elemList.list[forEach.elemListIndex];
-    context.map[element] = exp;
-    scope.push(forEach.next_nested);
-
-    forEach.elemListIndex += 1;
-
     if(forEach.elemListIndex >= forEach.elemListSize) {
         forEach.finished = true;
+        std::cout <<"finished for each loop\n";
         //remove the element variable from the context (as if leaving scope of for loop)
         context.map.erase(element);
-        scope.push(forEach.next);
+
+        if(forEach.next != NULL){
+            scope.push(forEach.next);
+        }
+        return;
     }
     else {
         forEach.nestedRulesInProgess = true;
     }
+
+
+    auto exp = elemList.list[forEach.elemListIndex];
+    context.map[element] = exp;
+
+    if(forEach.next_nested != NULL) {
+        scope.push(forEach.next_nested);
+    }
+
+    forEach.elemListIndex += 1;
 
 }
 
@@ -54,7 +67,12 @@ void InterpretVisitor::visitImpl( Add& add) {
     //add the values
     context.map[to] = temp + value;
     
-    scope.push(add.next);
+    std::cout << temp << ", " << value << "\n";
+
+    add.finished = true;
+    if(add.next != NULL) {
+        scope.push(add.next);
+    }
 }
 
 
@@ -71,6 +89,8 @@ evaluateExpression(const std::string_view str) {
     // "configuration.Rounds.upfrom(1)"
     // into an actual expression
 }
+
+
 
 void InterpretVisitor::visitImpl( GlobalMessage& globalMessage) {
     auto content = boost::get<std::string_view>(globalMessage.content);

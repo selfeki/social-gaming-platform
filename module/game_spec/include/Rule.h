@@ -66,7 +66,7 @@ struct Rule {
 };
 
 using RuleID = int;
-using RuleList = std::vector<Rule>;
+using RuleList = std::vector<Rule*>;
 
 struct ForEach final : public Rule {
 

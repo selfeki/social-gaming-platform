@@ -25,6 +25,8 @@ struct GameAudience {
 using Environment = MapWrapper<std::string, Expression>;
 
 struct GameState {
+
+
     Environment constants;
     Environment variables;
     Environment perPlayer;
@@ -66,7 +68,7 @@ struct GameState {
         enqueueAudienceMessage(message);
     }
 
-    
+
 
 };
 

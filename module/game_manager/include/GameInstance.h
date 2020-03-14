@@ -9,12 +9,13 @@ using rule::RuleList;
 
 class GameInstance {
 public:
-    GameInstance(GameState state, RuleList& rs)
-        : gameState { state }
-        , interpreter { gameState }
+    GameInstance(GameState state, RuleList& rs, Rule& firstRule)
+        : interpreter {state, firstRule}
         , rules { rs }
         , ruleInd { 0 }
-        , isTerminated { false } {}
+        , isTerminated { false } {
+
+    }
 
     // Interprets rules until requires user interaction or game ends.
     // It updates passed in state based upon interpretation of the current rule.
@@ -25,6 +26,9 @@ public:
     updateState() {
 
         while(!interpreter.scope.empty()){
+            std::cout << "in update state while loop\n";
+
+
             auto rule = interpreter.scope.top();
         
             rule->accept(interpreter);
@@ -38,16 +42,24 @@ public:
             else if (rule->needsInput) {
                 //change the game state to reflect this
             }
+            sleep(1.0);
 
         }
 
     }
 
-    GameState&
-    getGameState() { return gameState; }
+    void testPrintVariable(std::string_view var) {
+
+        Expression value = interpreter.context.map[var];
+        boost::apply_visitor(printExpVisitor(), value);
+
+    } 
+
+   // GameState&
+    //getGameState() { return gameState; }
 
 private:
-    GameState gameState;
+    //GameState gameState;
     InterpretVisitor interpreter;
     RuleList& rules;
     std::size_t ruleInd;
