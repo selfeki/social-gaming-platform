@@ -10,10 +10,6 @@
 
 namespace gameSpecification {
 
-
-namespace gameSpecification {
-
-
 // An Expression is a R-value in game specification
 
 struct ExpMap;

@@ -237,23 +237,23 @@ parseRuleWhen(const json& j, gameSpecification::rule::Rule* parent){
 
 std::unique_ptr<gameSpecification::rule::Rule>
 parseRuleSwitch(const json& j, gameSpecification::rule::Rule* parent){
-    auto switchRule = std::make_unique<gameSpecification::rule::When>();
+    auto switchRule = std::make_unique<gameSpecification::rule::Switch>();
     switchRule->valuesList = parseExpression(j.value("value",""));
     switchRule->switchTarget = parseExpression(j.value("list",""));
     auto switchCases = j["cases"].get<std::vector<json>>();
     for(auto& switchCase: switchCases){
-        Expression cond = parseExpression(whenCase["case"]);
+        Expression cond = parseExpression(switchCase["case"]);
         auto subRuleList = gameSpecification::rule::RuleList();
-        auto switchCaseSubRules = whenCase["rules"].get<std::vector<json>>();
+        auto switchCaseSubRules = switchCase["rules"].get<std::vector<json>>();
         for(auto subRule: switchCaseSubRules){
             std::string ruleName = subRule["rule"].get<std::string>();
-            subRuleList.push_back(ruleSelector(subRule, ruleName, whenRule.get()));
+            subRuleList.push_back(ruleSelector(subRule, ruleName, switchRule.get()));
         }
         //switchRule->condToRules.insert({cond,subRuleList});
     }
     switchRule->parent = parent;
-        return switchRule;
-    }
+    return switchRule;
+  }
 
 std::unique_ptr<gameSpecification::rule::Rule>
 parseRuleParallelFor(const json& j, gameSpecification::rule::Rule* parent){
