@@ -1,11 +1,14 @@
 #include "DSLInterpreter.h"
+#include "arepa/game_spec/ExpressionPtr.h"
 
-#include <numeric>
+#include <boost/algorithm/string.hpp>
+#include <boost/variant/polymorphic_get.hpp>
 #include <string_view>
 #include <iostream>
 
 namespace gameSpecification::rule {
 
+// todo: change all boost::get to boost::polymorphic_strict_get
 
 std::string
 interpolateString(const std::string_view str) {
@@ -23,67 +26,74 @@ evaluateExpression(const std::string_view str) {
     return 0;
 }
 
+std::vector<std::string_view>
+getNameList(std::string_view str) {
+    std::vector<std::string_view> names;
+    std::stringstream ss(static_cast<std::string>(str));
+    std::string buffer;
+    while(std::getline(ss, buffer, '.')) {
+        names.push_back(buffer); 
+    }
+    return names;
+}
+
+/*  
+ForEach Rule:
+
+for each expression in elemList:
+    set loop variable to that expression by updating context
+    for each rule:
+    push rule onto ruleStack
+    enter new scope to be used by rule
+    visit rule
+*/
+
+// todo: change to use Ryan's design
 void 
 InterpretVisitor::visitImpl(const ForEach& forEach) {
-    ruleStack.push(&forEach);
-    /*  
-    for each expression in elemList:
-      set loop variable to that expression by updating context
-      for each rule:
-        visit rule
-  */
-    //  add try-catch for runtime error
     auto elemList = boost::get<ExpList>(forEach.elemList);
     auto element = boost::get<std::string_view>(forEach.elem);
     for (const auto& exp : elemList.list) {
         auto& scope = state.context.top();
         scope.map[element] = exp;
-        for (const auto& rule : forEach.rules) {
+        for (const auto& rulePtr : forEach.rules) {
+            ruleStack.push(rulePtr.get());
             state.enterScope();
-            rule->accept(*this);
+
+            rulePtr->accept(*this);
+            if (needUserInput) {
+                return;
+            }
             state.exitScope();
+            ruleStack.pop();
         }
     }
-    if (!needUserInput) {
-        ruleStack.pop();
-        state.exitScope();
-    }
 }
-
-// { "rule": "input-choice",
-//   "to": << a single player or audience member >>,
-//   "prompt": << Message to send with request, as in "output" below  >>,
-//   "choices": << list or name of a list to choose from >>
-//   "result": << variable name in which to store the response >>
-
-//   OPTIONAL
-//   "timeout": << duration to wait for a response >>
-
 
 void 
 InterpretVisitor::visitImpl(const InputChoice& rule) {
-    ruleStack.push(&rule);
     // load gamestate with input request details
-    auto user = rule.targetUser;
-    auto prompt = interpolateString(boost::get<std::string_view>(rule.prompt));
-    auto choices = boost::get<ExpList>(rule.choiceList);
-    // auto result = boost::get<
+    auto user      = rule.targetUser;
+    auto rawPrompt = boost::get<std::string_view>(rule.prompt);
+    auto prompt    = interpolateString(rawPrompt);
+    auto choices   = boost::get<ExpList>(rule.choiceList);
+    auto resultStr = boost::get<std::string_view>(rule.result);
+    auto names     = getNameList(resultStr);
+    ExpressionPtr resultPtr(names);
+    // set flag indicating need for user input
+    needUserInput = true;
+    
+    // todo: push next rule onto stack
+    // todo: create InputRequest and to GameState
+    // todo: implement pointers between sibling rules
 }
 
-void InterpretVisitor::visitImpl(const GlobalMessage& globalMessage) {
+void 
+InterpretVisitor::visitImpl(const GlobalMessage& globalMessage) {
     auto content = boost::get<std::string_view>(globalMessage.content);
     auto message = interpolateString(content);
+    // todo;
 }
 
-
-// Question: difference b/w list and list expression in following example?
-
-// { "rule": "foreach",
-//   "list": <<list, list expression, or name of a list object>>,
-//   "element": << name for list element object within the rules below >>
-//   "rules": [
-//     << Rules to execute on every element of the given list >>
-//   ]
-// }
 
 }    // namespace gameSpecification::rule

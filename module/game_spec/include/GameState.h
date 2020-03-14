@@ -1,17 +1,20 @@
 #pragma once
 
 #include "Expression.h"
+#include "ExpressionPtr.h"
 #include "MapWrapper.h"
 #include <stack>
+#include <string_view>
+#include <optional>
 
 namespace gameSpecification {
 
 
 // A GameState is the input and output of the DSLInterpreter
 
-using GameMessage = std::string;
+using GameMessage = std::string_view;
 
-using uniqueName = std::string;
+using uniqueName = std::string_view;
 
 struct GamePlayer {
     uniqueName name;
@@ -21,6 +24,14 @@ struct GamePlayer {
 struct GameAudience {
     uniqueName name;
     std::vector<GameMessage> messages;
+};
+
+struct InputRequest {
+    uniqueName targetUser;
+    // note: choices, if any, are captured in the prompt
+    std::string_view prompt;
+    ExpressionPtr resultPtr;
+    std::optional<int> timeout;
 };
 
 using Environment = ExpMap;
@@ -33,10 +44,14 @@ struct GameState {
     // keeps track of which variables are in scope
     std::stack<Environment> context;
 
+    // stores input requests to be delivered to users
+    std::vector<InputRequest> inputRequests;
+
     // player exclusive data contained here or in userStates?
     // A user might have game-agnostic data
     std::vector<GamePlayer> players;
     std::vector<GameAudience> audience;
+
 
     void enterScope() {
         context.emplace();
