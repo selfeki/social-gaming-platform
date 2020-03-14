@@ -23,6 +23,8 @@ public:
     // todo: include artificial rule at end of rule list representing game conclusion?
     void
     updateState() {
+
+
         if (ruleInd >= rules.size()) {
             isTerminated = true;
             return;

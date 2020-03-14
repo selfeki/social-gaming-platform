@@ -6,26 +6,56 @@
 namespace gameSpecification::rule {
 
 
-void InterpretVisitor::visitImpl(const ForEach& forEach) {
-    scope.push(&forEach);
+void InterpretVisitor::visitImpl(ForEach& forEach) {
     /*  
-    for each expression in elemList:
-      set loop variable to that expression by updating context
-      for each rule:
-        visit rule
+    invariant: when this rule is called again each of its nested rules will have finished, 
+    so it can increment its index to the next in the list. 
   */
+
     auto elemList = boost::get<ExpList>(forEach.elemList);
     auto element = boost::get<std::string_view>(forEach.elem);
-    for (const auto& exp : elemList.list) {
-        context.map[element] = exp;
-        for (const auto& rule : forEach.rules) {
-            rule->accept(*this);
-        }
+
+    auto exp = elemList.list[forEach.elemListIndex];
+    context.map[element] = exp;
+    scope.push(forEach.next_nested);
+
+    forEach.elemListIndex += 1;
+
+    if(forEach.elemListIndex >= forEach.elemListSize) {
+        forEach.finished = true;
+        scope.push(forEach.next);
     }
-    if (!needUserInput) {
-        scope.pop();
+    else {
+        forEach.nestedRulesInProgess = true;
     }
+
 }
+
+void InterpretVisitor::visitImpl(const Add& add) {
+    scope.push(&add);
+
+    auto to = boost::get<std::string_view>(add.to);
+    int value;
+
+    if(add.value.type() == typeid(int)) {
+        value = boost::get<int>(add.value);
+    }
+    else if(add.value.type() == typeid(std::string_view)) {
+
+        auto temp = context.map[boost::get<std::string_view>(add.value)];
+        value = boost::get<int>(temp);
+    } 
+    else {
+        //do nothing
+    }
+    auto temp = boost::get<int>(context.map[to]);
+
+    //add the values
+    context.map[to] = temp + value;
+    
+    scope.pop();
+}
+
 
 std::string
 interpolateString(const std::string_view str) {

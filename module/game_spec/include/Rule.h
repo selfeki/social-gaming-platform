@@ -44,17 +44,26 @@ public:
 
     void visit(const ForEach& rule) { visitImpl(rule); }
     void visit(const GlobalMessage& rule) { visitImpl(rule); }
+    void visit(const Add& rule) { visitImpl(rule); }
+
 
 private:
     virtual void visitImpl(const ForEach& rule) {}
     virtual void visitImpl(const GlobalMessage& rule) {}
+    virtual void visitImpl(const Add& rule) {}
 };
 
 
 struct Rule {
-    virtual ~Rule() = default;
 
+    Rule() : finished(false), needsInput(false), nestedRulesInProgess(false) {};
+    virtual ~Rule() = default;
     virtual void accept(RuleVisitor& visitor) const = 0;
+    
+
+    bool finished;
+    bool needsInput;
+    bool nestedRulesInProgess;
 };
 
 using RuleID = int;
@@ -64,9 +73,12 @@ struct ForEach final : public Rule {
     virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
 
     // raw pointer is fine because it is non-owning
-    Rule* parent;
+    Rule* next;
+    Rule* next_nested;
     Expression elemList;
     Expression elem;
+    int elemListSize;
+    int elemListIndex;
     RuleList rules;
 };
 
@@ -174,12 +186,13 @@ struct ForEach final : public Rule {
 //     Expression count;
 // };
 
-// struct Add {
-//     int id;
-//     Rule& 		 parent;
-//     Expression to;
-//     Expression value;
-// };
+ struct Add final : public Rule {
+    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+
+     Rule*      next;
+     Expression to;
+     Expression value;
+ };
 
 // enum TimerMode {
 //     EXACT,

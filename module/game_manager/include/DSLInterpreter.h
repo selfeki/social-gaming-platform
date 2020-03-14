@@ -13,9 +13,11 @@ public:
         : state { state }
         , needUserInput { false } {}
 
-    void visitImpl(const rule::ForEach&);
+    void visitImpl(rule::ForEach&);
 
     void visitImpl(const rule::GlobalMessage&);
+
+    void visitImpl(const rule::Add&);
 
     void
     setGameState(const GameState&);
