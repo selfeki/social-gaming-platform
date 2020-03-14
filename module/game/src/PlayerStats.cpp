@@ -1,29 +1,31 @@
-#include "PacketException.hpp"
+#include "PlayerStats.hpp"
 
-using namespace arepa::server;
-using Kind = PacketException::Kind;
+using namespace arepa::game;
 
 // ---------------------------------------------------------------------------------------------------------------------
 #pragma mark - Constructors -
 // ---------------------------------------------------------------------------------------------------------------------
 
-PacketException::PacketException(Kind kind)
-    : _kind(kind) {}
-
+PlayerStats::PlayerStats()
+    : _wins(0)
+    , _games(0) {}
 
 // ---------------------------------------------------------------------------------------------------------------------
 #pragma mark - Methods -
 // ---------------------------------------------------------------------------------------------------------------------
 
-const char* PacketException::what() const noexcept {
-    switch (this->_kind) {
-    case Kind::MALFORMED:
-        return "Malformed or invalid packet.";
-    case Kind::ILLEGAL_CAST:
-        return "Illegal conversion between packet types.";
-    }
+unsigned int PlayerStats::wins() const {
+    return this->_wins;
 }
 
-Kind PacketException::kind() const noexcept {
-    return this->_kind;
+unsigned int& PlayerStats::wins() {
+    return this->_wins;
+}
+
+unsigned int PlayerStats::games() const {
+    return this->_games;
+}
+
+unsigned int& PlayerStats::games() {
+    return this->_games;
 }

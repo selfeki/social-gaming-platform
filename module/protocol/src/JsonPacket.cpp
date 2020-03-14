@@ -1,9 +1,9 @@
-#include "Packet.hpp"
+#include "JsonPacket.hpp"
 
 #include <google/protobuf/util/json_util.h>
 #include <string>
 
-using namespace arepa::server;
+using namespace arepa::protocol;
 
 using std::basic_string_view;
 using std::ostream;
@@ -19,10 +19,10 @@ using google::protobuf::util::MessageToJsonString;
 #pragma mark - Constructors -
 // ---------------------------------------------------------------------------------------------------------------------
 
-Packet::Packet(Any packet)
+JsonPacket::JsonPacket(Any packet)
     : _packet(std::move(packet)) {}
 
-Packet::Packet(const google::protobuf::Message& packet) {
+JsonPacket::JsonPacket(const google::protobuf::Message& packet) {
     Any any;
     any.PackFrom(packet);
     this->_packet = std::move(any);
@@ -33,7 +33,7 @@ Packet::Packet(const google::protobuf::Message& packet) {
 #pragma mark - Methods -
 // ---------------------------------------------------------------------------------------------------------------------
 
-std::string Packet::type() const {
+std::string JsonPacket::type() const {
     return this->_packet.type_url();
 }
 
@@ -42,14 +42,14 @@ std::string Packet::type() const {
 #pragma mark - Serialization -
 // ---------------------------------------------------------------------------------------------------------------------
 
-Packet Packet::from_bytes(const Data& bytes) {
+JsonPacket JsonPacket::from_bytes(const Data& bytes) {
     Any packet;
     JsonStringToMessage(google::protobuf::StringPiece(reinterpret_cast<const char*>(bytes.data()), bytes.size()), &packet);
 
     return packet;
 }
 
-Data Packet::to_bytes(const Any& packet) {
+Data JsonPacket::to_bytes(const Any& packet) {
     string packetJson;
     MessageToJsonString(packet, &packetJson);
 
@@ -57,6 +57,6 @@ Data Packet::to_bytes(const Any& packet) {
     return std::vector<uint8_t>(packetJson.begin(), packetJson.end());
 }
 
-Data Packet::to_bytes(const Packet& packet) {
-    return Packet::to_bytes(packet._packet);
+Data JsonPacket::to_bytes(const JsonPacket& packet) {
+    return JsonPacket::to_bytes(packet._packet);
 }
