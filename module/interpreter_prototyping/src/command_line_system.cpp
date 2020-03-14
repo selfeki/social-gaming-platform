@@ -12,7 +12,7 @@ int main(int argc, char* argv[]) {
     Expression elem = std::string_view("number");
     auto forEachRule = new rule::ForEach(elemList, elem);
 
-    Expression to = std::string_view("sum");
+    Expression to = std::string_view("output.sum");
     Expression value = std::string_view("number");
     auto addRule = new rule::Add(to, value);
 
@@ -24,7 +24,11 @@ int main(int argc, char* argv[]) {
 
     GameState gs;
     gs.constants = {};
-    gs.variables = {{"sum", 0}};
+    gs.variables = { 
+                     {"output", 
+                        ExpMap({{{"sum", 0},{"product", 1}}}) 
+                     } 
+                    };
     gs.perAudience = {};
     gs.perPlayer = {};
 

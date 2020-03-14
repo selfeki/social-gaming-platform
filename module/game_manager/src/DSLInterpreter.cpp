@@ -44,7 +44,7 @@ parseDotNotation(const std::string_view str) {
 }
 
 //give a vector of strings like {"player", "weapon", "strength"}, returns that value from the context
-//necessary precondition: every variable but the last is an ExpMap 
+//necessary precondition: every variable but the last is an ExpMap (last may or may not be an ExpMap)
 Expression
 InterpretVisitor::getValueFromContextVariables(std::vector<std::string_view> tokens) {
     Expression exp;
@@ -58,9 +58,7 @@ InterpretVisitor::getValueFromContextVariables(std::vector<std::string_view> tok
             temp_map = boost::get<ExpMap>(exp);
             exp = temp_map.map[*it];
         }
-
     }
-
     return exp;
 }
 
@@ -68,25 +66,22 @@ InterpretVisitor::getValueFromContextVariables(std::vector<std::string_view> tok
 //necessary precondition: every variable is an ExpMap
 void
 InterpretVisitor::setValueOfContextVariables(std::vector<std::string_view> tokens, Expression value) {
-    Expression exp;
+    Expression* exp;
     ExpMap* temp_map = &context;
 
     for(auto it = tokens.begin(); it != tokens.end(); it++) {
         if(it == tokens.begin()) {
-            exp = context.map[*it];
+            exp = &(context.map[*it]);
         }
         else {
-            temp_map = &(boost::get<ExpMap>(exp));
-            exp = temp_map->map[*it];
+            temp_map = &(boost::get<ExpMap>(*exp));
+            exp = &(temp_map->map[*it]);
         }
         if(std::next(it) == tokens.end()) {
-            std::cout << *it << "\n";
-
             temp_map->map[*it] = value;
 
         }
     }
-
 }
 
 
