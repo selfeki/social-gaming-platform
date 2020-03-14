@@ -1,8 +1,8 @@
 #include "CommandName.hpp"
 
+#include <algorithm>
 #include <cctype>
 #include <stdexcept>
-#include <algorithm>
 
 using namespace arepa::command;
 
@@ -15,11 +15,11 @@ CommandName::CommandName(const std::string& name)
 
 CommandName::CommandName(const std::string_view& name) {
 
-    auto found = std::find_if_not(name.begin(), name.end(), [](auto & character) {
-            return std::isalnum(character);
+    auto found = std::find_if_not(name.begin(), name.end(), [](auto& character) {
+        return std::isalnum(character);
     });
-    
-    if(found != name.end()){
+
+    if (found != name.end()) {
         throw std::runtime_error("Invalid command name.");
     }
 

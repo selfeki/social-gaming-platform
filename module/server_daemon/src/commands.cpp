@@ -155,39 +155,36 @@ void init_room_commands(RoomCommandMap& map, GameManager& manager) {
     });
 
     // TODO(anyone): Re-create /kick
-    map.insert("kick", [&manager](Room& room, Player& player, const Arguments& args){
-        
-        if(player != **room.owner()){
-            player.send_error_message("You must be a room owner to kick out a user");  
-            return; 
+    map.insert("kick", [&manager](Room& room, Player& player, const Arguments& args) {
+        if (player != **room.owner()) {
+            player.send_error_message("You must be a room owner to kick out a user");
+            return;
         }
-        
-        if(args.size() != 1){
+
+        if (args.size() != 1) {
             player.send_error_message("Invalid command usage. Example: /join ABCDE");
             return;
         }
-        
+
         auto nickname = Player::Name::parse(args.front());
-        if(!nickname){
+        if (!nickname) {
             player.send_error_message("Invalid name " + args.front());
             return;
         }
 
         auto player_to_kick = room._find_player_or_spectator(*nickname);
-        if(!player_to_kick){
+        if (!player_to_kick) {
             player.send_error_message("Player/Spectator " + args.front() + " is not in the room");
             return;
         }
-        if((**player_to_kick).is_spectator())
-        {
+        if ((**player_to_kick).is_spectator()) {
             room.remove_spectator(**player_to_kick);
         } else {
             room.remove_player(**player_to_kick);
         }
-        
+
         player.send_system_message("You kicked out " + (**nickname));
     });
-
 }
 
 //    COMMAND_MAP.insert(COMMAND("help", [](Context& game_manager, User& user, const Arguments& args) {

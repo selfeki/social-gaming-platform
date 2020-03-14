@@ -1,121 +1,97 @@
 #include "DSLInterpreter.h"
 
-#include <numeric>
-#include <string>
-#include <utility>
+#include "arepa/game_spec/ExpressionPtr.h"
 
-State Interpreter::operator()(GlobalMessage const& gM) const {
-    DataPacket variable = getVariablesInvolved(gM.message);
-    MapOfDataPackets dataMap(std::pair<DataPacket, DataPacket>(DataPacket("type"), DataPacket("Main_Screen")));
-    dataMap.insertNew(DataPacket("message"), gM.message);
-    if (variable.getData().length() > 0) {
-        dataMap.insertNew(DataPacket("variable"), variable);
-    }
-    return State(dataMap, players, state.arithmeticVarMap);
+#include <boost/algorithm/string.hpp>
+#include <boost/variant/polymorphic_get.hpp>
+#include <iostream>
+#include <string_view>
+
+namespace gameSpecification::rule {
+
+// todo: change all boost::get to boost::polymorphic_strict_get
+
+std::string
+interpolateString(const std::string_view str) {
+    // parses strings like
+    // "Round {round}. Choose your weapon!"
+    // to "Round 1. Choose your weapon!"
+    return "";
 }
 
-State Interpreter::operator()(MessageRule const& m) const {
-    DataPacket variable = getVariablesInvolved(m.message.getData());
-    MapOfDataPackets dataMap(std::pair<DataPacket, DataPacket>(DataPacket("type"), DataPacket("to_recipents")));
-    dataMap.insertNew(DataPacket("message"), m.message);
-    if (variable.getData().length() > 0) {
-        dataMap.insertNew(DataPacket("variable"), variable);
-    }
-    return State(dataMap, m.recipents, state.arithmeticVarMap);
+Expression
+evaluateExpression(const std::string_view str) {
+    // parses string like
+    // "configuration.Rounds.upfrom(1)"
+    // into an actual expression
+    return 0;
 }
 
-State Interpreter::operator()(Scores const& sc) const {
-    DataPacket variable = getVariablesInvolved(sc.variable);
-    MapOfDataPackets dataMap(std::pair<DataPacket, DataPacket>(DataPacket("type"), DataPacket("Main_Screen")));
-    dataMap.insertNew(DataPacket("sort_by"), variable);
-    if (sc.sortOrder.getData().compare("true") == 0) {
-        dataMap.insertNew(DataPacket("sort_order"), DataPacket("ascending"));
-    } else if (sc.sortOrder.getData().length() == 0) {
-        dataMap.insertNew(DataPacket("sort_order"), DataPacket("none"));
-    } else {
-        dataMap.insertNew(DataPacket("sort_order"), DataPacket("descending"));
+std::vector<std::string_view>
+getNameList(std::string_view str) {
+    std::vector<std::string_view> names;
+    std::stringstream ss(static_cast<std::string>(str));
+    std::string buffer;
+    while (std::getline(ss, buffer, '.')) {
+        names.push_back(buffer);
     }
-    dataMap.insertNew(DataPacket("to_display"), DataPacket("player_id"));
-    dataMap.insertNew(DataPacket("display_with"), variable);
-    return State(dataMap, players, state.arithmeticVarMap);
+    return names;
 }
 
-State Interpreter::operator()(Add const& add) const {
-    MapOfArithmeticVariables arithMap(state.arithmeticVarMap);
-    ArithmeticValue ar(arithMap.getDataMap().find(add.variable)->second);
-    ar.setData(ar.getData() + add.value.getData());
-    arithMap.getDataMap()[add.variable] = ar;
-    return State(state.stateMap, players, arithMap);
-}
+/*  
+ForEach Rule:
 
-State Interpreter::operator()(InputVote const& inputVote) const {    // To change to consider Time Out
-    if (State(state).stateMap.getDataMap()[DataPacket("input_recieved")].getData().compare("true") != 0) {
-        Rule promptMessage((MessageRule(inputVote.messageTosend, inputVote.players)));
-        State st = boost::apply_visitor(Interpreter(players.getPlayers(), state), promptMessage);
-        std::vector<std::string> vectorOfChoices;
-        for (DataPacket choice : inputVote.choices) {
-            vectorOfChoices.push_back(choice.getData());
-        }
-        std::string choicesString = std::accumulate(vectorOfChoices.begin(), vectorOfChoices.end(), std::string(" "));
-        Rule promptChoices((MessageRule(DataPacket(choicesString), inputVote.players)));
-        st = boost::apply_visitor(Interpreter(players.getPlayers(), state), promptChoices);
-        return State(st);
-    }
-    MapOfArithmeticVariables choicesMap(std::pair<DataPacket, ArithmeticValue>(DataPacket("None"), ArithmeticValue(0)));
-    for (Player& p1 : players.getPlayers()) {
-        DataPacket choice = State(state).stateMap.getDataMap().find(*(p1.name()))->second;
-        if (choicesMap.getDataMap().find(choice) == choicesMap.getDataMap().end()) {
-            choicesMap.insertNew(choice, ArithmeticValue(1));
-        } else {
-            choicesMap.getDataMap()[choice] = choicesMap.getDataMap()[choice].getData() + 1;
-        }
-    }
-    DataPacket bestChoice = std::max_element(choicesMap.getDataMap().begin(), choicesMap.getDataMap().end(),
-        [](const std::pair<DataPacket, ArithmeticValue> pair1, const std::pair<DataPacket, ArithmeticValue> pair2) {
-            return pair1.second.getData() < pair2.second.getData();
-        })->first;
-    State st(state);
-    st.stateMap.insertNew(inputVote.resultVariable, bestChoice);
-    st.stateMap.getDataMap()[DataPacket("input_recieved")] = DataPacket("false");
-    return st;
-}
-State Interpreter::operator()(InputText const& iT) const {
-    if (State(state).stateMap.getDataMap()[DataPacket("input_recieved")].getData().compare("true") != 0) {
-        Rule promptMessage((MessageRule(iT.messageTosend, iT.player)));
-        State st = boost::apply_visitor(Interpreter(players.getPlayers(), state), promptMessage);
-        return st;
-    }
-    State st(state);
-    DataPacket dataRecieved = st.stateMap.getDataMap()[DataPacket("input_recieved")];
-    st.stateMap.insertNew(iT.resultVariable, dataRecieved);
-    st.stateMap.getDataMap()[DataPacket("input_recieved")] = DataPacket("false");
-    return st;
-}
+for each expression in elemList:
+    set loop variable to that expression by updating context
+    for each rule:
+    push rule onto ruleStack
+    enter new scope to be used by rule
+    visit rule
+*/
 
-State Interpreter::takeInput(int timeout, PlayersListPacket player, std::string attribute) {
-    int seconds = 0;
-    std::string str = "";
-    if (timeout) {
-        while (seconds <= timeout) {
-            sleep(1);
-            seconds++;
-            std::getline(std::cin, str);
-            if (str.size() > 0) {
-                break;
+// todo: change to use Ryan's design
+void InterpretVisitor::visitImpl(const ForEach& forEach) {
+    auto elemList = boost::get<ExpList>(forEach.elemList);
+    auto element = boost::get<std::string_view>(forEach.elem);
+    for (const auto& exp : elemList.list) {
+        auto& scope = state.context.top();
+        scope.map[element] = exp;
+        for (const auto& rulePtr : forEach.rules) {
+            ruleStack.push(rulePtr.get());
+            state.enterScope();
+
+            rulePtr->accept(*this);
+            if (needUserInput) {
+                return;
             }
+            state.exitScope();
+            ruleStack.pop();
         }
-    } else {
-        std::getline(std::cin, str);
     }
-    return state;
 }
 
-DataPacket Interpreter::getVariablesInvolved(DataPacket dp) const {
-    std::string variable = "";
-    std::size_t openingBracketIndex = dp.getData().find("{");
-    std::size_t closingBracketIndex = dp.getData().find("}");
-    variable = dp.getData().substr(openingBracketIndex + 1, closingBracketIndex - (openingBracketIndex + 1));
-    return DataPacket(variable);
+void InterpretVisitor::visitImpl(const InputChoice& rule) {
+    // load gamestate with input request details
+    auto user = rule.targetUser;
+    auto rawPrompt = boost::get<std::string_view>(rule.prompt);
+    auto prompt = interpolateString(rawPrompt);
+    auto choices = boost::get<ExpList>(rule.choiceList);
+    auto resultStr = boost::get<std::string_view>(rule.result);
+    auto names = getNameList(resultStr);
+    ExpressionPtr resultPtr(names);
+    // set flag indicating need for user input
+    needUserInput = true;
+
+    // todo: push next rule onto stack
+    // todo: create InputRequest and to GameState
+    // todo: implement pointers between sibling rules
 }
 
-// Main function for sample testing
+void InterpretVisitor::visitImpl(const GlobalMessage& globalMessage) {
+    auto content = boost::get<std::string_view>(globalMessage.content);
+    auto message = interpolateString(content);
+    // todo;
+}
+
+
+}    // namespace gameSpecification::rule

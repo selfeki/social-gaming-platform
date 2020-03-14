@@ -1,11 +1,12 @@
 #pragma once
 
-#include "Expression.h"
-#include "MapWrapper.h"
+#ifndef RULE_H
+    #define RULE_H
 
-#include <boost/variant.hpp>
-#include <boost/variant/recursive_wrapper.hpp>
-#include <boost/variant/variant.hpp>
+    #include "Expression.h"
+    #include "MapWrapper.h"
+
+    #include <memory>
 
 namespace gameSpecification::rule {
 
@@ -37,195 +38,218 @@ struct GlobalMessage;
 struct Scores;
 
 
-using Rule = boost::make_recursive_variant<
-    ForEach,
-    Loop,
-    InParallel,
-    ParallelFor,
-    Switch,
-    When,
-    Extend,
-    Reverse,
-    Shuffle,
-    Sort,
-    Deal,
-    Discard,
-    Add,
-    Timer,
-    InputChoice,
-    InputText,
-    InputVote,
-    Message,
-    GlobalMessage,
-    Scores>::type;
+class RuleVisitor {
+public:
+    virtual ~RuleVisitor() = default;
 
-using RuleList = std::vector<Rule>;
+    void visit(const ForEach& rule) { visitImpl(rule); }
+    void visit(const GlobalMessage& rule) { visitImpl(rule); }
+    void visit(const InputChoice& rule) { visitImpl(rule); }
 
-struct ForEach {
-    Rule& 		 parent;
+private:
+    virtual void visitImpl(const ForEach& rule) {}
+    virtual void visitImpl(const GlobalMessage& rule) {}
+    virtual void visitImpl(const InputChoice& rule) {}
+};
+
+
+struct Rule {
+    virtual ~Rule() = default;
+
+    virtual void accept(RuleVisitor& visitor) const = 0;
+};
+
+using RuleID = int;
+using RuleList = std::vector<std::unique_ptr<Rule>>;
+
+struct ForEach final : public Rule {
+    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+
+    // raw pointer is fine because it is non-owning
+    Rule* parent;
     Expression elemList;
     Expression elem;
-    RuleList 	 rules;
-};
-
-enum LoopType {
-    UNTIL,
-    WHILE
-};
-
-struct Loop {
-    Rule& 	 parent;
-    LoopType type;    // Until or While
     RuleList rules;
 };
 
-struct InParallel {
-    Rule& 	 parent;
-    RuleList rules;
-};
 
-struct ParallelFor {
-    Rule& 		 parent;
-    Expression elemList;
-    Expression elem;
-    RuleList 	 rules;
-};
+// enum LoopType {
+//     UNTIL,
+//     WHILE
+// };
 
-using CaseToRules = MapWrapper<Expression, RuleList>;
+// struct Loop : public Rule {
+//     int id;
+//     Rule& 	 parent;
+//     LoopType type;    // Until or While
+//     RuleList rules;
+// };
 
-struct Switch {
-    Rule& 			parent;
-    Expression 	switchTarget;
-    Expression 	valuesList;
-    RuleList 		rules;
-    CaseToRules caseToRules;
-};
+// struct InParallel {
+//     int id;
+//     Rule& 	 parent;
+//     RuleList rules;
+// };
 
-using ConditionToRules = MapWrapper<Expression, RuleList>;
+// struct ParallelFor {
+//     int id;
+//     Rule& 		 parent;
+//     Expression elemList;
+//     Expression elem;
+//     RuleList 	 rules;
+// };
 
-struct When {
-    Rule& parent;
-    ConditionToRules condToRules;
-};
+// using CaseToRules = MapWrapper<Expression, RuleList>;
 
-struct Extend {
-    Rule& 		 parent;
-    Expression targetList;
-    Expression list;
-};
+// struct Switch {
+//     int id;
+//     Rule& 			parent;
+//     Expression 	switchTarget;
+//     Expression 	valuesList;
+//     RuleList 		rules;
+//     CaseToRules caseToRules;
+// };
 
-struct Reverse {
-    Rule& 		 parent;
-    Expression list;
-};
+// using ConditionToRules = MapWrapper<Expression, RuleList>;
 
-struct Shuffle {
-    Rule& 		 parent;
-    Expression list;
-};
+// struct When {
+//     int id;
+//     Rule& parent;
+//     ConditionToRules condToRules;
+// };
 
-struct Sort {
-    Rule& 		 parent;
-    Expression list;
-    // todo: if key provided
-    // Validate that the list contains maps
-    std::optional<std::string> key;
-};
+// struct Extend {
+//     int id;
+//     Rule& 		 parent;
+//     Expression targetList;
+//     Expression list;
+// };
 
-// possibel element values
-// a variable "count" which stores a number
-// count.upfrom(1)
-// expresses a list of numbers [1, 2, … , count]
+// struct Reverse {
+//     int id;
+//     Rule& 		 parent;
+//     Expression list;
+// };
 
-// list attributes
-// "roles.size"
+// struct Shuffle {
+//     int id;
+//     Rule& 		 parent;
+//     Expression list;
+// };
 
-// Only if the elementLists are maps ->
+// struct Sort {
+//     int id;
+//     Rule& 		 parent;
+//     Expression list;
+//     // todo: if key provided
+//     // Validate that the list contains maps
+//     std::optional<std::string> key;
+// };
 
-// "roles.elements.name" defines the list of names contained within the above list.
-// Additional useful attributes are
-// "contains" and "collect"
+// // possibel element values
+// // a variable "count" which stores a number
+// // count.upfrom(1)
+// // expresses a list of numbers [1, 2, … , count]
 
-// Number is an integer literal?
-struct Deal {
-    Rule& 		 parent;
-    Expression fromList;
-    Expression toList;
-    Expression count;
-};
+// // list attributes
+// // "roles.size"
 
-struct Discard {
-    Rule& 		 parent;
-    Expression fromList;
-    Expression count;
-};
+// // Only if the elementLists are maps ->
 
-struct Add {
-    Rule& 		 parent;
-    Expression to;
-    Expression value;
-};
+// // "roles.elements.name" defines the list of names contained within the above list.
+// // Additional useful attributes are
+// // "contains" and "collect"
 
-enum TimerMode {
-    EXACT,
-    AT_MOST,
-    TRACK
-};
+// // Number is an integer literal?
+// struct Deal {
+//     int id;
+//     Rule& 		 parent;
+//     Expression fromList;
+//     Expression toList;
+//     Expression count;
+// };
 
-struct Timer {
-    Rule& 		 parent;
-    Expression duration;
-    TimerMode  mode;
-    RuleList 	 rules;
-    Expression flag;
-};
+// struct Discard {
+//     int id;
+//     Rule& 		 parent;
+//     Expression fromList;
+//     Expression count;
+// };
 
-// todo: make consistent with GameManager user ID?
-using UserID = std::string;
-using UserIDList = std::vector<UserID>;
+// struct Add {
+//     int id;
+//     Rule& 		 parent;
+//     Expression to;
+//     Expression value;
+// };
+
+// enum TimerMode {
+//     EXACT,
+//     AT_MOST,
+//     TRACK
+// };
+
+// struct Timer {
+//     int id;
+//     Rule& 		 parent;
+//     Expression duration;
+//     TimerMode  mode;
+//     RuleList 	 rules;
+//     Expression flag;
+// };
 
 
-struct InputChoice {
-    Rule& 		 parent;
-    UserIDList targetUsers;
+struct InputChoice : public Rule {
+    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+
+    Rule* parent;
+    uniqueName targetUser;
     Expression prompt;
     Expression choiceList;
     Expression result;
     std::optional<Expression> timeout;
 };
 
-struct InputText {
-    Rule& 		 parent;
-    UserID 		 targetUser;
-    Expression prompt;
-    Expression result;
-    // optional
-    std::optional<Expression> timeout;
-};
+// struct InputText {
+//     int id;
+//     Rule& 		 parent;
+//     UserID 		 targetUser;
+//     Expression prompt;
+//     Expression result;
+//     // optional
+//     std::optional<Expression> timeout;
+// };
 
-struct InputVote {
-    Rule& 		 parent;
-    UserIDList targetUsers;
-    Expression prompt;
-    Expression choiceList;
-    Expression resultMap;
-};
+// struct InputVote {
+//     int id;
+//     Rule& 		 parent;
+//     UserIDList targetUsers;
+//     Expression prompt;
+//     Expression choiceList;
+//     Expression resultMap;
+// };
 
-struct Message {
-    Rule& 		 parent;
-    UserIDList targetUsers;
+// struct Message {
+//     int id;
+//     Rule& 		 parent;
+//     UserIDList targetUsers;
+//     Expression content;
+// };
+
+struct GlobalMessage final : public Rule {
+    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+
+    Rule* parent;
     Expression content;
 };
 
-struct GlobalMessage {
-    Rule& 		 parent;
-    Expression content;
-};
-
-struct Scores {
-    Rule&      parent;
-    Expression scoreAttribute;
-    Expression isAscending;
-};
+// struct Scores {
+//     int id;
+//     Rule&      parent;
+//     Expression scoreAttribute;
+//     Expression isAscending;
+// };
 
 }    // namespace rule
+
+#endif /* RULE_H */

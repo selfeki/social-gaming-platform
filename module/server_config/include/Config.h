@@ -23,7 +23,7 @@ const std::unordered_map<FIELDS, std::string> enum_to_str = {
 struct Configuration {
     int port;
     std::string htmlPath;
-//    std::vector<gameSpecification::Specification> gameSpecs;
+    //    std::vector<gameSpecification::Specification> gameSpecs;
 
     bool err = true;    //default true, set only to false when fields are assigned to values
 };

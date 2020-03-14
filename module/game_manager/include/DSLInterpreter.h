@@ -1,29 +1,35 @@
-#include "RuleBook.h"
+#pragma once
 
-#include <boost/variant.hpp>
-#include <iostream>
-#include <iterator>
-#include <optional>
-#include <sstream>
-#include <string>
+#include "arepa/game_spec/GameState.h"
+#include "arepa/game_spec/Rule.h"
+
+#include <stack>
+
+namespace gameSpecification::rule {
 
 
-using Rule = boost::variant<GlobalMessage, MessageRule, Scores, InputText, Add, InputVote>;
-class Interpreter : public boost::static_visitor<State> {
+class InterpretVisitor : public RuleVisitor {
 public:
-    Interpreter(std::vector<Player> players, State state)
-        : players { players }
-        , state { state } {}
-    State operator()(GlobalMessage const& gM) const;
-    State operator()(MessageRule const& m) const;
-    State operator()(Scores const& sc) const;
-    State operator()(InputText const& iT) const;
-    State operator()(Add const& add) const;
-    State takeInput(int timeout, PlayersListPacket player, std::string attribute);
-    State operator()(InputVote const& InputVote) const;
-    DataPacket getVariablesInvolved(DataPacket dp) const;
+    InterpretVisitor(GameState& state)
+        : state { state }
+        , needUserInput { false } {}
+
+    void visitImpl(const rule::ForEach&);
+
+    void visitImpl(const rule::GlobalMessage&);
+
+    void visitImpl(const rule::InputChoice&);
+
+    void
+    setGameState(const GameState&);
 
 private:
-    PlayersListPacket players;
-    State state;
+    GameState& state;
+
+    bool needUserInput;
+
+    std::stack<const Rule*> ruleStack;
 };
+
+
+}    // namespace gameSpecification::rule
