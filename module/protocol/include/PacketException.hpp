@@ -2,7 +2,7 @@
 
 #include <exception>
 
-namespace arepa::server {
+namespace arepa::protocol {
 
 /**
  * An exception for packet serialization or deserialization issues.

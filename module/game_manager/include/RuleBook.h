@@ -1,4 +1,4 @@
-#pragma once
+#include <arepa/game/Player.hpp>
 
 #include <iostream>
 #include <iterator>
@@ -6,11 +6,10 @@
 #include <optional>
 #include <sstream>
 #include <string>
-#include <string>
-#include <utility>
 #include <utility>
 #include <vector>
 
+using Player = arepa::game::Player;
 
 struct DataPacket {    //  Wrapper for Strings
     std::string data;
@@ -59,25 +58,6 @@ struct MapOfArithmeticVariables {
     void insertNew(const DataPacket& dp1, const ArithmeticValue& ap) { dataMap.insert(std::pair<DataPacket, ArithmeticValue>(dp1, ap)); };
     std::map<DataPacket, ArithmeticValue, classMapComp>& getDataMap() { return dataMap; };
     std::map<DataPacket, ArithmeticValue, classMapComp>::iterator getIterator() { return dataMap.begin(); };
-};
-
-class Player {
-public:
-    std::string name;
-    int wins = 0;
-    DataPacket command;
-    Player(std::string name)
-        : name { name } {}
-    Player(const Player& pl)
-        : name { pl.name } {}
-    void setAttribute(DataPacket dp, std::string data) {
-        if (dp.getData() == "wins") {
-            wins = stoi(data);
-        }
-        if (dp.getData() == "command") {
-            command.data = data;
-        }
-    }
 };
 
 struct PlayersListPacket {

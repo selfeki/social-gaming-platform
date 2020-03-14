@@ -4,6 +4,7 @@
 #include "Level.hpp"
 
 #include <chrono>
+#include <initializer_list>
 #include <string>
 #include <vector>
 
@@ -89,6 +90,39 @@ public:
         , timestamp(std::chrono::system_clock::now())
         , message(std::move(message))
         , values(Collector::collect(values...)) {}
+
+
+    /**
+     * Creates a new log event with additional context information.
+     *
+     * @param module The module.
+     * @param level The severity.
+     * @param timestamp The timestamp.
+     * @param message The message.
+     * @param values Additional values which add context or debug information to the log entry.
+     */
+    Entry(std::string module, Level level, Timestamp timestamp, std::string message, std::vector<std::string> values)
+        : module(std::move(module))
+        , level(level)
+        , timestamp(timestamp)
+        , message(std::move(message))
+        , values(std::move(values)) {}
+
+    /**
+     * Creates a new log event with additional context information.
+     * This will set the timestamp to the current time.
+     *
+     * @param module The module.
+     * @param level The severity.
+     * @param message The message.
+     * @param values Additional values which add context or debug information to the log entry.
+     */
+    Entry(std::string module, Level level, std::string message, std::vector<std::string> values)
+        : module(std::move(module))
+        , level(level)
+        , timestamp(std::chrono::system_clock::now())
+        , message(std::move(message))
+        , values(std::move(values)) {}
 };
 
 }

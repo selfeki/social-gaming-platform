@@ -46,15 +46,22 @@ SessionToken::operator std::string() const {
     return boost::uuids::to_string(this->_id);
 }
 
-bool operator==(const SessionToken& lhs, const SessionToken& rhs) {
-    return lhs.id() == rhs.id();
+bool SessionToken::operator==(const SessionToken& rhs) const {
+    return this->_id == rhs._id && this->_secret == rhs._secret;
 }
 
-bool operator==(const SessionToken& lhs, const SessionToken::Id& rhs) {
-    return lhs.id() == rhs;
+bool SessionToken::operator==(const SessionToken::Id& rhs) const {
+    return this->_id == rhs;
+}
+
+bool SessionToken::operator!=(const SessionToken& rhs) const {
+    return !(*this == rhs);
+}
+
+bool SessionToken::operator!=(const SessionToken::Id& rhs) const {
+    return !(*this == rhs);
 }
 
 std::ostream& arepa::networking::operator<<(std::ostream& lhs, const SessionToken& rhs) {
-    lhs << boost::uuids::to_string(rhs.id());
-    return lhs;
+    return lhs << rhs.id();
 }
