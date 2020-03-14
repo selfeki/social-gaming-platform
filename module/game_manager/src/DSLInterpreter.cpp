@@ -38,6 +38,7 @@ parseDotNotation(const std::string_view str) {
                 break;
             }
         }
+        first = second + 1;
     }
 
     return output;
@@ -122,8 +123,11 @@ void InterpretVisitor::visitImpl(ForEach& forEach) {
 
 void InterpretVisitor::visitImpl( Add& add) {
 
+
     auto to = boost::get<std::string_view>(add.to);
     auto to_tokens = parseDotNotation(to);
+
+
     int value;
 
     if(add.value.type() == typeid(int)) {
@@ -132,7 +136,9 @@ void InterpretVisitor::visitImpl( Add& add) {
     else if(add.value.type() == typeid(std::string_view)) {
         auto value_tokens = parseDotNotation(boost::get<std::string_view>(add.value));
         auto temp = this->getValueFromContextVariables(value_tokens);
+
         value = boost::get<int>(temp);
+
 
     } 
     else {
@@ -140,11 +146,10 @@ void InterpretVisitor::visitImpl( Add& add) {
     }
     auto temp = boost::get<int>(this->getValueFromContextVariables(to_tokens));
     this->setValueOfContextVariables(to_tokens, Expression{temp + value});
-    std::cout << temp << " hi\n";
 
     //add the values
     
-    std::cout << "TRACE: " << temp << ", " << value << "\n";
+    std::cout << "TRACE inside add rule: " << temp << ", " << value << "\n";
 
     add.finished = true;
     if(add.next != NULL) {

@@ -46,10 +46,8 @@ public:
     }
 
     void testPrintVariable(std::string_view var) {
-
-        Expression value = interpreter.context.map[var];
+        Expression value = interpreter.getValueFromContextVariables(rule::parseDotNotation(var));
         boost::apply_visitor(printExpVisitor(), value);
-
     } 
 
    // GameState&

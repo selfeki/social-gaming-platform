@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
     GameInstance gameInstance {gs, ruleList, *forEachRule};
 
     gameInstance.updateState();
-    gameInstance.testPrintVariable("sum");
+    gameInstance.testPrintVariable("output.sum");
     std::cout << "\n";
 
     return 0;

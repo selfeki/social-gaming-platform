@@ -7,6 +7,10 @@
 
 namespace gameSpecification::rule {
 
+std::vector<std::string_view> 
+parseDotNotation(const std::string_view str);
+
+
 class InterpretVisitor : public RuleVisitor {
 public:
     InterpretVisitor(const GameState& gs, Rule& firstRule) {
@@ -34,8 +38,6 @@ public:
         for(auto& spectator : gs.audience) {
             context.map.insert({std::string_view{spectator.first}, spectator.second});
         }
-
-
 
 
     }
