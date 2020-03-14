@@ -38,7 +38,7 @@ getNameList(std::string_view str) {
     return names;
 }
 
-/*  
+/*
 ForEach Rule:
 
 for each expression in elemList:
@@ -72,7 +72,7 @@ void InterpretVisitor::visitImpl(const ForEach& forEach) {
 
 void InterpretVisitor::visitImpl(const InputChoice& rule) {
     // load gamestate with input request details
-    auto user = rule.targetUser;
+    //auto user = rule.targetUser;
     auto rawPrompt = boost::get<std::string_view>(rule.prompt);
     auto prompt = interpolateString(rawPrompt);
     auto choices = boost::get<ExpList>(rule.choiceList);

@@ -5,7 +5,6 @@
 
     #include "Expression.h"
     #include "MapWrapper.h"
-
     #include <memory>
 
 namespace gameSpecification::rule {
@@ -44,14 +43,47 @@ public:
 
     void visit(const ForEach& rule) { visitImpl(rule); }
     void visit(const GlobalMessage& rule) { visitImpl(rule); }
+    void visit(const ParallelFor& rule) { visitImpl(rule); }
     void visit(const InputChoice& rule) { visitImpl(rule); }
+    void visit(const Discard& rule) { visitImpl(rule); }
+    void visit(const Reverse& rule) { visitImpl(rule); }
+    void visit(const Extend& rule) { visitImpl(rule); }
+    void visit(const InParallel& rule) { visitImpl(rule); }
+    void visit(const Add& rule) { visitImpl(rule); }
+    void visit(const Shuffle& rule) { visitImpl(rule); }
+    void visit(const Message& rule) { visitImpl(rule); }
+    void visit(const Sort& rule) { visitImpl(rule); }
+    void visit(const Deal& rule) { visitImpl(rule); }
+    void visit(const Scores& rule) { visitImpl(rule); }
+    void visit(const InputText& rule) { visitImpl(rule); }
+    void visit(const InputVote& rule) { visitImpl(rule); }
+    void visit(const Loop& rule) { visitImpl(rule); }
+    void visit(const Switch& rule) { visitImpl(rule); }
+    void visit(const Timer& rule) { visitImpl(rule); }
+    void visit(const When& rule) { visitImpl(rule); }
 
 private:
     virtual void visitImpl(const ForEach& rule) {}
     virtual void visitImpl(const GlobalMessage& rule) {}
+    virtual void visitImpl(const ParallelFor& rule) {}
     virtual void visitImpl(const InputChoice& rule) {}
+    virtual void visitImpl(const Discard& rule) {}
+    virtual void visitImpl(const Reverse& rule) {}
+    virtual void visitImpl(const Extend& rule) {}
+    virtual void visitImpl(const InParallel& rule) {}
+    virtual void visitImpl(const Add& rule) {}
+    virtual void visitImpl(const Shuffle& rule) {}
+    virtual void visitImpl(const Message& rule) {}
+    virtual void visitImpl(const Sort& rule) {}
+    virtual void visitImpl(const Deal& rule) {}
+    virtual void visitImpl(const Scores& rule) {}
+    virtual void visitImpl(const InputText& rule) {}
+    virtual void visitImpl(const InputVote& rule) {}
+    virtual void visitImpl(const Loop& rule) {}
+    virtual void visitImpl(const Switch& rule) {}
+    virtual void visitImpl(const Timer& rule) {}
+    virtual void visitImpl(const When& rule) {}
 };
-
 
 struct Rule {
     virtual ~Rule() = default;
@@ -72,79 +104,94 @@ struct ForEach final : public Rule {
     RuleList rules;
 };
 
+struct ParallelFor final : public Rule {
+    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+     //int id;
+     Rule* 		 parent;
+     Expression elemList;
+     Expression elem;
+     RuleList 	 rules;
+};
 
-// enum LoopType {
-//     UNTIL,
-//     WHILE
-// };
+struct InputChoice  : public Rule {
+    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+        //int id;
+        Rule* parent;
+        //TODO: determine how to store list of users
+        //UserIDList targetUsers;
+        Expression prompt;
+        Expression choiceList;
+        Expression result;
+        std::optional<Expression> timeout;
+};
 
-// struct Loop : public Rule {
+struct Discard : public Rule {
+    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+    //int id;
+        Rule* 		 parent;
+        Expression fromList;
+        Expression count;
+};
+
+struct Reverse : public Rule{
+     virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+     //int id;
+     Rule* 		 parent;
+     Expression list;
+};
+
+struct Extend : public Rule{
+    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+    //int id;
+     Rule*		parent;
+     Expression targetList;
+     Expression list;
+};
+
+struct Shuffle : public Rule{
+    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+    //     int id;
+    Rule* 		 parent;
+    Expression list;
+};
+
+
+enum LoopType {
+     UNTIL,
+     WHILE
+};
+
+struct Loop : public Rule {
+    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+
 //     int id;
-//     Rule& 	 parent;
-//     LoopType type;    // Until or While
-//     RuleList rules;
-// };
+    Rule* 	 parent;
+    LoopType type;    // Until or While
+    RuleList rules;
+};
 
-// struct InParallel {
-//     int id;
-//     Rule& 	 parent;
-//     RuleList rules;
-// };
+struct InParallel : public Rule{
+    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+    //int id;
+     Rule*	 parent;
+     RuleList rules;
+};
 
-// struct ParallelFor {
-//     int id;
-//     Rule& 		 parent;
-//     Expression elemList;
-//     Expression elem;
-//     RuleList 	 rules;
-// };
+struct Add  : public Rule{
+    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+    //int id;
+     Rule*		 parent;
+     Expression to;
+     Expression value;
+};
 
-// using CaseToRules = MapWrapper<Expression, RuleList>;
-
-// struct Switch {
-//     int id;
-//     Rule& 			parent;
-//     Expression 	switchTarget;
-//     Expression 	valuesList;
-//     RuleList 		rules;
-//     CaseToRules caseToRules;
-// };
-
-// using ConditionToRules = MapWrapper<Expression, RuleList>;
-
-// struct When {
-//     int id;
-//     Rule& parent;
-//     ConditionToRules condToRules;
-// };
-
-// struct Extend {
-//     int id;
-//     Rule& 		 parent;
-//     Expression targetList;
-//     Expression list;
-// };
-
-// struct Reverse {
-//     int id;
-//     Rule& 		 parent;
-//     Expression list;
-// };
-
-// struct Shuffle {
-//     int id;
-//     Rule& 		 parent;
-//     Expression list;
-// };
-
-// struct Sort {
-//     int id;
-//     Rule& 		 parent;
-//     Expression list;
-//     // todo: if key provided
-//     // Validate that the list contains maps
-//     std::optional<std::string> key;
-// };
+struct Message : public Rule{
+    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+    //int id;
+    Rule* 		 parent;
+    //UserIDList targetUsers;
+    Expression content;
+};
 
 // // possibel element values
 // // a variable "count" which stores a number
@@ -161,80 +208,89 @@ struct ForEach final : public Rule {
 // // "contains" and "collect"
 
 // // Number is an integer literal?
-// struct Deal {
-//     int id;
-//     Rule& 		 parent;
-//     Expression fromList;
-//     Expression toList;
-//     Expression count;
-// };
-
-// struct Discard {
-//     int id;
-//     Rule& 		 parent;
-//     Expression fromList;
-//     Expression count;
-// };
-
-// struct Add {
-//     int id;
-//     Rule& 		 parent;
-//     Expression to;
-//     Expression value;
-// };
-
-// enum TimerMode {
-//     EXACT,
-//     AT_MOST,
-//     TRACK
-// };
-
-// struct Timer {
-//     int id;
-//     Rule& 		 parent;
-//     Expression duration;
-//     TimerMode  mode;
-//     RuleList 	 rules;
-//     Expression flag;
-// };
-
-
-struct InputChoice : public Rule {
+struct Deal : public Rule{
     virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
-
-    Rule* parent;
-    uniqueName targetUser;
-    Expression prompt;
-    Expression choiceList;
-    Expression result;
-    std::optional<Expression> timeout;
+//     int id;
+     Rule* 		 parent;
+     Expression fromList;
+     Expression toList;
+     Expression count;
 };
 
-// struct InputText {
+using CaseToRules = MapWrapper<Expression, RuleList>;
+
+ struct Switch : public Rule{
+     virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
 //     int id;
-//     Rule& 		 parent;
+     Rule*			parent;
+     Expression 	switchTarget;
+     Expression 	valuesList;
+     RuleList 		rules;
+     CaseToRules caseToRules;
+};
+
+using ConditionToRules = MapWrapper<Expression, RuleList>;
+
+struct When : public Rule{
+    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+//     int id;
+     Rule* parent;
+     ConditionToRules condToRules;
+};
+
+
+struct Sort : public Rule{
+    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+//     int id;
+     Rule* 		 parent;
+     Expression list;
+     // todo: if key provided
+     // Validate that the list contains maps
+     //std::optional<std::string> key;
+     Expression key;
+};
+
+struct InputText : public Rule {
+    virtual void accept(RuleVisitor &visitor) const { return visitor.visit(*this); }
+
+//     int id;
+    Rule *parent;
 //     UserID 		 targetUser;
-//     Expression prompt;
-//     Expression result;
-//     // optional
-//     std::optional<Expression> timeout;
-// };
+    Expression prompt;
+    Expression result;
+    Expression timeout;
+};
 
-// struct InputVote {
-//     int id;
-//     Rule& 		 parent;
-//     UserIDList targetUsers;
-//     Expression prompt;
-//     Expression choiceList;
-//     Expression resultMap;
-// };
 
-// struct Message {
+struct InputVote : public Rule {
+     virtual void accept(RuleVisitor &visitor) const { return visitor.visit(*this); }
 //     int id;
-//     Rule& 		 parent;
-//     UserIDList targetUsers;
-//     Expression content;
-// };
+    Rule* 		 parent;
+     //UserIDList targetUsers;
+     Expression prompt;
+     Expression choiceList;
+     Expression resultMap;
+     //std::optional<Expression> timeout;
+     Expression timeout;
+};
+
+
+
+enum TimerMode {
+     EXACT,
+     AT_MOST,
+     TRACK
+};
+
+struct Timer : public Rule {
+    virtual void accept(RuleVisitor &visitor) const { return visitor.visit(*this); }
+     //int id;
+     Rule*		 parent;
+     Expression duration;
+     TimerMode  mode;
+     RuleList 	 rules;
+     Expression flag;
+};
 
 struct GlobalMessage final : public Rule {
     virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
@@ -243,12 +299,13 @@ struct GlobalMessage final : public Rule {
     Expression content;
 };
 
-// struct Scores {
+struct Scores final : public Rule {
+     virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
 //     int id;
-//     Rule&      parent;
-//     Expression scoreAttribute;
-//     Expression isAscending;
-// };
+     Rule*      parent;
+     Expression scoreAttribute;
+     Expression isAscending;
+};
 
 }    // namespace rule
 
