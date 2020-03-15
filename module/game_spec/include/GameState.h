@@ -1,16 +1,21 @@
 #pragma once
 
 #include "Expression.h"
+#include "ExpressionPtr.h"
 #include "MapWrapper.h"
+
+#include <optional>
+#include <stack>
+#include <string_view>
 
 namespace gameSpecification {
 
 
 // A GameState is the input and output of the DSLInterpreter
 
-using GameMessage = std::string;
+using GameMessage = std::string_view;
 
-using uniqueName = std::string;
+using uniqueName = std::string_view;
 
 struct GamePlayer {
     uniqueName name;
@@ -22,7 +27,15 @@ struct GameAudience {
     std::vector<GameMessage> messages;
 };
 
-using Environment = MapWrapper<std::string, Expression>;
+struct InputRequest {
+    uniqueName targetUser;
+    // note: choices, if any, are captured in the prompt
+    std::string_view prompt;
+    ExpressionPtr resultPtr;
+    std::optional<int> timeout;
+};
+
+using Environment = ExpMap;
 
 struct GameState {
 
@@ -31,18 +44,26 @@ struct GameState {
     Environment variables;
     Environment perPlayer;
     Environment perAudience;
-    Environment players;
-    Environment audience;
+    // keeps track of which variables are in scope
+    std::stack<Environment> context;
 
-
-    
+    // stores input requests to be delivered to users
+    std::vector<InputRequest> inputRequests;
 
     // player exclusive data contained here or in userStates?
     // A user might have game-agnostic data
-    //std::vector<Environment> players;
-    //std::vector<Environment> audience;
+    std::vector<GamePlayer> players;
+    std::vector<GameAudience> audience;
 
-    /*
+
+    void enterScope() {
+        context.emplace();
+    }
+
+    void exitScope() {
+        context.pop();
+    }
+
     void enqueueMessage(uniqueName name, GameMessage message) {
         auto it = std::find_if(players.begin(), players.end(),
             [&name](const auto& player) { return player.name == name; });
@@ -73,7 +94,7 @@ struct GameState {
         enqueuePlayersMessage(message);
         enqueueAudienceMessage(message);
     }
-    */
+    
 
 
 

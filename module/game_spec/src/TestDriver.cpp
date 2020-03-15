@@ -1,19 +1,48 @@
 // A stub namespace to silence a couple CMake warnings.
 
 #include "Expression.h"
+#include "ExpressionPtr.h"
 
+#include <boost/variant/polymorphic_get.hpp>
 #include <iostream>
 #include <string>
 
 using namespace gameSpecification;
 
-namespace game_spec_stub {    // NOLINT
-void foo() {}                 // NOLINT
+// todo: transfer these to test module once Google Test gets integrated
+
+//  Driver for testing ExpressionPtr
+void testExpressionPtr() {
+    Expression exp1 = ExpMap({ { { "c", 1 } } });
+    Expression exp2 = ExpMap({ { { "b", exp1 } } });
+    Expression exp3 = ExpMap({ { { "a", exp2 } } });
+    ExpMap& mapRef = boost::polymorphic_strict_get<ExpMap>(exp3);
+    ExpMap mapCopy = boost::polymorphic_strict_get<ExpMap>(exp3);
+
+    ExpressionPtr expPtr { { "a", "b", "c" } };
+    auto PtrCopy = expPtr.getPtr(mapCopy);
+    auto PtrRef = expPtr.getPtr(mapRef);
+
+    if (!PtrCopy) {
+        std::cout << "null";
+    } else {
+        *(PtrCopy.value()) = 42;
+        // exp3 = { a: { b: { c: 1, }, }, }
+        boost::apply_visitor(printExpVisitor(), exp3);
+    }
+    std::cout << std::endl;
+
+    if (!PtrRef) {
+        std::cout << "null";
+    } else {
+        *(PtrRef.value()) = 42;
+        // exp3 = { a: { b: { c: 42, }, }, }
+        boost::apply_visitor(printExpVisitor(), exp3);
+    }
 }
 
 //  Example usage of boost::variant and boost::apply_visitor
-
-int main() {
+void testPrintExpVisitor() {
     Expression intExp = 0;
     boost::apply_visitor(printExpVisitor(), intExp);
     std::cout << std::endl;
@@ -44,6 +73,13 @@ int main() {
     Expression nestedList = ExpList({ { expList, std::string("hello"), nestedMap, 1, false } });
     boost::apply_visitor(printExpVisitor(), nestedList);
     std::cout << std::endl;
+}
 
+
+int main() {
+    std::cout << "------------ testPrintExpVisitor --------------" << std::endl;
+    testPrintExpVisitor();
+    std::cout << "------------ testExpressionPtr --------------" << std::endl;
+    testExpressionPtr();
     return 0;
 }

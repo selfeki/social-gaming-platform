@@ -1,13 +1,15 @@
 #pragma once
 
+#include "ConnectionId.hpp"
 #include "ConnectionSocket.hpp"
-#include "UnstructuredPacket.hpp"
 
 #include <arepa/communication/ChannelMultiQueue.hpp>
 #include <arepa/communication/ChannelSingleQueue.hpp>
+#include <arepa/game/interface/PlayerNetworking.hpp>
 #include <arepa/networking/Session.hpp>
 #include <arepa/networking/Socket.hpp>
 #include <arepa/protocol/Message.hpp>
+#include <arepa/protocol/Packet.hpp>
 
 #include <memory>
 #include <string_view>
@@ -17,10 +19,11 @@ namespace arepa::server {
 /**
  * A client connection.
  */
-class Connection {
+class Connection : public arepa::game::PlayerNetworking {
 #pragma mark - Types -
 public:
-    typedef std::shared_ptr<arepa::communication::ChannelSingleQueue<UnstructuredPacket>> PacketQueue;
+    using PacketQueue = std::shared_ptr<arepa::communication::ChannelSingleQueue<arepa::protocol::Packet>>;
+    using Id = ConnectionId;
 
 
 #pragma mark - Fields -
@@ -38,7 +41,7 @@ private:
     /**
      * The MPMC message channel.
      */
-    arepa::communication::ChannelMultiQueue<UnstructuredPacket> _channel;
+    arepa::communication::ChannelMultiQueue<arepa::protocol::Packet> _channel;
 
     decltype(_socket.on_message)::ListenerID _attach_socket_on_message;
 
@@ -106,15 +109,34 @@ public:
      */
     [[nodiscard]] const arepa::networking::SessionToken::Id& session_id() const;
 
+    /**
+     * Returns the connection ID.
+     * @return A reference to the connection ID.
+     */
+    [[nodiscard]] const Id& id() const;
+
+    void send_message(const std::string& message);
+    void send_message(const char* message);
+    void send_system_message(const std::string& message);
+
+
+#pragma mark - Methods (PlayerNetworking) -
+public:
+    void send_message(const std::string_view& message) override;
+    void send_error_message(const std::string_view& message) override;
+    void send_packet(const arepa::protocol::Packet& packet) override;
+
 
 #pragma mark - Operators -
 public:
-    Connection& operator<<(const UnstructuredPacket& message);
+    // TODO(ethan): Remove the below operators in favor of just using send_* methods.
+    Connection& operator<<(const arepa::protocol::Packet& message);
     Connection& operator<<(const std::string& message);
     Connection& operator<<(const std::string_view& message);
     Connection& operator<<(const char* message);
 };
 
+// TODO(ethan): Remove the operator template below.
 template <typename T>
 Connection& operator<<(const std::shared_ptr<Connection>& connection, const T& data) {
     return *connection << data;

@@ -1,246 +1,166 @@
-/////////////////////////////////////////////////////////////////////////////
-//                         Single Threaded Networking
-//
-// This file is distributed under the MIT License. See the LICENSE file
-// for details.
-/////////////////////////////////////////////////////////////////////////////
-
-#include "GameManager.h"
-#include "arepa/game_spec/GameSpecification.h"
-#include "arepa/serializer/jsonSerializer.h"
-#include "arepa/server_config/Config.h"
-#include "commands.h"
+#include "commands.hpp"
+#include "config.hpp"
+#include "logging.hpp"
 
 #include <arepa/command/Command.hpp>
-#include <arepa/server/Server.h>
+#include <arepa/server/Server.hpp>
+#include <arepa/server/ServerLoop.hpp>
 
-#include <boost/uuid/uuid_io.hpp>
-
-//#include "dsl_interpreter.h"
-//#include "json_parser.h"
-#include <atomic>
-#include <cstdint>
-#include <deque>
-#include <fstream>
-#include <iostream>
-#include <iterator>
-#include <sstream>
-#include <string>
-#include <unistd.h>
-#include <vector>
+#include <GameManager.hpp>
 
 using arepa::command::Command;
-using networking::ConnectionId;
-using networking::Message;
-using networking::Server;
+using arepa::server::Client;
+using arepa::server::Server;
+using arepa::server::ServerLoop;
+using Packet = arepa::server::Client::packet_type;
 
-typedef networking::ConnectionId UniqueConnectionID;
-//typedef MessageReturn<UniqueConnectionID> GameManager::MessageReturn;
-//typedef GameManager<UniqueConnectionID> GameManagerAlias;
-
-
-std::atomic<std::uint64_t> unique_connection_id_counter = 0;
-
-//std::vector<Connection> clients;
-
-std::string default_json = "templates/server/default.json";
-
-GameManager gameManager;
-
-
-//messages ready to be sent to networking
-std::deque<Message> networkMessageQueue;
-
-
-//message types possible (tentative)
-enum MessageType { COMMAND,
-    GAME_CONFIG,
-    NORMAL };
-
-
-MessageType getMessageType(const std::string& _message) {
-    if (_message[0] == '/') {    //it is a command
-        return MessageType::COMMAND;
-    } else {    //it is a regular message
-        return MessageType::NORMAL;
-    }
+void greet_user(arepa::server::Connection& user) {
+    user.send_system_message("Welcome to the server. /create or /join a room to get started!");
 }
 
-//function to format a message object to a particular client
-std::deque<Message> sendToClient(const ConnectionId& client, const std::string& log) {
-    std::deque<Message> outgoing;
-    outgoing.push_back({ client, log });
-    return outgoing;
-}
+/**
+ * Process a client's command.
+ *
+ * This will first attempt to let the room (and as such, game instance) process the command.
+ * If that fails, it will fall back to the global command map.
+ *
+ * @param manager The game manager.
+ * @param client The client.
+ * @param command The command to execute.
+ */
+void process_command(GameManager& manager, Client& client, Command& command) {
+    auto player_id = client.connection->session_id();
 
-//Whenever a client connections, this function is called it inserts connection and connection id into map
-
-void onConnect(shared_ptr<Connection> c) {
-    auto id = ++unique_connection_id_counter;
-
-    std::cout << "New connection found: " << c->session_token() << "\n";
-
-    //override game manager and send back server welcome message...
-    networkMessageQueue.emplace_back(c->session_id(), "Welcome to the server! Enter a command...");
-    //put player in a room
-    //game_manager.createRoomCommand();
-}
-
-//Called whenenver a client disconnects. Should handle disconneting player from game room
-void onDisconnect(shared_ptr<Connection> c) {
-    std::cout << "Connection lost: " << c->session_token() << "\n";
-
-    //command.leaveRoom(c->session_id(), networkMessageQueue);
-}
-
-
-void processMessages(const std::deque<Message>& incoming) {
-
-    for (auto message : incoming) {
-
-        ConnectionId sentFrom = message.connection;
-
-        // If it's not a command, handle it as a game message.
-
-        //game manager refactored so it does not handle constructing messages, must do it here or somewhere else
-        if (!Command::is_command(message.text)) {
-
-            std::string text;
-
-            std::optional<RoomID> room_id = gameManager.getRoomIDOfPlayer(sentFrom);
-
-            if (!room_id) {
-                text += "You are not in a room. Join one with /join, type /help for help.";
-                networkMessageQueue.emplace_back(sentFrom, text);
-            } else {
-                std::pair<std::optional<std::string>, GameManager::ReturnCode> username_result = gameManager.getRoomUsernameOfPlayer(sentFrom);
-                const std::vector<PlayerID>* players = gameManager.getPlayersInRoom(*room_id);
-                text += (*(username_result.first) + ": " + message.text);
-
-                for (auto player : *players) {
-                    networkMessageQueue.emplace_back(player, text);
-                }
-            }
-            continue;
-        }
-
-        // If it is a command, parse it and execute it.
-        auto command = Command::parse(message.text);
-        if (!command) {
-            // This means the command string was invalid (not alphanumeric command name).
-            // TODO(nikolkam): Send the user an error message.
-            std::cout << "Invalid command: " << message.text << std::endl;
-            continue;
-        }
-
-        // Get the command executor.
-        auto executor = COMMAND_MAP.find(command->name());
-        if (executor == COMMAND_MAP.end()) {
-            // This means the command couldn't be found.
-            // TODO(nikolkam): Send the user an error message.
-            std::cout << "Unknown command: " << message.text << std::endl;
-            continue;
-        }
-
-        // Execute the command.
-        CommandUser user(sentFrom);
-        executor->second->execute(gameManager, user, command->arguments());
-        std::copy(user.outgoing_message_queue().begin(), user.outgoing_message_queue().end(), std::back_inserter(networkMessageQueue));
-    }
-}
-
-
-using json = nlohmann::json;
-
-serverConfig::Configuration
-loadJSONConfigFile(const std::string& filepath) {
-    serverConfig::Configuration config;
-    std::ifstream s(filepath);
-    if (s.fail()) {
-        std::cerr << "Error: " << strerror(errno) << std::endl;
-        return config;
+    // If the player is in a room, let the room process their commands.
+    auto room = manager.find_player_room(player_id);
+    if (room && (*room)->process_command(player_id, command)) {
+        return;
     }
 
-    nlohmann::json jsonServerConfig;
+    // Find the command executor.
+    auto executor = GLOBAL_COMMAND_MAP.find(command.name());
+    if (!executor) {
+        client.connection->send_error_message("Unknown command. Use /help to see a list of commands.");
+        return;
+    }
+
+    // Execute the command.
+    (*executor)->execute(*client.connection, command.arguments());
+}
+
+/**
+ * Process a client's message.
+ * This will defer processing to the client's room (or send a message if unavailable).
+ *
+ * @param manager The game manager.
+ * @param client The client.
+ * @param packet The message to process.
+ */
+void process_message(GameManager& manager, Client& client, std::string message) {
+    auto player_id = client.connection->session_id();
+    auto room = manager.find_player_room(client.connection->id());
+
+    if (!room) {
+        client.connection->send_system_message("You need to be in a room to send a message! /create or /join a room.");
+        return;
+    }
+
+    (*room)->process_message(player_id, message);
+}
+
+/**
+ * Process a client's packet.
+ *
+ * @param manager The game manager.
+ * @param client The client.
+ * @param packet The packet to process.
+ */
+void process_packet(GameManager& manager, Client& client, Packet& packet) {
+    if (!Command::is_command(packet.text)) {
+        process_message(manager, client, packet.text);
+        return;
+    }
+
+    // Parse the command.
+    auto command = Command::parse(packet.text);
+    if (!command) {
+        client.connection->send_error_message("Invalid command. Use /help to see a list of commands.");
+        return;
+    }
+
     try {
-        jsonServerConfig = json::parse(s);
-    } catch (json::parse_error& e) {
-        std::cerr << "Invalid JSON server config\n in jsonspec.cpp\n"
-                  << "message: " << e.what();
-        return config;
+        process_command(manager, client, *command);
+    } catch (std::runtime_error& ex) {
+        client.connection->send_error_message("An internal error occurred.");
+        clout << ERROR << "Failed to process a user command."
+              << data(std::make_pair("Command", packet.text))
+              << data(ex.what())
+              << endl;
     }
-
-    config = jsonSerializer::parseServerConfig(jsonServerConfig);
-    config.err = false;
-    return config;
 }
-
 
 int main(int argc, char* argv[]) {
+    init_logging();
 
-    serverConfig::Configuration server_config;
+    // Load the server configuration.
+    clout << "Loading server configuration." << endl;
+    std::string config_file = (argc < 2) ? DEFAULT_CONFIG_FILE : std::string(argv[1]);
+    arepa::Result<serverConfig::Configuration, std::string> config = load_config_from_json(config_file);
 
-    if (argc < 2) {
-        server_config = loadJSONConfigFile(default_json);
-    } else {
-        server_config = loadJSONConfigFile(argv[1]);
+    if (!config) {
+        clout << ERROR << "Failed to load server configuration."
+              << data(config.error())
+              << endl;
+        return 1;
     }
 
-    if (server_config.err) {
-        return -1;
-    }
+    // Set up the game manager.
+    clout << "Creating game manager." << endl;
+    GameManager manager(*config);
 
-    //example
-    //g_config game = game_config::load_file("templates/game/rps.json", true);
-    //std::cout << game.player_count["min"] << std::endl;
-
-    /*
-  Try to configurate game_manager... with custom error handling to give useful
-  error messages?
-  */
-    try {
-        //game_manager.setUp(server_config);
-    } catch (... /*const GameManagerException& e*/) {
-        std::cerr << "Server configuration failed";
-        //<< e.what() << '\n'
-        //<< e.where() << '\n,
-    }
-
-    unsigned short port = server_config.port;
+    // Create and start the network server.
+    unsigned short port = (*config).port;
     arepa::networking::websocket::Options opts;
     opts.bind_port = port;
 
-    Server server(opts, &onConnect, &onDisconnect);
+    clout << "Creating server instance."
+          << data(std::make_pair("Port", opts.bind_port))
+          << endl;
+
+    Server server(opts);
+    server.on_accept([](std::shared_ptr<arepa::server::Connection> connection) {
+        greet_user(*connection);
+    });
+
+    server.on_accept([&manager](std::shared_ptr<arepa::server::Connection> connection) {
+        // Create the connection's player object.
+        auto player = GameManager::make_player(connection);
+        manager.add_player(player);
+    });
+
+    server.on_accept([&manager](std::shared_ptr<arepa::server::Connection> connection) {
+        // Destroy the connection's player object.
+        auto player = manager.find_player(connection->id());
+        if (player) {
+            manager.remove_player(*player);
+        }
+    });
+
+    clout << "Successfully created server instance." << endl;
 
     // Initialize commands
-    init_commands();
+    init_global_commands(GLOBAL_COMMAND_MAP, manager, server);
 
-    /*
-  * Main Game Server Loop
-  */
-
-    while (true) {
-        bool shouldQuit = false;
-
-
-        //Get all messages.
-        auto incoming = server.receive();
-
-        //Process messages and put them in networkMessagesQueue (global queue)
-        processMessages(incoming);
-
-        //if an admin runs a comman to shutdown server, shouldQuit will be set to true
-        //shouldQuit = gameMessagesToNetworkMessages();
-        server.send(networkMessageQueue);
-        networkMessageQueue.clear();
-
-        if (shouldQuit) {
-            break;
+    // Main game server loop.
+    clout << "Initialization is complete." << endl;
+    ServerLoop main([&main, &server, &manager]() {
+        for (auto& client : server.clients()) {
+            while (auto packet = client.messages->receive()) {
+                process_packet(manager, client, *packet);
+            }
         }
+    });
 
-        // Sleep to not burn out the CPU.
-        constexpr int ONE_HUNDRED_MILLISECONDS = 1000 * 100;
-        usleep(ONE_HUNDRED_MILLISECONDS);
-    }
+    main.start();
     return 0;
 }

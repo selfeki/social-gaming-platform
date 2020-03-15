@@ -32,11 +32,6 @@ public:
         for(auto& pa : gs.perAudience) {
             context.map.insert({std::string_view{pa.first}, pa.second});
         }
-        for(auto& player : gs.players) {
-            context.map.insert({std::string_view{player.first}, player.second});
-        }
-        for(auto& spectator : gs.audience) {
-            context.map.insert({std::string_view{spectator.first}, spectator.second});
         }
 
 
@@ -50,6 +45,8 @@ public:
 
     void visitImpl( rule::InputText&);
 
+    void visitImpl(const rule::InputChoice&);
+
     void
     setGameState(const GameState&);
 
@@ -61,12 +58,14 @@ public:
 
     std::stack<Rule*> scope;
 
-    ExpMap context;
+    ExpMap context; //todo: use gamestate context
 
 
 private:
     //GameState& state;
 
+    std::stack<const Rule*> ruleStack; //todo: pick one
 };
+
 
 }    // namespace gameSpecification::rule
