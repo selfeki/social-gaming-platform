@@ -46,7 +46,7 @@ public:
                     interpreter.scope.push(rule->next_nested);
                 }
             }
-            else if (needsInput) {
+            else if (rule->needsInput) {
                 //change something to let the game manager know
                 return;
             }
