@@ -45,13 +45,19 @@ public:
     void visit( ForEach& rule) { visitImpl(rule); }
     void visit( GlobalMessage& rule) { visitImpl(rule); }
     void visit( Add& rule) { visitImpl(rule); }
+    void visit( InputText& rule) { visitImpl(rule); }
 
 
 private:
     virtual void visitImpl( ForEach& rule) {}
     virtual void visitImpl( GlobalMessage& rule) {}
     virtual void visitImpl( Add& rule) {}
+    virtual void visitImpl( InputText& rule) {}
+
 };
+
+using Name = std::string_view;
+using PlayerMessage = std::pair<Name, std::string>;
 
 
 struct Rule {
@@ -60,13 +66,21 @@ struct Rule {
     virtual ~Rule() = default;
     virtual void accept(RuleVisitor& visitor) = 0;
     
+    //returns messages to be sent, then deletes them from the rule
+    virtual std::vector<PlayerMessage> popOutGoingMessages() = 0;
+
+
     bool finished;
     bool needsInput;
     bool nestedRulesInProgess;
+    Rule* next;
+    Rule* next_nested;
+
 };
 
 using RuleID = int;
 using RuleList = std::vector<Rule*>;
+
 
 struct ForEach final : public Rule {
 
@@ -76,10 +90,9 @@ struct ForEach final : public Rule {
     }
 
     virtual void accept(RuleVisitor& visitor)  { visitor.visit(*this); }
+    virtual std::vector<PlayerMessage> popOutGoingMessages() {return {};}
 
     // raw pointer is fine because it is non-owning
-    Rule* next;
-    Rule* next_nested;
     Expression elemList;
     Expression elem;
     int elemListSize;
@@ -194,8 +207,8 @@ struct ForEach final : public Rule {
     Add(Expression _to, Expression _value) : to(_to), value(_value) {}
 
     virtual void accept(RuleVisitor& visitor)  { visitor.visit(*this); }
+    virtual std::vector<PlayerMessage> popOutGoingMessages() {return {};}
 
-     Rule*      next;
      Expression to;
      Expression value;
  };
@@ -230,8 +243,13 @@ struct ForEach final : public Rule {
 //     std::optional<Expression> timeout;
 // };
 
-struct InputText {
-    Rule* 		 next;
+struct InputText final : public Rule {
+    InputText(Expression _to, Expression _prompt, Expression _result) 
+    : to(_to), prompt(_prompt), result(_result) {}
+
+    virtual void accept(RuleVisitor& visitor)  { visitor.visit(*this); }
+    virtual std::vector<PlayerMessage> popOutGoingMessages() {return {};}
+
     Expression 	 to;
     Expression   prompt;
     Expression   result;
@@ -256,9 +274,12 @@ struct InputText {
 // };
 
 struct GlobalMessage final : public Rule {
-    virtual void accept(RuleVisitor& visitor)  { visitor.visit(*this); }
+    GlobalMessage(Expression _content) 
+    : content(_content) {}
 
-    Rule* parent;
+    virtual void accept(RuleVisitor& visitor)  { visitor.visit(*this); }
+    virtual std::vector<PlayerMessage> popOutGoingMessages() {return {};}
+
     Expression content;
 };
 

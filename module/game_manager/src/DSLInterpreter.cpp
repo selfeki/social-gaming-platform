@@ -44,8 +44,8 @@ parseDotNotation(const std::string_view str) {
     return output;
 }
 
-//give a vector of strings like {"player", "weapon", "strength"}, returns that value from the context
-//necessary precondition: every variable but the last is an ExpMap (last may or may not be an ExpMap)
+//given a vector of strings like {"player", "weapon", "strength"}, returns player.weapon.strength from the context
+//necessary precondition: every variable is an ExpMap
 Expression
 InterpretVisitor::getValueFromContextVariables(std::vector<std::string_view> tokens) {
     Expression exp;
@@ -63,7 +63,7 @@ InterpretVisitor::getValueFromContextVariables(std::vector<std::string_view> tok
     return exp;
 }
 
-//give a vector of strings like {"player", "weapon", "strength"}, sets player.weapon.strength to the given expression
+//given a vector of strings like {"player", "weapon", "strength"}, sets player.weapon.strength to the given expression
 //necessary precondition: every variable is an ExpMap
 void
 InterpretVisitor::setValueOfContextVariables(std::vector<std::string_view> tokens, Expression value) {
@@ -92,7 +92,6 @@ void InterpretVisitor::visitImpl(ForEach& forEach) {
     so it can increment its index to the next in the list. 
   */
 
-
     auto elemList = boost::get<ExpList>(forEach.elemList);
     auto element = boost::get<std::string_view>(forEach.elem);
 
@@ -101,9 +100,6 @@ void InterpretVisitor::visitImpl(ForEach& forEach) {
         //remove the element variable from the context (as if leaving scope of for loop)
         context.map.erase(element);
 
-        if(forEach.next != NULL){
-            scope.push(forEach.next);
-        }
         return;
     }
     else {
@@ -113,9 +109,6 @@ void InterpretVisitor::visitImpl(ForEach& forEach) {
     auto exp = elemList.list[forEach.elemListIndex];
     context.map[element] = exp;
 
-    if(forEach.next_nested != NULL) {
-        scope.push(forEach.next_nested);
-    }
 
     forEach.elemListIndex += 1;
 
@@ -123,27 +116,23 @@ void InterpretVisitor::visitImpl(ForEach& forEach) {
 
 void InterpretVisitor::visitImpl( Add& add) {
 
-
     auto to = boost::get<std::string_view>(add.to);
     auto to_tokens = parseDotNotation(to);
 
-
     int value;
 
+    //is a literal
     if(add.value.type() == typeid(int)) {
         value = boost::get<int>(add.value);
     }
+    //is a variable
     else if(add.value.type() == typeid(std::string_view)) {
         auto value_tokens = parseDotNotation(boost::get<std::string_view>(add.value));
         auto temp = this->getValueFromContextVariables(value_tokens);
 
         value = boost::get<int>(temp);
-
-
     } 
-    else {
-        //do nothing
-    }
+
     auto temp = boost::get<int>(this->getValueFromContextVariables(to_tokens));
     this->setValueOfContextVariables(to_tokens, Expression{temp + value});
 
@@ -152,17 +141,19 @@ void InterpretVisitor::visitImpl( Add& add) {
     std::cout << "TRACE inside add rule: " << temp << ", " << value << "\n";
 
     add.finished = true;
-    if(add.next != NULL) {
-        scope.push(add.next);
-    }
 }
-
 
 
 void InterpretVisitor::visitImpl( GlobalMessage& globalMessage) {
     auto content = boost::get<std::string_view>(globalMessage.content);
     auto message = interpolateString(content);
 }
+
+void InterpretVisitor::visitImpl( InputText& inputText) {
+
+
+}
+
 
 
 // Question: difference b/w list and list expression in following example?

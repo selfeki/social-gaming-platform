@@ -19,6 +19,8 @@ int main(int argc, char* argv[]) {
     forEachRule->next = NULL;
     forEachRule->next_nested = addRule;
     addRule->next = NULL;
+    addRule->next_nested = NULL;
+
 
     rule::RuleList ruleList = {forEachRule, addRule};
 
@@ -26,7 +28,7 @@ int main(int argc, char* argv[]) {
     gs.constants = {};
     gs.variables = { 
                      {"output", 
-                        ExpMap({{{"sum", 0},{"product", 1}}}) 
+                        ExpMap({{{"sum", 0},{"truth", 42}}}) 
                      } 
                     };
     gs.perAudience = {};

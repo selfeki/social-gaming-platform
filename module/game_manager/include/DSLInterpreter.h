@@ -48,6 +48,8 @@ public:
 
     void visitImpl( rule::Add&);
 
+    void visitImpl( rule::InputText&);
+
     void
     setGameState(const GameState&);
 

@@ -6,6 +6,8 @@ using namespace gameSpecification;
 using rule::InterpretVisitor;
 using rule::Rule;
 using rule::RuleList;
+using rule::PlayerMessage;
+
 
 class GameInstance {
 public:
@@ -30,25 +32,32 @@ public:
             auto rule = interpreter.scope.top();
         
             rule->accept(interpreter);
+            std::vector<PlayerMessage> temp = rule->popOutGoingMessages();
+            outGoingMessages.insert(outGoingMessages.begin(), temp.begin(), temp.end());
 
             if(rule->finished) {
                 interpreter.scope.pop();
+                if(rule->next != NULL) { 
+                    interpreter.scope.push(rule->next);
+                }
             }
             else if (rule->nestedRulesInProgess) {
-                //do nothing, nested rules are now on the stack
+                if(rule->next_nested != NULL) {
+                    interpreter.scope.push(rule->next_nested);
+                }
             }
             else if (rule->needsInput) {
-                //change the game state to reflect this
+                //change something to let the game manager know
+                return;
             }
-
         }
-
     }
 
     void testPrintVariable(std::string_view var) {
         Expression value = interpreter.getValueFromContextVariables(rule::parseDotNotation(var));
         boost::apply_visitor(printExpVisitor(), value);
     } 
+
 
    // GameState&
     //getGameState() { return gameState; }
@@ -57,6 +66,8 @@ private:
     //GameState gameState;
     InterpretVisitor interpreter;
     RuleList& rules;
+    std::vector<PlayerMessage> outGoingMessages;
+
     std::size_t ruleInd;
     bool isTerminated;
 };

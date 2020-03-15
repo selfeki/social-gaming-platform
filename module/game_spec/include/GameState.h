@@ -34,6 +34,9 @@ struct GameState {
     Environment players;
     Environment audience;
 
+
+    
+
     // player exclusive data contained here or in userStates?
     // A user might have game-agnostic data
     //std::vector<Environment> players;
