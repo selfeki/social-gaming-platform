@@ -46,7 +46,7 @@ public:
                     interpreter.scope.push(rule->next_nested);
                 }
             }
-            else if (rule->needsInput) {
+            else if (needsInput) {
                 //change something to let the game manager know
                 return;
             }
@@ -67,6 +67,7 @@ private:
     InterpretVisitor interpreter;
     RuleList& rules;
     std::vector<PlayerMessage> outGoingMessages;
+
 
     std::size_t ruleInd;
     bool isTerminated;

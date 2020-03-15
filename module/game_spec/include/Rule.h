@@ -69,7 +69,6 @@ struct Rule {
     //returns messages to be sent, then deletes them from the rule
     virtual std::vector<PlayerMessage> popOutGoingMessages() = 0;
 
-
     bool finished;
     bool needsInput;
     bool nestedRulesInProgess;

@@ -109,9 +109,7 @@ void InterpretVisitor::visitImpl(ForEach& forEach) {
     auto exp = elemList.list[forEach.elemListIndex];
     context.map[element] = exp;
 
-
     forEach.elemListIndex += 1;
-
 }
 
 void InterpretVisitor::visitImpl( Add& add) {
@@ -133,10 +131,9 @@ void InterpretVisitor::visitImpl( Add& add) {
         value = boost::get<int>(temp);
     } 
 
+    //add the values
     auto temp = boost::get<int>(this->getValueFromContextVariables(to_tokens));
     this->setValueOfContextVariables(to_tokens, Expression{temp + value});
-
-    //add the values
     
     std::cout << "TRACE inside add rule: " << temp << ", " << value << "\n";
 

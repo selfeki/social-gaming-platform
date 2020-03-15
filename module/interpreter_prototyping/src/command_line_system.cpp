@@ -27,9 +27,7 @@ int main(int argc, char* argv[]) {
     GameState gs;
     gs.constants = {};
     gs.variables = { 
-                     {"output", 
-                        ExpMap({{{"sum", 0},{"truth", 42}}}) 
-                     } 
+                     {"output", ExpMap({{{"sum", 0},{"truth", 42}}}) } 
                     };
     gs.perAudience = {};
     gs.perPlayer = {};
