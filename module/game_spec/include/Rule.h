@@ -41,48 +41,48 @@ class RuleVisitor {
 public:
     virtual ~RuleVisitor() = default;
 
-    void visit(const ForEach& rule) { visitImpl(rule); }
-    void visit(const GlobalMessage& rule) { visitImpl(rule); }
-    void visit(const ParallelFor& rule) { visitImpl(rule); }
-    void visit(const InputChoice& rule) { visitImpl(rule); }
-    void visit(const Discard& rule) { visitImpl(rule); }
-    void visit(const Reverse& rule) { visitImpl(rule); }
-    void visit(const Extend& rule) { visitImpl(rule); }
-    void visit(const InParallel& rule) { visitImpl(rule); }
-    void visit(const Add& rule) { visitImpl(rule); }
-    void visit(const Shuffle& rule) { visitImpl(rule); }
-    void visit(const Message& rule) { visitImpl(rule); }
-    void visit(const Sort& rule) { visitImpl(rule); }
-    void visit(const Deal& rule) { visitImpl(rule); }
-    void visit(const Scores& rule) { visitImpl(rule); }
-    void visit(const InputText& rule) { visitImpl(rule); }
-    void visit(const InputVote& rule) { visitImpl(rule); }
-    void visit(const Loop& rule) { visitImpl(rule); }
-    void visit(const Switch& rule) { visitImpl(rule); }
-    void visit(const Timer& rule) { visitImpl(rule); }
-    void visit(const When& rule) { visitImpl(rule); }
+    void visit( ForEach& rule) { visitImpl(rule); }
+    void visit( GlobalMessage& rule) { visitImpl(rule); }
+    void visit( ParallelFor& rule) { visitImpl(rule); }
+    void visit( InputChoice& rule) { visitImpl(rule); }
+    void visit( Discard& rule) { visitImpl(rule); }
+    void visit( Reverse& rule) { visitImpl(rule); }
+    void visit( Extend& rule) { visitImpl(rule); }
+    void visit( InParallel& rule) { visitImpl(rule); }
+    void visit( Add& rule) { visitImpl(rule); }
+    void visit( Shuffle& rule) { visitImpl(rule); }
+    void visit( Message& rule) { visitImpl(rule); }
+    void visit( Sort& rule) { visitImpl(rule); }
+    void visit( Deal& rule) { visitImpl(rule); }
+    void visit( Scores& rule) { visitImpl(rule); }
+    void visit( InputText& rule) { visitImpl(rule); }
+    void visit( InputVote& rule) { visitImpl(rule); }
+    void visit( Loop& rule) { visitImpl(rule); }
+    void visit( Switch& rule) { visitImpl(rule); }
+    void visit( Timer& rule) { visitImpl(rule); }
+    void visit( When& rule) { visitImpl(rule); }
 
 private:
-    virtual void visitImpl(const ForEach& rule) {}
-    virtual void visitImpl(const GlobalMessage& rule) {}
-    virtual void visitImpl(const ParallelFor& rule) {}
-    virtual void visitImpl(const InputChoice& rule) {}
-    virtual void visitImpl(const Discard& rule) {}
-    virtual void visitImpl(const Reverse& rule) {}
-    virtual void visitImpl(const Extend& rule) {}
-    virtual void visitImpl(const InParallel& rule) {}
-    virtual void visitImpl(const Add& rule) {}
-    virtual void visitImpl(const Shuffle& rule) {}
-    virtual void visitImpl(const Message& rule) {}
-    virtual void visitImpl(const Sort& rule) {}
-    virtual void visitImpl(const Deal& rule) {}
-    virtual void visitImpl(const Scores& rule) {}
-    virtual void visitImpl(const InputText& rule) {}
-    virtual void visitImpl(const InputVote& rule) {}
-    virtual void visitImpl(const Loop& rule) {}
-    virtual void visitImpl(const Switch& rule) {}
-    virtual void visitImpl(const Timer& rule) {}
-    virtual void visitImpl(const When& rule) {}
+    virtual void visitImpl( ForEach& rule) {}
+    virtual void visitImpl( GlobalMessage& rule) {}
+    virtual void visitImpl( ParallelFor& rule) {}
+    virtual void visitImpl( InputChoice& rule) {}
+    virtual void visitImpl( Discard& rule) {}
+    virtual void visitImpl( Reverse& rule) {}
+    virtual void visitImpl( Extend& rule) {}
+    virtual void visitImpl( InParallel& rule) {}
+    virtual void visitImpl( Add& rule) {}
+    virtual void visitImpl( Shuffle& rule) {}
+    virtual void visitImpl( Message& rule) {}
+    virtual void visitImpl( Sort& rule) {}
+    virtual void visitImpl( Deal& rule) {}
+    virtual void visitImpl( Scores& rule) {}
+    virtual void visitImpl( InputText& rule) {}
+    virtual void visitImpl( InputVote& rule) {}
+    virtual void visitImpl( Loop& rule) {}
+    virtual void visitImpl( Switch& rule) {}
+    virtual void visitImpl( Timer& rule) {}
+    virtual void visitImpl( When& rule) {}
 };
 
 using Name = std::string_view;
@@ -130,7 +130,7 @@ struct ForEach final : public Rule {
 };
 
 struct ParallelFor final : public Rule {
-    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+    virtual void accept(RuleVisitor& visitor)  { return visitor.visit(*this); }
      //int id;
      Rule* 		 parent;
      Expression elemList;
@@ -139,7 +139,7 @@ struct ParallelFor final : public Rule {
 };
 
 struct InputChoice  : public Rule {
-    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+    virtual void accept(RuleVisitor& visitor)  { return visitor.visit(*this); }
         //int id;
         Rule* parent;
         //TODO: determine how to store list of users
@@ -151,7 +151,7 @@ struct InputChoice  : public Rule {
 };
 
 struct Discard : public Rule {
-    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+    virtual void accept(RuleVisitor& visitor)  { return visitor.visit(*this); }
     //int id;
         Rule* 		 parent;
         Expression fromList;
@@ -159,14 +159,14 @@ struct Discard : public Rule {
 };
 
 struct Reverse : public Rule{
-     virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+     virtual void accept(RuleVisitor& visitor)  { return visitor.visit(*this); }
      //int id;
      Rule* 		 parent;
      Expression list;
 };
 
 struct Extend : public Rule{
-    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+    virtual void accept(RuleVisitor& visitor)  { return visitor.visit(*this); }
     //int id;
      Rule*		parent;
      Expression targetList;
@@ -174,7 +174,7 @@ struct Extend : public Rule{
 };
 
 struct Shuffle : public Rule{
-    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+    virtual void accept(RuleVisitor& visitor)  { return visitor.visit(*this); }
     //     int id;
     Rule* 		 parent;
     Expression list;
@@ -187,7 +187,7 @@ enum LoopType {
 };
 
 struct Loop : public Rule {
-    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+    virtual void accept(RuleVisitor& visitor)  { return visitor.visit(*this); }
 
 //     int id;
     Rule* 	 parent;
@@ -196,7 +196,7 @@ struct Loop : public Rule {
 };
 
 struct InParallel : public Rule{
-    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+    virtual void accept(RuleVisitor& visitor)  { return visitor.visit(*this); }
     //int id;
      Rule*	 parent;
      RuleList rules;
@@ -205,7 +205,7 @@ struct InParallel : public Rule{
 
 
 struct Message : public Rule{
-    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+    virtual void accept(RuleVisitor& visitor)  { return visitor.visit(*this); }
     //int id;
     Rule* 		 parent;
     //UserIDList targetUsers;
@@ -228,7 +228,7 @@ struct Message : public Rule{
 
 // // Number is an integer literal?
 struct Deal : public Rule{
-    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+    virtual void accept(RuleVisitor& visitor)  { return visitor.visit(*this); }
 //     int id;
      Rule* 		 parent;
      Expression fromList;
@@ -263,7 +263,7 @@ using CaseToRules = MapWrapper<Expression, RuleList>;
 //     Expression flag;
 // };
  struct Switch : public Rule{
-     virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+     virtual void accept(RuleVisitor& visitor)  { return visitor.visit(*this); }
 //     int id;
      Rule*			parent;
      Expression 	switchTarget;
@@ -275,7 +275,7 @@ using CaseToRules = MapWrapper<Expression, RuleList>;
 using ConditionToRules = MapWrapper<Expression, RuleList>;
 
 struct When : public Rule{
-    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+    virtual void accept(RuleVisitor& visitor)  { return visitor.visit(*this); }
 //     int id;
      Rule* parent;
      ConditionToRules condToRules;
@@ -283,7 +283,7 @@ struct When : public Rule{
 
 
 struct Sort : public Rule{
-    virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+    virtual void accept(RuleVisitor& visitor)  { return visitor.visit(*this); }
 //     int id;
      Rule* 		 parent;
      Expression list;
@@ -317,7 +317,7 @@ struct InputText final : public Rule {
 
 
 struct InputVote : public Rule {
-     virtual void accept(RuleVisitor &visitor) const { return visitor.visit(*this); }
+     virtual void accept(RuleVisitor &visitor)  { return visitor.visit(*this); }
 //     int id;
     Rule* 		 parent;
      //UserIDList targetUsers;
@@ -337,7 +337,7 @@ enum TimerMode {
 };
 
 struct Timer : public Rule {
-    virtual void accept(RuleVisitor &visitor) const { return visitor.visit(*this); }
+    virtual void accept(RuleVisitor &visitor)  { return visitor.visit(*this); }
      //int id;
      Rule*		 parent;
      Expression duration;
@@ -357,7 +357,7 @@ struct GlobalMessage final : public Rule {
 };
 
 struct Scores final : public Rule {
-     virtual void accept(RuleVisitor& visitor) const { return visitor.visit(*this); }
+     virtual void accept(RuleVisitor& visitor)  { return visitor.visit(*this); }
 //     int id;
      Rule*      parent;
      Expression scoreAttribute;
