@@ -52,28 +52,8 @@ for each expression in elemList:
     visit rule
 */
 
-// todo: change to use Ryan's design
-void InterpretVisitor::visitImpl(const ForEach& forEach) {
-    auto elemList = boost::get<ExpList>(forEach.elemList);
-    auto element = boost::get<std::string_view>(forEach.elem);
-    for (const auto& exp : elemList.list) {
-        auto& scope = state.context.top();
-        scope.map[element] = exp;
-        for (const auto& rulePtr : forEach.rules) {
-            ruleStack.push(rulePtr.get());
-            state.enterScope();
 
-            rulePtr->accept(*this);
-            if (needUserInput) {
-                return;
-            }
-            state.exitScope();
-            ruleStack.pop();
-        }
-    }
-}
-
-void InterpretVisitor::visitImpl(const InputChoice& rule) {
+void InterpretVisitor::visitImpl(InputChoice& rule) {
     // load gamestate with input request details
     //auto user = rule.targetUser;
     auto rawPrompt = boost::get<std::string_view>(rule.prompt);
@@ -83,7 +63,7 @@ void InterpretVisitor::visitImpl(const InputChoice& rule) {
     auto names = getNameList(resultStr);
     ExpressionPtr resultPtr(names);
     // set flag indicating need for user input
-    needUserInput = true;
+    // needUserInput = true;
 
     // todo: push next rule onto stack
     // todo: create InputRequest and to GameState

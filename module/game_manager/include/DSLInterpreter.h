@@ -14,47 +14,27 @@ parseDotNotation(const std::string_view str);
 class InterpretVisitor : public RuleVisitor {
 public:
     InterpretVisitor(const GameState& gs, Rule& firstRule) {
-    
-        //base case: push the first rule into the rule stack
-        scope.push(&firstRule);
-
-        //load the gamestate variables into the interpreter context
-        //all names must be unique, for now
-        for(auto& constant : gs.constants) {
-            context.map.insert({std::string_view{constant.first}, constant.second});
-        }
-        for(auto& variable : gs.variables) {
-            context.map.insert({std::string_view{variable.first}, variable.second});
-        }
-        for(auto& pp : gs.perPlayer) {
-            context.map.insert({std::string_view{pp.first}, pp.second});
-        }
-        for(auto& pa : gs.perAudience) {
-            context.map.insert({std::string_view{pa.first}, pa.second});
-        }
-        }
-
-
+        ruleStack.push(&firstRule);
     }
 
     void visitImpl(rule::ForEach&);
 
-    void visitImpl( rule::GlobalMessage&);
+    void visitImpl(rule::GlobalMessage&);
 
-    void visitImpl( rule::Add&);
+    void visitImpl(rule::Add&);
 
-    void visitImpl( rule::InputText&);
+    void visitImpl(rule::InputText&);
 
-    void visitImpl(const rule::InputChoice&);
+    void visitImpl(rule::InputChoice&);
 
     void
     setGameState(const GameState&);
 
     Expression
-    getValueFromContextVariables(std::vector<std::string_view> tokens);
+    getValueFromContextVariables(std::vector<std::string_view> tokens); // todo: remove
 
     void
-    setValueOfContextVariables(std::vector<std::string_view> tokens, Expression  value);
+    setValueOfContextVariables(std::vector<std::string_view> tokens, Expression  value); // todo: remove
 
     std::stack<Rule*> scope;
 
