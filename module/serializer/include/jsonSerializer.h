@@ -1,18 +1,18 @@
 #pragma once
 
-#include "arepa/game_spec/GameSpecification.h"
-#include "arepa/server_config/Config.h"
 #include "arepa/game_spec/Expression.h"
+#include "arepa/game_spec/GameSpecification.h"
 #include "arepa/game_spec/Rule.h"
+#include "arepa/server_config/Config.h"
 
 #include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <list>
 #include <nlohmann/json.hpp>
+#include <optional>
 #include <unordered_map>
 #include <vector>
-#include <optional>
 
 namespace jsonSerializer {
 
@@ -67,11 +67,11 @@ std::unique_ptr<gameSpecification::rule::Rule>
 parseRuleGlobalMessage(const json&, gameSpecification::rule::Rule*);
 
 std::unique_ptr<gameSpecification::rule::Rule>
-parseRuleForEach(const json& ,gameSpecification::rule::Rule*);
+parseRuleForEach(const json&, gameSpecification::rule::Rule*);
 
 
 std::unique_ptr<gameSpecification::rule::Rule>
-parseRuleParallelFor(const json& ,gameSpecification::rule::Rule*);
+parseRuleParallelFor(const json&, gameSpecification::rule::Rule*);
 
 std::unique_ptr<gameSpecification::rule::Rule>
 parseRuleDiscard(const json&, gameSpecification::rule::Rule*);

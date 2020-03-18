@@ -7,7 +7,7 @@
 
 namespace gameSpecification::rule {
 
-std::vector<std::string_view> 
+std::vector<std::string_view>
 parseDotNotation(const std::string_view str);
 
 
@@ -31,20 +31,20 @@ public:
     setGameState(const GameState&);
 
     Expression
-    getValueFromContextVariables(std::vector<std::string_view> tokens); // todo: remove
+    getValueFromContextVariables(std::vector<std::string_view> tokens);    // todo: remove
 
     void
-    setValueOfContextVariables(std::vector<std::string_view> tokens, Expression  value); // todo: remove
+    setValueOfContextVariables(std::vector<std::string_view> tokens, Expression value);    // todo: remove
 
     std::stack<Rule*> scope;
 
-    ExpMap context; //todo: use gamestate context
+    ExpMap context;    //todo: use gamestate context
 
 
 private:
     //GameState& state;
 
-    std::stack<const Rule*> ruleStack; //todo: pick one
+    std::stack<const Rule*> ruleStack;    //todo: pick one
 };
 
 

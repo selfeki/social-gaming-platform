@@ -4,19 +4,18 @@
 
 using namespace gameSpecification;
 using rule::InterpretVisitor;
+using rule::PlayerMessage;
 using rule::Rule;
 using rule::RuleList;
-using rule::PlayerMessage;
 
 
 class GameInstance {
 public:
     GameInstance(GameState state, RuleList& rs, Rule& firstRule)
-        : interpreter {state, firstRule}
+        : interpreter { state, firstRule }
         , rules { rs }
         , ruleInd { 0 }
         , isTerminated { false } {
-
     }
 
     // Interprets rules until requires user interaction or game ends.
@@ -27,26 +26,24 @@ public:
     void
     updateState() {
 
-        while(!interpreter.scope.empty()){
+        while (!interpreter.scope.empty()) {
 
             auto rule = interpreter.scope.top();
-        
+
             rule->accept(interpreter);
             std::vector<PlayerMessage> temp = rule->popOutGoingMessages();
             outGoingMessages.insert(outGoingMessages.begin(), temp.begin(), temp.end());
 
-            if(rule->finished) {
+            if (rule->finished) {
                 interpreter.scope.pop();
-                if(rule->next != NULL) { 
+                if (rule->next != NULL) {
                     interpreter.scope.push(rule->next);
                 }
-            }
-            else if (rule->nestedRulesInProgess) {
-                if(rule->next_nested != NULL) {
+            } else if (rule->nestedRulesInProgess) {
+                if (rule->next_nested != NULL) {
                     interpreter.scope.push(rule->next_nested);
                 }
-            }
-            else if (rule->needsInput) {
+            } else if (rule->needsInput) {
                 //change something to let the game manager know
                 return;
             }
@@ -56,10 +53,10 @@ public:
     void testPrintVariable(std::string_view var) {
         Expression value = interpreter.getValueFromContextVariables(rule::parseDotNotation(var));
         boost::apply_visitor(printExpVisitor(), value);
-    } 
+    }
 
 
-   // GameState&
+    // GameState&
     //getGameState() { return gameState; }
 
 private:

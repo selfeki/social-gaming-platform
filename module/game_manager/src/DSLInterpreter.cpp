@@ -2,12 +2,12 @@
 
 #include "arepa/game_spec/ExpressionPtr.h"
 
+#include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <boost/variant/polymorphic_get.hpp>
 #include <iostream>
-#include <string_view>
 #include <iterator>
-#include <algorithm>
+#include <string_view>
 
 
 namespace gameSpecification::rule {
@@ -72,17 +72,17 @@ void InterpretVisitor::visitImpl(InputChoice& rule) {
 
 //example, from "players.weapon" to a vector {"players", "weapon"}
 //so that member variables can be accessed
-std::vector<std::string_view> 
+std::vector<std::string_view>
 parseDotNotation(const std::string_view str) {
     std::vector<std::string_view> output;
     size_t first = 0;
 
-    while(first < str.size()) {
-        const auto second  = str.find_first_of(".", first);
-        if(first != second) {
+    while (first < str.size()) {
+        const auto second = str.find_first_of(".", first);
+        if (first != second) {
             output.emplace_back(str.substr(first, second - first));
 
-            if(second == std::string_view::npos){
+            if (second == std::string_view::npos) {
                 break;
             }
         }
@@ -99,11 +99,10 @@ InterpretVisitor::getValueFromContextVariables(std::vector<std::string_view> tok
     Expression exp;
     ExpMap temp_map;
 
-    for(auto it = tokens.begin(); it != tokens.end(); it++) {
-        if(it == tokens.begin()) {
+    for (auto it = tokens.begin(); it != tokens.end(); it++) {
+        if (it == tokens.begin()) {
             exp = context.map[*it];
-        }
-        else {
+        } else {
             temp_map = boost::get<ExpMap>(exp);
             exp = temp_map.map[*it];
         }
@@ -113,22 +112,19 @@ InterpretVisitor::getValueFromContextVariables(std::vector<std::string_view> tok
 
 //given a vector of strings like {"player", "weapon", "strength"}, sets player.weapon.strength to the given expression
 //necessary precondition: every variable is an ExpMap
-void
-InterpretVisitor::setValueOfContextVariables(std::vector<std::string_view> tokens, Expression value) {
+void InterpretVisitor::setValueOfContextVariables(std::vector<std::string_view> tokens, Expression value) {
     Expression* exp;
     ExpMap* temp_map = &context;
 
-    for(auto it = tokens.begin(); it != tokens.end(); it++) {
-        if(it == tokens.begin()) {
+    for (auto it = tokens.begin(); it != tokens.end(); it++) {
+        if (it == tokens.begin()) {
             exp = &(context.map[*it]);
-        }
-        else {
+        } else {
             temp_map = &(boost::get<ExpMap>(*exp));
             exp = &(temp_map->map[*it]);
         }
-        if(std::next(it) == tokens.end()) {
+        if (std::next(it) == tokens.end()) {
             temp_map->map[*it] = value;
-
         }
     }
 }
@@ -143,14 +139,13 @@ void InterpretVisitor::visitImpl(ForEach& forEach) {
     auto elemList = boost::get<ExpList>(forEach.elemList);
     auto element = boost::get<std::string_view>(forEach.elem);
 
-    if(forEach.elemListIndex >= forEach.elemListSize) {
+    if (forEach.elemListIndex >= forEach.elemListSize) {
         forEach.finished = true;
         //remove the element variable from the context (as if leaving scope of for loop)
         context.map.erase(element);
 
         return;
-    }
-    else {
+    } else {
         forEach.nestedRulesInProgess = true;
     }
 
@@ -160,7 +155,7 @@ void InterpretVisitor::visitImpl(ForEach& forEach) {
     forEach.elemListIndex += 1;
 }
 
-void InterpretVisitor::visitImpl( Add& add) {
+void InterpretVisitor::visitImpl(Add& add) {
 
     auto to = boost::get<std::string_view>(add.to);
     auto to_tokens = parseDotNotation(to);
@@ -168,38 +163,35 @@ void InterpretVisitor::visitImpl( Add& add) {
     int value;
 
     //is a literal
-    if(add.value.type() == typeid(int)) {
+    if (add.value.type() == typeid(int)) {
         value = boost::get<int>(add.value);
     }
     //is a variable
-    else if(add.value.type() == typeid(std::string_view)) {
+    else if (add.value.type() == typeid(std::string_view)) {
         auto value_tokens = parseDotNotation(boost::get<std::string_view>(add.value));
         auto temp = this->getValueFromContextVariables(value_tokens);
 
         value = boost::get<int>(temp);
-    } 
+    }
 
     //add the values
     auto temp = boost::get<int>(this->getValueFromContextVariables(to_tokens));
-    this->setValueOfContextVariables(to_tokens, Expression{temp + value});
-    
+    this->setValueOfContextVariables(to_tokens, Expression { temp + value });
+
     std::cout << "TRACE inside add rule: " << temp << ", " << value << "\n";
 
     add.finished = true;
 }
 
 
-void InterpretVisitor::visitImpl( GlobalMessage& globalMessage) {
+void InterpretVisitor::visitImpl(GlobalMessage& globalMessage) {
     auto content = boost::get<std::string_view>(globalMessage.content);
     auto message = interpolateString(content);
     // todo;
 }
 
-void InterpretVisitor::visitImpl( InputText& inputText) {
-
-
+void InterpretVisitor::visitImpl(InputText& inputText) {
 }
-
 
 
 }    // namespace gameSpecification::rule
