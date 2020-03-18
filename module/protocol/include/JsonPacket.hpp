@@ -1,7 +1,6 @@
 #pragma once
 
 #include "PacketException.hpp"
-#include "arepa/protocol/Message.hpp"
 
 #include <arepa/networking/Socket.hpp>
 
