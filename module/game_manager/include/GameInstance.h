@@ -4,44 +4,39 @@
 
 using namespace gameSpecification;
 using rule::InterpretVisitor;
-using rule::PlayerMessage;
 using rule::Rule;
 using rule::RuleList;
 
 
 class GameInstance {
 public:
-    GameInstance(GameState state, RuleList& rs, Rule& firstRule)
-        : interpreter { state, firstRule }
-        , rules { rs }
+    GameInstance(GameState& state, Rule* firstRule)
+        : interpreter { state }
         , ruleInd { 0 }
-        , isTerminated { false } {
-    }
+        , isTerminated { false } 
+        {
+            ruleStack.push(firstRule);
+        }
 
     // Interprets rules until requires user interaction or game ends.
     // It updates passed in state based upon interpretation of the current rule.
-    //
-    // todo: include fields in state specifying game conclusion or user input request
-    // todo: include artificial rule at end of rule list representing game conclusion?
     void
     updateState() {
 
-        while (!interpreter.scope.empty()) {
+        while (!ruleStack.empty()) {
 
-            auto rule = interpreter.scope.top();
+            auto rule = ruleStack.top();
 
             rule->accept(interpreter);
-            std::vector<PlayerMessage> temp = rule->popOutGoingMessages();
-            outGoingMessages.insert(outGoingMessages.begin(), temp.begin(), temp.end());
 
             if (rule->finished) {
-                interpreter.scope.pop();
-                if (rule->next != NULL) {
-                    interpreter.scope.push(rule->next);
+                ruleStack.pop();
+                if (rule->next) {
+                    ruleStack.push(rule->next.get());
                 }
             } else if (rule->nestedRulesInProgess) {
-                if (rule->next_nested != NULL) {
-                    interpreter.scope.push(rule->next_nested);
+                if (rule->nested) {
+                    ruleStack.push(rule->nested.get());
                 }
             } else if (rule->needsInput) {
                 //change something to let the game manager know
@@ -50,22 +45,10 @@ public:
         }
     }
 
-    void testPrintVariable(std::string_view var) {
-        Expression value = interpreter.getValueFromContextVariables(rule::parseDotNotation(var));
-        boost::apply_visitor(printExpVisitor(), value);
-    }
-
-
-    // GameState&
-    //getGameState() { return gameState; }
-
 private:
-    //GameState gameState;
-    InterpretVisitor interpreter;
-    RuleList& rules;
-    std::vector<PlayerMessage> outGoingMessages;
-
-
+    InterpretVisitor  interpreter;
+    std::stack<Rule*> ruleStack;
+    
     std::size_t ruleInd;
     bool isTerminated;
 };
