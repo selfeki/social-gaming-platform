@@ -10,6 +10,7 @@
 
 namespace gameSpecification::rule {
 
+struct Rule;
 // Control flow
 struct ForEach;
 struct Loop;
@@ -42,26 +43,26 @@ class RuleVisitor {
 public:
     virtual ~RuleVisitor() = default;
 
-    void visit(ForEach& rule) { visitImpl(rule); }
+    void visit(ForEach& rule)       { visitImpl(rule); }
     void visit(GlobalMessage& rule) { visitImpl(rule); }
-    void visit(ParallelFor& rule) { visitImpl(rule); }
-    void visit(InputChoice& rule) { visitImpl(rule); }
-    void visit(Discard& rule) { visitImpl(rule); }
-    void visit(Reverse& rule) { visitImpl(rule); }
-    void visit(Extend& rule) { visitImpl(rule); }
-    void visit(InParallel& rule) { visitImpl(rule); }
-    void visit(Add& rule) { visitImpl(rule); }
-    void visit(Shuffle& rule) { visitImpl(rule); }
-    void visit(Message& rule) { visitImpl(rule); }
-    void visit(Sort& rule) { visitImpl(rule); }
-    void visit(Deal& rule) { visitImpl(rule); }
-    void visit(Scores& rule) { visitImpl(rule); }
-    void visit(InputText& rule) { visitImpl(rule); }
-    void visit(InputVote& rule) { visitImpl(rule); }
-    void visit(Loop& rule) { visitImpl(rule); }
-    void visit(Switch& rule) { visitImpl(rule); }
-    void visit(Timer& rule) { visitImpl(rule); }
-    void visit(When& rule) { visitImpl(rule); }
+    void visit(ParallelFor& rule)   { visitImpl(rule); }
+    void visit(InputChoice& rule)   { visitImpl(rule); }
+    void visit(Discard& rule)       { visitImpl(rule); }
+    void visit(Reverse& rule)       { visitImpl(rule); }
+    void visit(Extend& rule)        { visitImpl(rule); }
+    void visit(InParallel& rule)    { visitImpl(rule); }
+    void visit(Add& rule)           { visitImpl(rule); }
+    void visit(Shuffle& rule)       { visitImpl(rule); }
+    void visit(Message& rule)       { visitImpl(rule); }
+    void visit(Sort& rule)          { visitImpl(rule); }
+    void visit(Deal& rule)          { visitImpl(rule); }
+    void visit(Scores& rule)        { visitImpl(rule); }
+    void visit(InputText& rule)     { visitImpl(rule); }
+    void visit(InputVote& rule)     { visitImpl(rule); }
+    void visit(Loop& rule)          { visitImpl(rule); }
+    void visit(Switch& rule)        { visitImpl(rule); }
+    void visit(Timer& rule)         { visitImpl(rule); }
+    void visit(When& rule)          { visitImpl(rule); }
 
 private:
     virtual void visitImpl(ForEach& rule) {}
@@ -86,101 +87,93 @@ private:
     virtual void visitImpl(When& rule) {}
 };
 
-using Name = std::string_view;
-using PlayerMessage = std::pair<Name, std::string>;
 
+using RulePtr = std::unique_ptr<Rule>;
 
 struct Rule {
+    virtual void accept(RuleVisitor& visitor) = 0;
 
     Rule()
         : finished(false)
         , needsInput(false)
         , nestedRulesInProgess(false) {};
     virtual ~Rule() = default;
-    virtual void accept(RuleVisitor& visitor) = 0;
-
-    //returns messages to be sent, then deletes them from the rule
-    virtual std::vector<PlayerMessage> popOutGoingMessages() = 0;
 
     bool finished;
     bool needsInput;
     bool nestedRulesInProgess;
-    Rule* next;
-    Rule* next_nested;
-    Rule* parent;
+    // raw pointer okay b/c child does not own parent
+    Rule*   parent;
+    RulePtr next;
+    RulePtr nested;
 };
-
-using RuleID = int;
-using RuleList = std::vector<std::unique_ptr<Rule>>;
 
 
 struct ForEach final : public Rule {
+    virtual void accept(RuleVisitor& visitor) { visitor.visit(*this); }
 
     ForEach(Expression _elemList, Expression _elem)
         : elemList(_elemList)
-        , elem(_elem) {
-        elemListIndex = 0;
-        elemListSize = (boost::get<ExpList>(_elemList)).list.size();    //ugly
-    }
+        , elem(_elem)
+        , elemListIndex(0)
+        , elemListSize(castExp<ExpList>(_elemList).getSize()) {}
 
-    virtual void accept(RuleVisitor& visitor) { visitor.visit(*this); }
-    virtual std::vector<PlayerMessage> popOutGoingMessages() { return {}; }
-
-    // raw pointer is fine because it is non-owning
-    Expression elemList;
-    Expression elem;
-    int elemListSize;
+    Expression  elemList;
+    Expression  elem;
     int elemListIndex;
+    int elemListSize;
 };
+
+
+using RuleList = std::vector<RulePtr>;
 
 struct ParallelFor final : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
-    //int id;
-    Rule* parent;
-    Expression elemList;
-    Expression elem;
-    RuleList rules;
+
+    Expression  elemList;
+    Expression  elem;
 };
+
+
+using UserIDList = std::vector<uniqueName>;
 
 struct InputChoice : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
-    //int id;
-    Rule* parent;
-    //TODO: determine how to store list of users
-    //UserIDList targetUsers;
+
+    UserIDList targetUsers;
     Expression prompt;
     Expression choiceList;
     Expression result;
     std::optional<Expression> timeout;
 };
 
+
 struct Discard : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
-    //int id;
-    Rule* parent;
+
     Expression fromList;
     Expression count;
 };
 
+
 struct Reverse : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
-    //int id;
-    Rule* parent;
+
     Expression list;
 };
 
+
 struct Extend : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
-    //int id;
-    Rule* parent;
+
     Expression targetList;
     Expression list;
 };
 
+
 struct Shuffle : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
-    //     int id;
-    Rule* parent;
+
     Expression list;
 };
 
@@ -190,56 +183,54 @@ enum LoopType {
     WHILE
 };
 
+
 struct Loop : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
 
-    //     int id;
-    Rule* parent;
-    LoopType type;    // Until or While
-    RuleList rules;
+    LoopType type;
 };
+
 
 struct InParallel : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
-    //int id;
-    Rule* parent;
-    RuleList rules;
+
 };
 
 
 struct Message : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
-    //int id;
-    Rule* parent;
-    //UserIDList targetUsers;
+
+    UserIDList targetUsers;
     Expression content;
 };
 
-// // possibel element values
-// // a variable "count" which stores a number
-// // count.upfrom(1)
-// // expresses a list of numbers [1, 2, … , count]
 
-// // list attributes
-// // "roles.size"
+/*
+Notes:
+    possibel element values
+    a variable "count" which stores a number
+    count.upfrom(1)
+    expresses a list of numbers [1, 2, … , count]
 
-// // Only if the elementLists are maps ->
+    list attributes
+    "roles.size"
 
-// // "roles.elements.name" defines the list of names contained within the above list.
-// // Additional useful attributes are
-// // "contains" and "collect"
+    Only if the elementLists are maps ->
 
-// // Number is an integer literal?
+    "roles.elements.name" defines the list of names contained within the above list.
+    Additional useful attributes are
+    "contains" and "collect"
+*/
+
+
 struct Deal : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
-    //     int id;
-    Rule* parent;
+
     Expression fromList;
     Expression toList;
     Expression count;
 };
 
-using CaseToRules = MapWrapper<Expression, RuleList>;
 
 struct Add final : public Rule {
     Add(Expression _to, Expression _value)
@@ -247,73 +238,50 @@ struct Add final : public Rule {
         , value(_value) {}
 
     virtual void accept(RuleVisitor& visitor) { visitor.visit(*this); }
-    virtual std::vector<PlayerMessage> popOutGoingMessages() { return {}; }
 
     Expression to;
     Expression value;
 };
 
-// enum TimerMode {
-//     EXACT,
-//     AT_MOST,
-//     TRACK
-// };
 
-// struct Timer {
-//     int id;
-//     Rule& 		 parent;
-//     Expression duration;
-//     TimerMode  mode;
-//     RuleList 	 rules;
-//     Expression flag;
-// };
+using CaseToRules = MapWrapper<Expression, RulePtr>;
+
 struct Switch : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
-    //     int id;
-    Rule* parent;
-    Expression switchTarget;
-    Expression valuesList;
-    RuleList rules;
+
+    Expression  switchTarget;
+    Expression  valuesList;
+    RuleList    rules;
     CaseToRules caseToRules;
 };
 
-using ConditionToRules = MapWrapper<Expression, RuleList>;
+
+using ConditionToRules = MapWrapper<Expression, RulePtr>;
 
 struct When : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
-    //     int id;
-    Rule* parent;
+
     ConditionToRules condToRules;
 };
 
 
 struct Sort : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
-    //     int id;
-    Rule* parent;
+
     Expression list;
     // todo: if key provided
     // Validate that the list contains maps
-    //std::optional<std::string> key;
-    Expression key;
+    std::optional<Expression> key;
 };
 
-//     Rule& 		 parent;
-//     UserIDList targetUsers;
-//     Expression prompt;
-//     Expression choiceList;
-//     Expression result;
-//     std::optional<Expression> timeout;
-// };
 
 struct InputText final : public Rule {
+    virtual void accept(RuleVisitor& visitor) { visitor.visit(*this); }
+
     InputText(Expression _to, Expression _prompt, Expression _result)
         : to(_to)
         , prompt(_prompt)
         , result(_result) {}
-
-    virtual void accept(RuleVisitor& visitor) { visitor.visit(*this); }
-    virtual std::vector<PlayerMessage> popOutGoingMessages() { return {}; }
 
     Expression to;
     Expression prompt;
@@ -325,14 +293,12 @@ struct InputText final : public Rule {
 
 struct InputVote : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
-    //     int id;
-    Rule* parent;
-    //UserIDList targetUsers;
+
+    UserIDList targetUsers;
     Expression prompt;
     Expression choiceList;
     Expression resultMap;
-    //std::optional<Expression> timeout;
-    Expression timeout;
+    std::optional<Expression> timeout;
 };
 
 
@@ -344,28 +310,26 @@ enum TimerMode {
 
 struct Timer : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
-    //int id;
-    Rule* parent;
-    Expression duration;
-    TimerMode mode;
-    RuleList rules;
-    Expression flag;
+
+    Expression  duration;
+    TimerMode   mode;
+    Expression  flag;
 };
 
+
 struct GlobalMessage final : public Rule {
+    virtual void accept(RuleVisitor& visitor) { visitor.visit(*this); }
+
     GlobalMessage(Expression _content)
         : content(_content) {}
-
-    virtual void accept(RuleVisitor& visitor) { visitor.visit(*this); }
-    virtual std::vector<PlayerMessage> popOutGoingMessages() { return {}; }
 
     Expression content;
 };
 
+
 struct Scores final : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
-    //     int id;
-    Rule* parent;
+
     Expression scoreAttribute;
     Expression isAscending;
 };
