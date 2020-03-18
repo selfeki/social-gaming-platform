@@ -13,9 +13,9 @@ parseDotNotation(const std::string_view str);
 
 class InterpretVisitor : public RuleVisitor {
 public:
-    InterpretVisitor(const GameState& gs, Rule& firstRule) {
-        ruleStack.push(&firstRule);
-    }
+    InterpretVisitor(GameState& gs)
+        : state{ gs } 
+        { }
 
     void visitImpl(rule::ForEach&);
 
@@ -28,23 +28,13 @@ public:
     void visitImpl(rule::InputChoice&);
 
     void
-    setGameState(const GameState&);
+    setGameState(GameState& gs) { state = gs; }
 
-    Expression
-    getValueFromContextVariables(std::vector<std::string_view> tokens);    // todo: remove
-
-    void
-    setValueOfContextVariables(std::vector<std::string_view> tokens, Expression value);    // todo: remove
-
-    std::stack<Rule*> scope;
-
-    ExpMap context;    //todo: use gamestate context
-
+    GameState
+    getGameState() { return state; }
 
 private:
-    //GameState& state;
-
-    std::stack<const Rule*> ruleStack;    //todo: pick one
+    GameState& state;
 };
 
 

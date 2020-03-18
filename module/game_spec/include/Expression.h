@@ -5,6 +5,7 @@
 #include <boost/variant.hpp>
 #include <boost/variant/recursive_wrapper.hpp>
 #include <boost/variant/variant.hpp>
+#include <boost/variant/polymorphic_get.hpp>
 #include <iostream>
 #include <string_view>
 
@@ -15,6 +16,7 @@ namespace gameSpecification {
 struct ExpMap;
 struct ExpList;
 
+
 using Expression = boost::variant<
     boost::recursive_wrapper<ExpMap>,
     boost::recursive_wrapper<ExpList>,
@@ -22,13 +24,31 @@ using Expression = boost::variant<
     bool,
     std::string_view>;
 
+
 struct ExpMap {
     MapWrapper<std::string_view, Expression> map;
 };
 
+
 struct ExpList {
     std::vector<Expression> list;
+    
+    size_t
+    getSize() { return list.size(); }
 };
+
+
+template<class subTy>
+subTy
+castExp(const Expression& exp) {
+    subTy res;
+    try {
+        res = boost::polymorphic_strict_get<subTy>(exp);
+    } catch (boost::bad_get e) {
+        throw std::runtime_error("invalid castExp");
+    }
+    return res;
+}
 
 
 // For debugging purposes
