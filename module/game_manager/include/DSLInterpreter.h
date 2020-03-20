@@ -30,10 +30,28 @@ public:
     void
     setGameState(GameState& gs) { state = gs; }
 
-    GameState
+    GameState&
     getGameState() { return state; }
 
 private:
+    std::vector<std::string_view>
+    tokenizeDotNotation(std::string_view);
+
+    std::optional<Expression>
+    lookupLocalScope(const std::vector<std::string_view>&);
+
+    std::optional<Expression>
+    lookupGlobalScope(const std::vector<std::string_view>&);
+
+    std::optional<Expression>
+    lookup(std::string_view);
+
+    std::string_view
+    interpolateString(const std::string_view);
+
+    Expression
+    evaluateExpression(const Expression&);
+
     GameState& state;
 };
 
