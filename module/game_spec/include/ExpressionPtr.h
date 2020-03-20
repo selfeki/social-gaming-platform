@@ -11,6 +11,9 @@ public:
     std::optional<Expression*>
     getPtr(ExpMap&);
 
+    void
+    store(Expression, ExpMap&);
+
 private:
     std::vector<std::string_view> indices;
 };
