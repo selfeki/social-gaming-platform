@@ -27,6 +27,10 @@ public:
 
     void visitImpl(rule::InputChoice&);
 
+    void visitImpl(rule::Reverse&);
+
+    void visitImpl(rule::Shuffle&);
+
     void
     setGameState(GameState& gs) { state = gs; }
 

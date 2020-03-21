@@ -4,7 +4,11 @@
 #include <algorithm>
 #include <iostream>
 #include <iterator>
+#include <vector>
 #include <string_view>
+#include <cstdlib> 
+#include <random>
+#include <boost/variant.hpp>
 
 
 namespace gameSpecification::rule {
@@ -26,7 +30,7 @@ evaluateExpression(const std::string_view str) {
     return 0;
 }
 
-// converts string "players.weapon" to a vector {"players", "weapon"}
+// converts string players.weapon" to a vector {"players", "weapon"}
 std::vector<std::string_view>
 tokenizeDotNotation(std::string_view str) {
     std::vector<std::string_view> names;
@@ -36,6 +40,75 @@ tokenizeDotNotation(std::string_view str) {
         names.push_back(buffer);
     }
     return names;
+}
+
+using typeVar = boost::variant<std::string_view, int, bool>;
+
+// evaluates if '==', '<' and '>' Caution!! only pass bool, int, string Expressions 
+bool 
+evaluateEquality(const Expression exp1, const Expression exp2, const std::string_view comp){
+    typeVar v1 ;
+    typeVar v2 ;
+    if (exp1.type() == typeid(int)){
+        v1 = castExp<int>(exp1);
+        v2 = castExp<int>(exp2);
+    }
+    else if(exp1.type() == typeid(bool)){
+        v1 = castExp<bool>(exp1);
+        v2 = castExp<bool>(exp2);
+    }
+    else{
+         v1 = castExp<std::string_view>(exp1);
+        v2 = castExp<std::string_view>(exp2);
+    }
+    
+    if(comp == "==")
+        return v1==v2;
+    else if(comp == "<")
+        return v1 < v2;
+    else
+        return v1 > v2;
+}
+
+// returns the list attribute after evaluating the 'element', 'Collect' condition
+// {list name, attribute of list, 'contains'/'collect', contains attribute/ collect conditions}
+// e.g players.elements.collect(player, player.weapon == weapon.beats)
+std::vector<std::string_view>
+evaluatelistExp(const Expression list){;
+    auto listString = castExp<std::string_view>(list);
+    auto openingBrackIndex = listString.find("(");
+    auto beforeBracket = tokenizeDotNotation(listString.substr(0, openingBrackIndex-1));
+    auto actualList = beforeBracket[0];
+    auto attribute = beforeBracket[2];
+    std::string_view contains_collect;
+    if(attribute == "collect"){
+        contains_collect = beforeBracket[2];
+    }else{
+        contains_collect = beforeBracket[3];
+    }
+    auto condition = listString.substr(openingBrackIndex+1, listString.length()-2);
+    std::vector<std::string_view> result = {actualList, attribute, contains_collect, condition};
+    return result;
+
+}
+
+// return a ExpList after evaluaing the 'contains' condition
+ExpList
+getContainsList(const ExpList list, Expression attribute, Expression toCompareTo){
+    ExpList result;
+    auto it = list.list.begin();
+    while(it != list.list.end()){
+        ExpMap map = castExp<ExpMap>(*it);
+        auto playerVariableMap = (map.map.begin())->second;
+        auto itr  = castExp<ExpMap>(playerVariableMap).map.find(
+                            castExp<std::string_view>(attribute));
+        if(itr != castExp<ExpMap>(playerVariableMap).map.end()){
+            if(evaluateEquality(itr->second, toCompareTo, "==")){
+                result.list.push_back(map);
+            }
+        }
+    }
+    return result;
 }
 
 void InterpretVisitor::visitImpl(InputChoice& rule) {
@@ -123,5 +196,38 @@ void InterpretVisitor::visitImpl(GlobalMessage& globalMessage) {
 void InterpretVisitor::visitImpl(InputText& inputText) {
 }
 
+void InterpretVisitor::visitImpl(Reverse& reverse){
+    // name of the list
+    auto listName = castExp<std::string_view>(reverse.list);  
+    // search for list in variabels
+    auto currentState = this->getGameState();
+    auto it = currentState.variables.map.find(listName);
+    if(it == currentState.variables.map.end()){
+        // todo:: Report Error - list not Found
+        return;
+    }
+    std::reverse(castExp<ExpList>(it->second).list.begin(), 
+                                    castExp<ExpList>(it->second).list.end());
+    // update state
+    this->setGameState(currentState);
+}
+
+void InterpretVisitor::visitImpl(Shuffle& shuffle){
+    // name of list 
+    auto listName = castExp<std::string_view>(shuffle.list);
+    // search for list in state 
+    auto currentState = this->getGameState();
+    auto it = currentState.variables.map.find(listName);
+    if(it == currentState.variables.map.end()){
+        // todo :: return some error
+        return;
+    }
+    // random number generator
+    auto myrandom = std::default_random_engine {};
+    std::shuffle(castExp<ExpList>(it->second).list.begin(), 
+                                castExp<ExpList>(it->second).list.end(), myrandom);
+    // // update state
+    this->setGameState(currentState);
+}
 
 }    // namespace gameSpecification::rule

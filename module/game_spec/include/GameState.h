@@ -54,7 +54,7 @@ struct GameState {
     // A user might have game-agnostic data
     std::vector<GamePlayer> players;
     std::vector<GameAudience> audience;
-
+    
 
     void enterScope() {
         context.emplace();
