@@ -36,6 +36,9 @@ public:
     // made public for testing purposes
     std::vector<std::string>
     tokenizeDotNotation(std::string_view);
+
+    Expression
+    evaluateExpression(const Expression&);
     
 private:
 
@@ -53,9 +56,6 @@ private:
 
     std::string
     interpolateString(const std::string_view);
-
-    Expression
-    evaluateExpression(const Expression&);
 
     GameState& state;
 };

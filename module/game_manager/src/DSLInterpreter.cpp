@@ -251,11 +251,12 @@ InterpretVisitor::visitImpl(InputText& inputText) {
 }    // namespace gameSpecification::rule
 
 
+// test driver code
 using namespace gameSpecification::rule;
+using gameSpecification::printExpVisitor;
 
-// test driver
-int main() {
-    GameState state;
+void
+testTokenizeExpression(GameState state) {
     InterpretVisitor interpreter(state);
     auto testStr = std::string_view("players.elements.collect(player, player.weapon.contains(x)).size.contains(weapon)");
     auto names   = interpreter.tokenizeDotNotation(testStr);
@@ -270,5 +271,29 @@ int main() {
         size
         contains(weapon)
     */
+}
+
+void
+testEvaluateExpression(GameState state) {
+    Expression exp1 = ExpMap({ { { "c", 1234 } } });
+    Expression exp2 = ExpMap({ { { "b", exp1 } } });
+    Expression exp3 = ExpMap({ { { "a", exp2 } } });
+    state.constants.map["root_key"] = exp3;
+    
+    Expression objectName = std::string_view("root_key.a.b.c");
+
+    InterpretVisitor interpreter(state);
+    auto res = interpreter.evaluateExpression(objectName);
+    boost::apply_visitor(printExpVisitor(), res);
+
+    // output: 1234
+}
+
+int main() {
+    GameState state;
+    std::cout << "------------ testTokenizeExpression --------------" << std::endl;
+    testTokenizeExpression(state);
+    std::cout << "------------ testEvaluateExpression --------------" << std::endl;
+    testEvaluateExpression(state);
     return 0;
 }
