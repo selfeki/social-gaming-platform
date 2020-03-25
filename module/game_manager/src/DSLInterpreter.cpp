@@ -10,20 +10,44 @@
 namespace gameSpecification::rule {
 
 
-// converts string "players.weapon" to a vector {"players", "weapon"}
-std::vector<std::string_view>
+int
+countUnclosedParenthesis(std::string str) {
+    int count = 0;
+    for (const auto& c : str) {
+        if (c == '(') { count++; }
+        if (c == ')') { count--; }
+    }
+    return count;
+}
+
+/*  
+    converts "players.elements.weapon.contains(weapon.name)"
+    into { "players", "elements", "weapon", "contains(weapon.name)" }
+*/
+std::vector<std::string>
 InterpretVisitor::tokenizeDotNotation(std::string_view str) {
-    std::vector<std::string_view> names;
+    std::vector<std::string> names;
     std::stringstream ss(static_cast<std::string>(str));
     std::string buffer;
+    std::string temp = "";
+    int unclosedParCount = 0;
     while (std::getline(ss, buffer, '.')) {
-        names.push_back(buffer);
+        unclosedParCount += countUnclosedParenthesis(buffer);
+        if (unclosedParCount == 0) {
+            buffer.insert(0, temp);
+            names.push_back(buffer);
+            temp.erase();
+        } else {
+            temp.append(buffer);
+            temp.append(".");
+        }
     }
+    if (!temp.empty()) { names.push_back(temp); }
     return names;
 }
 
 std::optional<Expression>
-InterpretVisitor::lookupLocalScope(const std::vector<std::string_view>& indices) {
+InterpretVisitor::lookupLocalScope(const std::vector<std::string>& indices) {
     ExpressionPtr expPtr(indices);
     auto& context = getGameState().context;
     auto found = std::find_if(context.rbegin(), context.rend(),
@@ -38,7 +62,7 @@ InterpretVisitor::lookupLocalScope(const std::vector<std::string_view>& indices)
 }
 
 std::optional<Expression>
-InterpretVisitor::lookupGlobalScope(const std::vector<std::string_view>& indices) {
+InterpretVisitor::lookupGlobalScope(const std::vector<std::string>& indices) {
     ExpressionPtr expPtr(indices);
     auto getPtrVars = expPtr.getPtr(state.variables);
     if (getPtrVars) {
@@ -54,8 +78,7 @@ InterpretVisitor::lookupGlobalScope(const std::vector<std::string_view>& indices
 }
 
 std::optional<Expression>
-InterpretVisitor::lookup(std::string_view name) {
-    auto indices       = tokenizeDotNotation(name);
+InterpretVisitor::lookupWithIndices(const std::vector<std::string>& indices) {
     auto expLocalScope = lookupLocalScope(indices);
     if (expLocalScope) {
         return expLocalScope;
@@ -63,38 +86,87 @@ InterpretVisitor::lookup(std::string_view name) {
     return lookupGlobalScope(indices);
 }
 
-std::string_view
-InterpretVisitor::interpolateString(const std::string_view str) {
-    // parses strings like
-    // "Round {round}. Choose your weapon!"
-    // to "Round 1. Choose your weapon!"
-    return std::string_view("");
+std::optional<Expression>
+InterpretVisitor::lookupWithString(std::string_view name) {
+    auto indices = tokenizeDotNotation(name);
+    return lookupWithIndices(indices);
+}
+
+/*
+    parses strings like
+    "Round {round}. Choose your weapon!"
+    into  "Round 1. Choose your weapon!"
+*/
+std::string
+InterpretVisitor::interpolateString(std::string_view str) {
+    return "";
+}
+
+const auto ATTRIBUTES = { "upfrom", "size", "elements", "contains", "collect" };
+
+bool
+isAttribute(const std::string_view str) {
+    for (const auto& attr : ATTRIBUTES) {
+        if (str.find(attr) != std::string::npos) {
+            return true;
+        } 
+    }
+    return false;
 }
 
 Expression
-InterpretVisitor::evaluateExpression(const Expression& exp) {
-    // parses string like
-    // "configuration.Rounds.upfrom(1)"
-    // into an actual expression
-    
-    /* Some useful grammar productions:
-        name -> a  string
-        listAttribute -> size | elements.name | elements.contains | elements.collect
-            (note: elements.name only applies to list of maps)
-        intAttribute  -> upfrom(1)
-        attribute -> listAttribute | intAttribute
-        names -> name(.name)*(.attribute)*
-    */
+applyAttribute(const Expression& exp, std::string_view) {
+    // todo
+    return 0;
+}
 
+ /* 
+    Parses string like "configuration.Rounds.upfrom(1)" into an actual expression
+
+    Some useful grammar productions:
+            name -> a  string
+            listAttribute -> size | elements.name | elements.contains | elements.collect
+                (note: elements.name only applies to list of maps)
+            intAttribute  -> upfrom(1)
+            attribute -> listAttribute | intAttribute
+            names -> name(.name)*(.attribute)*
+
+    special names
+        int: upfrom(int) -> list of ints
+        list: size -> int, contains(expression) -> bool, collect(paramName, expression evaluating to bool)
+        list of maps: elements."name" -> list of Ty(value associated with "name")
+*/
+// note: must handle "a == b" as a possible expression
+Expression
+InterpretVisitor::evaluateExpression(const Expression& exp) {
     if (exp.type() != typeid(std::string_view)) {
         // the value is a literal, nothing to evaluate
         return exp;
     }
-    auto str = castExp<std::string_view>(exp);
-
-    // todo: handle attributes
-
-    // todo: finish easy case
+    auto str    = castExp<std::string_view>(exp);
+    auto tokens = tokenizeDotNotation(str);
+    // separate names that refer to expressions from attributes, if any
+    auto namesEndIter = tokens.begin();
+    while (namesEndIter != tokens.end()) {
+        auto token = *namesEndIter;
+        if (isAttribute(token)) { break; }
+        namesEndIter++;
+    }
+    std::vector<std::string> names;
+    std::vector<std::string> attributes;
+    std::move(tokens.begin(), namesEndIter, std::back_inserter(names));
+    std::move(namesEndIter, tokens.end(), std::back_inserter(attributes));
+    // evaluate names
+    auto lookupRes = lookupWithIndices(names);
+    if (!lookupRes) {
+        throw std::runtime_error("invalid object name in evaluateExpression: " + std::string(str));
+    }
+    auto resExp = lookupRes.value();
+    // apply attributes
+    for (const auto& attr : attributes) {
+        resExp = applyAttribute(resExp, attr);
+    }
+    return resExp;
 }
 
 void 
@@ -177,3 +249,26 @@ InterpretVisitor::visitImpl(InputText& inputText) {
 
 
 }    // namespace gameSpecification::rule
+
+
+using namespace gameSpecification::rule;
+
+// test driver
+int main() {
+    GameState state;
+    InterpretVisitor interpreter(state);
+    auto testStr = std::string_view("players.elements.collect(player, player.weapon.contains(x)).size.contains(weapon)");
+    auto names   = interpreter.tokenizeDotNotation(testStr);
+    for (auto s : names) {
+        std::cout << s << std::endl;
+    }
+    /*
+    output:
+        players
+        elements
+        collect(player, player.weapon.contains(x))
+        size
+        contains(weapon)
+    */
+    return 0;
+}

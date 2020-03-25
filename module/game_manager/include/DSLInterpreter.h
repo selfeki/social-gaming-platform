@@ -33,20 +33,25 @@ public:
     GameState&
     getGameState() { return state; }
 
-private:
-    std::vector<std::string_view>
+    // made public for testing purposes
+    std::vector<std::string>
     tokenizeDotNotation(std::string_view);
+    
+private:
 
     std::optional<Expression>
-    lookupLocalScope(const std::vector<std::string_view>&);
+    lookupLocalScope(const std::vector<std::string>&);
 
     std::optional<Expression>
-    lookupGlobalScope(const std::vector<std::string_view>&);
+    lookupGlobalScope(const std::vector<std::string>&);
 
     std::optional<Expression>
-    lookup(std::string_view);
+    lookupWithIndices(const std::vector<std::string>&);
 
-    std::string_view
+    std::optional<Expression>
+    lookupWithString(std::string_view);
+
+    std::string
     interpolateString(const std::string_view);
 
     Expression
