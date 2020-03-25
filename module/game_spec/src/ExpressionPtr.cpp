@@ -4,8 +4,8 @@
 #include <boost/variant/polymorphic_get.hpp>
 #include <optional>
 
-ExpressionPtr::ExpressionPtr(std::vector<std::string_view> inds)
-    : indices { inds } {}
+ExpressionPtr::ExpressionPtr(const std::vector<std::string>& inds)
+    : indices(inds.begin(), inds.end()) {}
 
 std::optional<ExpMap*>
 castToExpMap(Expression& exp) {
