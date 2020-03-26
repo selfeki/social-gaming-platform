@@ -253,7 +253,7 @@ InterpretVisitor::visitImpl(Timer& timer) {
             check if timer object (not this rule, but the object on the stack) is finished. If it is mode at most or exact, 
             and the timer has completed, pop the nested timer rules and carry on to the next rule
 
-            if the timer object is of type track, do nothing, the rule itself will set the flag.
+            if the timer object is of type track, set the flag
     */
    
    if(!timer.nestedRulesInProgess) { //this rule is being called for the first time
