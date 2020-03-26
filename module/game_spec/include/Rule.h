@@ -1,5 +1,6 @@
 #pragma once
 
+
 #ifndef RULE_H
     #define RULE_H
 
@@ -313,7 +314,7 @@ struct Timer : public Rule {
 
     Expression  duration;
     TimerMode   mode;
-    Expression  flag;
+    std::optional<Expression> flag;
 };
 
 

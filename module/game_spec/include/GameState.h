@@ -8,6 +8,7 @@
 #include <stack>
 #include <string_view>
 
+
 namespace gameSpecification {
 
 
@@ -42,6 +43,7 @@ struct GameState {
     // keeps track of local variables
     std::vector<ExpMap> context;
 
+
     // Design: should these 2 be combined?
     // stores input requests to be delivered to users
     std::vector<InputRequest> inputRequests;
@@ -56,6 +58,7 @@ struct GameState {
     exitScope() {
         context.pop_back();
     }
+
 
     void
     enqueueMessage(uniqueName name, std::string_view message) {

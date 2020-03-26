@@ -2,7 +2,7 @@
 
 #include "arepa/game_spec/GameState.h"
 #include "arepa/game_spec/Rule.h"
-
+#include "arepa/game_spec/Timer.h"
 #include <stack>
 
 namespace gameSpecification::rule {
@@ -26,6 +26,10 @@ public:
     void visitImpl(rule::InputText&);
 
     void visitImpl(rule::InputChoice&);
+
+    void visitImpl(rule::Timer&);
+
+
 
     void
     setGameState(GameState& gs) { state = gs; }
@@ -58,6 +62,11 @@ private:
     interpolateString(const std::string_view);
 
     GameState& state;
+
+    std::vector<TimerObject> timerList;
+
+
+
 };
 
 

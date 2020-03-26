@@ -1,3 +1,4 @@
+
 #include "DSLInterpreter.h"
 #include "arepa/game_spec/GameState.h"
 #include "arepa/game_spec/Rule.h"
@@ -26,6 +27,10 @@ public:
         while (!ruleStack.empty()) {
 
             auto rule = ruleStack.top();
+            //auto& timerList = interpreter.getGameState().timerList;
+            //to do: improve the way you access the timerList
+
+
 
             rule->accept(interpreter);
 

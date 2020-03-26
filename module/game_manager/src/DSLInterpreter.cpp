@@ -242,10 +242,67 @@ InterpretVisitor::visitImpl(GlobalMessage& globalMessage) {
     // todo;
 }
 
+void
+InterpretVisitor::visitImpl(Timer& timer) {
+    //construct a new timer object
+    //TODO: where would the most appropriate place for the timer list be; interpreter, game instance, or game state?
+
+    //initialize a timer somewhere that the instance can check
+    /*
+        for every loop in GameInstance::updateState() , 
+            check if timer object (not this rule, but the object on the stack) is finished. If it is mode at most or exact, 
+            and the timer has completed, pop the nested timer rules and carry on to the next rule
+
+            if the timer object is of type track, do nothing, the rule itself will set the flag.
+    */
+   
+   if(!timer.nestedRulesInProgess) { //this rule is being called for the first time
+        timer.nestedRulesInProgess = true;
+
+        //create a timer object 
+        auto duration = castExp<int>(timer.duration);
+
+        this->timerList.emplace_back(TimerObject{static_cast<double>(duration), timer, timer.mode});
+   } 
+   else { //this rule's nested rules have completed
+        timer.nestedRulesInProgess = false;
+
+        //find the timer object belonging to this rule
+        auto my_timer = std::find_if(this->timerList.begin(), 
+                                this->timerList.end(), 
+                                [&timer] (TimerObject& t) {
+                                    return &t.owner == &timer;
+                                });
+        if((*my_timer).mode == TimerMode::EXACT) {
+            if((*my_timer).isTimeOut()){
+                timer.finished = true;
+            } else {
+                timer.finished = false;
+            }
+        } 
+        else if ((*my_timer).mode == TimerMode::AT_MOST){
+            timer.finished = true;
+        } 
+        else { //TimerMode == TRACK
+            //GameInstance::updateState() may have already set the flag, but set it anyway
+            //assuming the flag is a variable
+            auto flagExp       = castExp<std::string_view>(*(timer.flag)); 
+            auto flagExpTokens = tokenizeDotNotation(flagExp);
+            auto flagExpPtr    = ExpressionPtr(flagExpTokens);
+            flagExpPtr.store(Expression{true}, state.variables);
+        }
+   }
+}
+
+
+
 void 
 InterpretVisitor::visitImpl(InputText& inputText) {
     // todo
 }
+
+
+
 
 
 }    // namespace gameSpecification::rule
@@ -289,6 +346,9 @@ testEvaluateExpression(GameState state) {
     // output: 1234
 }
 
+
+
+//test interpreter fn's
 int main() {
     GameState state;
     std::cout << "------------ testTokenizeExpression --------------" << std::endl;
