@@ -6,6 +6,7 @@
 #include <boost/variant/polymorphic_get.hpp>
 #include <iostream>
 #include <string_view>
+#include <sstream>
 
 namespace gameSpecification::rule {
 
