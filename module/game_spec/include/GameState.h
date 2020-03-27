@@ -3,6 +3,8 @@
 #include "Expression.h"
 #include "ExpressionPtr.h"
 #include "MapWrapper.h"
+#include "Rule.h"
+#include "Timer.h"
 
 #include <optional>
 #include <stack>
@@ -83,3 +85,4 @@ struct GameState {
 
 
 }    // namespace gameSpecification
+

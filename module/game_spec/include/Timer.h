@@ -1,8 +1,11 @@
 #pragma once
 
 #include <ctime>
+#include "Rule.h"
+
 
 namespace gameSpecification {
+
 
 struct TimerObject {
     

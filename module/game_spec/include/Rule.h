@@ -9,7 +9,12 @@
 
     #include <memory>
 
+
+
 namespace gameSpecification::rule {
+
+
+
 
 struct Rule;
 // Control flow
@@ -89,6 +94,9 @@ private:
 };
 
 
+
+
+
 using RulePtr = std::unique_ptr<Rule>;
 
 struct Rule {
@@ -136,12 +144,12 @@ struct ParallelFor final : public Rule {
 };
 
 
-using UserIDList = std::vector<uniqueName>;
+//using UserIDList = std::vector<uniqueName>;
 
 struct InputChoice : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
 
-    UserIDList targetUsers;
+    //UserIDList targetUsers;
     Expression prompt;
     Expression choiceList;
     Expression result;
@@ -201,7 +209,7 @@ struct InParallel : public Rule {
 struct Message : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
 
-    UserIDList targetUsers;
+    //UserIDList targetUsers;
     Expression content;
 };
 
@@ -295,7 +303,7 @@ struct InputText final : public Rule {
 struct InputVote : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
 
-    UserIDList targetUsers;
+    //UserIDList targetUsers;
     Expression prompt;
     Expression choiceList;
     Expression resultMap;
