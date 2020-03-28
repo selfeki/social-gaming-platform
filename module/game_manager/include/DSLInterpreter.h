@@ -31,6 +31,10 @@ public:
 
     void visitImpl(rule::Shuffle&);
 
+    void visitImpl(rule::Discard&);
+
+    void visitImpl(rule::Deal&);
+
     void
     setGameState(GameState& gs) { state = gs; }
 
