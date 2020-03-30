@@ -14,6 +14,9 @@ set(AREPA_EXTERNAL_MODULE_DIR "${AREPA_ROOT_DIR}/extern")
 set(AREPA_CONFIG_CXX "${AREPA_ROOT_DIR}/scripts/cmake/cxx.cmake")
 set(AREPA_CONFIG_COMMON "${AREPA_ROOT_DIR}/scripts/cmake/common.cmake")
 
+# needed to integrate GoogleTest
+add_definitions(-std=c++17)
+
 # Configure project variables.
 set(PACKAGE_NAME SocialGaming)
 set(PACKAGE_VERSION 0.1)
@@ -49,3 +52,5 @@ message("-- Generated project file list")
 
 # Add custom targets.
 include("${CMAKE_CURRENT_LIST_DIR}/scripts/cmake/incl_target_format.cmake")
+
+add_subdirectory(test)

@@ -38,18 +38,29 @@ struct ExpList {
 };
 
 
-template<class subTy>
-subTy
+template<class SubTy>
+SubTy
 castExp(const Expression& exp) {
-    subTy res;
+    SubTy res;
     try {
-        res = boost::polymorphic_strict_get<subTy>(exp);
+        res = boost::polymorphic_strict_get<SubTy>(exp);
     } catch (boost::bad_get e) {
         throw std::runtime_error("invalid castExp");
     }
     return res;
 }
 
+// returns mutable subTy
+template<class SubTy>
+SubTy&
+castExpUnsafe(Expression& exp) {
+    try {
+        SubTy& res = boost::polymorphic_strict_get<SubTy>(exp);
+        return res;
+    } catch (boost::bad_get e) {
+        throw std::runtime_error("invalid castExpUnsafe");
+    }
+}
 
 // For debugging purposes
 class printExpVisitor : public boost::static_visitor<void> {
