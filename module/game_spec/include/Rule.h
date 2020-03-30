@@ -109,6 +109,7 @@ struct Rule {
     Rule*   parent;
     RulePtr next;
     RulePtr nested;
+    
 };
 
 
