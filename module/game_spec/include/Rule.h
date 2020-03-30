@@ -102,15 +102,9 @@ using RulePtr = std::unique_ptr<Rule>;
 struct Rule {
     virtual void accept(RuleVisitor& visitor) = 0;
 
-    Rule()
-        : finished(false)
-        , needsInput(false)
-        , nestedRulesInProgess(false) {};
+    Rule() {};
     virtual ~Rule() = default;
 
-    bool finished;
-    bool needsInput;
-    bool nestedRulesInProgess;
     // raw pointer okay b/c child does not own parent
     Rule*   parent;
     RulePtr next;
@@ -124,12 +118,10 @@ struct ForEach final : public Rule {
     ForEach(Expression _elemList, Expression _elem)
         : elemList(_elemList)
         , elem(_elem)
-        , elemListIndex(0)
         , elemListSize(castExp<ExpList>(_elemList).getSize()) {}
 
     Expression  elemList;
     Expression  elem;
-    int elemListIndex;
     int elemListSize;
 };
 

@@ -63,7 +63,6 @@ private:
 
     GameState& state;
 
-    std::vector<TimerObject> timerList;
 
 
 

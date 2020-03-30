@@ -196,9 +196,14 @@ InterpretVisitor::visitImpl(ForEach& forEach) {
 
     auto elemList = castExp<ExpList>(forEach.elemList);
     auto element = castExp<std::string_view>(forEach.elem);
+    
+    //if this rule is being called, the rule_state object that belongs to this rule
+    //should be at the top of the interpreters stack, so get it
+    //TODO: maybe this isnt a good way to get the rule_state associated with this rule. Should be passed in to .accept() with the rule maybe?
+    auto rule_state = &(state.ruleStateStack.top());
 
-    if (forEach.elemListIndex >= forEach.elemListSize) {
-        forEach.finished = true;
+    if (rule_state->elemListIndex >= forEach.elemListSize) {
+        rule_state->finished = true;
         //remove the element variable from the context (as if leaving scope of for loop)
 
         // todo: refactor this (context switching should happen in GameInstance.updateState() ?)
@@ -207,17 +212,20 @@ InterpretVisitor::visitImpl(ForEach& forEach) {
 
         return;
     } else {
-        forEach.nestedRulesInProgess = true;
+        rule_state->nestedRulesInProgess = true;
     }
 
-    auto exp = elemList.list[forEach.elemListIndex];
+    auto exp = elemList.list[rule_state->elemListIndex];
     state.context.back().map[element] = exp;
 
-    forEach.elemListIndex += 1;
+    rule_state->elemListIndex += 1;
 }
 
 void 
 InterpretVisitor::visitImpl(Add& add) {
+
+    auto rule_state = &(state.ruleStateStack.top());
+
     auto toExp       = castExp<std::string_view>(add.to);
     auto toExpTokens = tokenizeDotNotation(toExp);
     auto toExpPtr    = ExpressionPtr(toExpTokens);
@@ -232,7 +240,7 @@ InterpretVisitor::visitImpl(Add& add) {
     auto sum = to + value;
     // assuming rules can only write to memory within the Variables environment
     toExpPtr.store(sum, state.variables);
-    add.finished = true;
+    rule_state->finished = true;
 }
 
 void 
@@ -244,44 +252,41 @@ InterpretVisitor::visitImpl(GlobalMessage& globalMessage) {
 
 void
 InterpretVisitor::visitImpl(Timer& timer) {
-    //construct a new timer object
-    //TODO: where would the most appropriate place for the timer list be; interpreter, game instance, or game state?
 
-    //initialize a timer somewhere that the instance can check
     /*
         for every loop in GameInstance::updateState() , 
-            check if timer object (not this rule, but the object on the stack) is finished. If it is mode at most or exact, 
+            check if timer object (not this rule, but an object in the game state) is finished. If it is mode 'at most' or 'exact', 
             and the timer has completed, pop the nested timer rules and carry on to the next rule
 
-            if the timer object is of type track, set the flag
+            if the timer object is of type 'track', set the flag
     */
-   
-   if(!timer.nestedRulesInProgess) { //this rule is being called for the first time
-        timer.nestedRulesInProgess = true;
+    auto rule_state = &(state.ruleStateStack.top());
+
+
+   if(!rule_state->nestedRulesInProgess) { //this rule is being called for the first time
+        rule_state->nestedRulesInProgess = true;
 
         //create a timer object 
         auto duration = castExp<int>(timer.duration);
-
-        this->timerList.emplace_back(TimerObject{static_cast<double>(duration), timer, timer.mode});
+        state.timerList.emplace_back(TimerObject{static_cast<double>(duration), &timer, timer.mode});
    } 
    else { //this rule's nested rules have completed
-        timer.nestedRulesInProgess = false;
+        rule_state->nestedRulesInProgess = false;
 
         //find the timer object belonging to this rule
-        auto my_timer = std::find_if(this->timerList.begin(), 
-                                this->timerList.end(), 
+        auto my_timer = std::find_if(state.timerList.begin(), 
+                                state.timerList.end(), 
                                 [&timer] (TimerObject& t) {
-                                    return &t.owner == &timer;
+                                    return t.owner == &timer;
                                 });
+
         if((*my_timer).mode == TimerMode::EXACT) {
             if((*my_timer).isTimeOut()){
-                timer.finished = true;
-            } else {
-                timer.finished = false;
-            }
+                rule_state->finished = true;
+            } 
         } 
         else if ((*my_timer).mode == TimerMode::AT_MOST){
-            timer.finished = true;
+            rule_state->finished = true;
         } 
         else { //TimerMode == TRACK
             //GameInstance::updateState() may have already set the flag, but set it anyway

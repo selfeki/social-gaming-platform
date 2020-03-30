@@ -13,6 +13,35 @@
 
 namespace gameSpecification {
 
+struct RuleState {
+
+    RuleState(rule::Rule* _rule) : rule(_rule), 
+        finished(false), needsInput(false), nestedRulesInProgess(false),
+        elemListIndex(0) {
+        this->parent = rule->parent;
+        this->next = &(*rule->next);
+        this->nested = &(*rule->nested);
+    }
+
+    rule::Rule* rule;
+    rule::Rule* parent;
+    rule::Rule* next;
+    rule::Rule* nested;
+    
+    //put any stateful things required to execute a rule in this structure.
+    //TODO: may have to implement inheritance on this structure, for every rule, (visitor pattern appropriate here?)
+    bool finished;
+    bool needsInput;
+    bool nestedRulesInProgess;
+
+    //foreach rule only
+    int elemListIndex;
+
+    //etc... *sigh*
+
+};
+
+typedef std::stack<RuleState> RuleStateStack;
 
 // A GameState is the input and output of the DSLInterpreter
 
@@ -44,7 +73,8 @@ struct GameState {
 
     // keeps track of local variables
     std::vector<ExpMap> context;
-
+    RuleStateStack ruleStateStack;
+    std::vector<TimerObject> timerList;
 
     // Design: should these 2 be combined?
     // stores input requests to be delivered to users
@@ -82,6 +112,8 @@ struct GameState {
         }
     }
 };
+
+
 
 
 }    // namespace gameSpecification
