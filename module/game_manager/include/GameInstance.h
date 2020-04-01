@@ -14,9 +14,9 @@ class GameInstance {
 public:
     GameInstance(GameState& state, Rule* firstRule)
         : interpreter { state }
+        , rule_state_stack { state.ruleStateStack }
         , ruleInd { 0 }
         , isTerminated { false } 
-        , rule_state_stack { state.ruleStateStack }
         {
             //with rule state stack, the rule stack is not needed anymore
             ruleStack.push(firstRule);
@@ -38,7 +38,7 @@ public:
                 
                 Rule* next_rule = rule_state.next;
                 rule_state_stack.pop();
-                if (next_rule != NULL) {
+                if (next_rule != nullptr) {
                     rule_state_stack.push(RuleState(next_rule)); //initialize a new rule state in the stack (this is a light weight object, so it is fine)
                 }
             } else if (rule_state.nestedRulesInProgess) {
