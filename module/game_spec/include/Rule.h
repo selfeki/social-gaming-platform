@@ -1,19 +1,12 @@
 #pragma once
 
+#include "GameState.h"
+#include "Expression.h"
+#include "MapWrapper.h"
 
-#ifndef RULE_H
-    #define RULE_H
-
-    #include "Expression.h"
-    #include "MapWrapper.h"
-
-    #include <memory>
-
-
+#include <memory>
 
 namespace gameSpecification::rule {
-
-
 
 
 struct Rule;
@@ -94,9 +87,6 @@ private:
 };
 
 
-
-
-
 using RulePtr = std::unique_ptr<Rule>;
 
 struct Rule {
@@ -137,12 +127,13 @@ struct ParallelFor final : public Rule {
 };
 
 
-//using UserIDList = std::vector<uniqueName>;
+using uniqueName   = std::string;
+using UserNameList = std::vector<uniqueName>;
 
 struct InputChoice : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
 
-    //UserIDList targetUsers;
+    uniqueName targetUsers;
     Expression prompt;
     Expression choiceList;
     Expression result;
@@ -202,7 +193,7 @@ struct InParallel : public Rule {
 struct Message : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
 
-    //UserIDList targetUsers;
+    UserNameList targetUsers;
     Expression content;
 };
 
@@ -296,7 +287,7 @@ struct InputText final : public Rule {
 struct InputVote : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
 
-    //UserIDList targetUsers;
+    UserNameList targetUsers;
     Expression prompt;
     Expression choiceList;
     Expression resultMap;
@@ -337,5 +328,3 @@ struct Scores final : public Rule {
 };
 
 }    // namespace rule
-
-#endif /* RULE_H */

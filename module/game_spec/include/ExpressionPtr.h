@@ -6,7 +6,7 @@ using namespace gameSpecification;
 
 class ExpressionPtr {
 public:
-    ExpressionPtr(const std::vector<std::string>&);
+    ExpressionPtr(const std::vector<std::string>);
 
     std::optional<Expression*>
     getPtr(ExpMap&);
@@ -15,5 +15,5 @@ public:
     store(Expression, ExpMap&);
 
 private:
-    std::vector<std::string_view> indices;
+    std::vector<std::string> indices;
 };

@@ -22,11 +22,11 @@ using Expression = boost::variant<
     boost::recursive_wrapper<ExpList>,
     int,
     bool,
-    std::string_view>;
+    std::string>;
 
 
 struct ExpMap {
-    MapWrapper<std::string_view, Expression> map;
+    MapWrapper<std::string, Expression> map;
 };
 
 
@@ -71,7 +71,7 @@ public:
         std::cout << i;
     }
 
-    void operator()(const std::string_view str) const {
+    void operator()(const std::string& str) const {
         std::cout << str;
     }
 

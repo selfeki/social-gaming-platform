@@ -100,6 +100,7 @@ InterpretVisitor::lookupWithString(std::string_view name) {
 std::string
 InterpretVisitor::interpolateString(std::string_view str) {
     return "";
+    // todo
 }
 
 const auto ATTRIBUTES = { "upfrom", "size", "elements", "contains", "collect" };
@@ -139,11 +140,11 @@ applyAttribute(const Expression& exp, std::string_view) {
 // note: must handle "a == b" as a possible expression
 Expression
 InterpretVisitor::evaluateExpression(const Expression& exp) {
-    if (exp.type() != typeid(std::string_view)) {
+    if (exp.type() != typeid(std::string)) {
         // the value is a literal, nothing to evaluate
         return exp;
     }
-    auto str    = castExp<std::string_view>(exp);
+    auto str    = castExp<std::string>(exp);
     auto tokens = tokenizeDotNotation(str);
     // separate names that refer to expressions from attributes, if any
     auto namesEndIter = tokens.begin();
@@ -173,18 +174,15 @@ void
 InterpretVisitor::visitImpl(InputChoice& rule) {
     // load gamestate with input request details
     //auto user = rule.targetUser;
-    auto rawPrompt = castExp<std::string_view>(rule.prompt);
+    auto rawPrompt = castExp<std::string>(rule.prompt);
     auto prompt = interpolateString(rawPrompt);
     auto choices = castExp<ExpList>(rule.choiceList);
-    auto resultStr = castExp<std::string_view>(rule.result);
+    auto resultStr = castExp<std::string>(rule.result);
     auto names = tokenizeDotNotation(resultStr);
     ExpressionPtr resultPtr(names);
     // set flag indicating need for user input
     // needUserInput = true;
 
-    // todo: push next rule onto stack
-    // todo: create InputRequest and to GameState
-    // todo: implement pointers between sibling rules
 }
 
 void 
@@ -195,7 +193,7 @@ InterpretVisitor::visitImpl(ForEach& forEach) {
   */
 
     auto elemList = castExp<ExpList>(forEach.elemList);
-    auto element = castExp<std::string_view>(forEach.elem);
+    auto element = castExp<std::string>(forEach.elem);
     
     //if this rule is being called, the rule_state object that belongs to this rule
     //should be at the top of the interpreters stack, so get it
@@ -226,7 +224,7 @@ InterpretVisitor::visitImpl(Add& add) {
 
     auto rule_state = &(state.ruleStateStack.top());
 
-    auto toExp       = castExp<std::string_view>(add.to);
+    auto toExp       = castExp<std::string>(add.to);
     auto toExpTokens = tokenizeDotNotation(toExp);
     auto toExpPtr    = ExpressionPtr(toExpTokens);
     auto getPtrRes   = toExpPtr.getPtr(state.variables);
@@ -245,9 +243,9 @@ InterpretVisitor::visitImpl(Add& add) {
 
 void 
 InterpretVisitor::visitImpl(GlobalMessage& globalMessage) {
-    auto content = castExp<std::string_view>(globalMessage.content);
+    auto content = castExp<std::string>(globalMessage.content);
     auto message = interpolateString(content);
-    // todo;
+    state.enqueueGlobalMessage(message);
 }
 
 void
@@ -291,7 +289,7 @@ InterpretVisitor::visitImpl(Timer& timer) {
         else { //TimerMode == TRACK
             //GameInstance::updateState() may have already set the flag, but set it anyway
             //assuming the flag is a variable
-            auto flagExp       = castExp<std::string_view>(*(timer.flag)); 
+            auto flagExp       = castExp<std::string>(*(timer.flag)); 
             auto flagExpTokens = tokenizeDotNotation(flagExp);
             auto flagExpPtr    = ExpressionPtr(flagExpTokens);
             flagExpPtr.store(Expression{true}, state.variables);
@@ -303,7 +301,7 @@ InterpretVisitor::visitImpl(Timer& timer) {
 
 void 
 InterpretVisitor::visitImpl(InputText& inputText) {
-    // todo
+    
 }
 
 
@@ -320,7 +318,7 @@ using gameSpecification::printExpVisitor;
 void
 testTokenizeExpression(GameState state) {
     InterpretVisitor interpreter(state);
-    auto testStr = std::string_view("players.elements.collect(player, player.weapon.contains(x)).size.contains(weapon)");
+    auto testStr = "players.elements.collect(player, player.weapon.contains(x)).size.contains(weapon)";
     auto names   = interpreter.tokenizeDotNotation(testStr);
     for (auto s : names) {
         std::cout << s << std::endl;
@@ -342,7 +340,7 @@ testEvaluateExpression(GameState state) {
     Expression exp3 = ExpMap({ { { "a", exp2 } } });
     state.constants.map["root_key"] = exp3;
     
-    Expression objectName = std::string_view("root_key.a.b.c");
+    Expression objectName = std::string("root_key.a.b.c");
 
     InterpretVisitor interpreter(state);
     auto res = interpreter.evaluateExpression(objectName);

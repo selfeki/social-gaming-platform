@@ -154,7 +154,7 @@ gameSpecification::Expression
 parseExpression(const json& j) {
     switch (j.type()) {
     case json::value_t::string:
-        return std::string_view(j.get<std::string_view>());
+        return std::string(j.get<std::string>());
     case json::value_t::number_integer:
         return j.get<int>();
     case json::value_t::boolean:

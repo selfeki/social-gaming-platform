@@ -45,19 +45,19 @@ typedef std::stack<RuleState> RuleStateStack;
 
 // A GameState is the input and output of the DSLInterpreter
 
-using uniqueName = std::string_view;
+using uniqueName = rule::uniqueName;
 
 
 struct GameMessage {
     uniqueName targetUser;
-    std::string_view content;
+    std::string content;
 };
 
 
 struct InputRequest {
-    uniqueName targetUser;
-    // note: choices, if any, are captured in the prompt
-    std::string_view prompt;
+    uniqueName  targetUser;
+    std::string prompt;
+    std::vector<std::string> choices;
     ExpressionPtr resultPtr;
     std::optional<int> timeout;
 };
@@ -91,22 +91,27 @@ struct GameState {
         context.pop_back();
     }
 
-
     void
-    enqueueMessage(uniqueName name, std::string_view message) {
+    enqueueInputRequest(uniqueName name, const std::string message) {
         // todo: check if name exists in the game
         messageQueue.push_back({name, message});
     }
 
     void
-    enqueueGlobalMessage(std::string_view message) {
+    enqueueMessage(uniqueName name, const std::string message) {
+        // todo: check if name exists in the game
+        messageQueue.push_back({name, message});
+    }
+
+    void
+    enqueueGlobalMessage(const std::string message) {
         for (auto userTy : {"players", "audience"}) {
             auto users = castExp<ExpList>(variables.map[userTy]);
             for (const auto& exp : users.list) {
                 auto userExpMap = castExp<ExpMap>(exp);
                 assert(user.count("name") > 0);
                 auto nameExp = userExpMap.map["name"];
-                auto name = castExp<std::string_view>(nameExp);
+                std::string name = castExp<std::string>(nameExp);
                 enqueueMessage(name, message);
             }
         }
