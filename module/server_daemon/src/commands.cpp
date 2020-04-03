@@ -112,6 +112,7 @@ void init_global_commands(GlobalCommandMap& map, GameManager& manager, Server& s
 // ---------------------------------------------------------------------------------------------------------------------
 
 void init_room_commands(RoomCommandMap& map, GameManager& manager) {
+
     map.insert("members", [](Room& room, User& user, const Arguments& args) {
         user.send_system_message("Members:");
         auto owner = room.owner();
@@ -128,6 +129,10 @@ void init_room_commands(RoomCommandMap& map, GameManager& manager) {
                 user.send_system_message(" - " + std::string(member->name()));
             }
         }
+    });
+
+    map.insert("room", [](Room& room, User& user, const Arguments& args) {
+        user.send_system_message("Room ID: " + room.name());
     });
 
     map.insert("nick", [&manager](Room& room, User& user, const Arguments& args) {
@@ -149,7 +154,6 @@ void init_room_commands(RoomCommandMap& map, GameManager& manager) {
         }
     });
 
-    // TODO(anyone): Re-create /kick
     map.insert("kick", [&manager](Room& room, User& user, const Arguments& args) {
         if (user != *room.owner()) {
             user.send_error_message("You must be a room owner to kick out a user.");
