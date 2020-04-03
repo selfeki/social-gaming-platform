@@ -4,7 +4,6 @@
 #include "ExpressionPtr.h"
 #include "GameState.h"
 
-#include <boost/variant/polymorphic_get.hpp>
 #include <iostream>
 #include <string>
 
@@ -17,8 +16,8 @@ void testExpressionPtr() {
     Expression exp1 = ExpMap({ { { "c", 1 } } });
     Expression exp2 = ExpMap({ { { "b", exp1 } } });
     Expression exp3 = ExpMap({ { { "a", exp2 } } });
-    ExpMap& mapRef = boost::polymorphic_strict_get<ExpMap>(exp3);
-    ExpMap mapCopy = boost::polymorphic_strict_get<ExpMap>(exp3);
+    ExpMap& mapRef = castExpUnsafe<ExpMap>(exp3);
+    ExpMap mapCopy = castExpUnsafe<ExpMap>(exp3);
 
     ExpressionPtr expPtr { { "a", "b", "c" } };
     auto PtrCopy = expPtr.getPtr(mapCopy);
