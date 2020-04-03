@@ -33,7 +33,7 @@ void process_command(GameManager& manager, Client& client, Command& command) {
 
     // If the user is in a room, let the room process their commands.
     auto room = manager.find_user_room(user_id);
-    if (room && (*room)->process_command(user_id, command)) {
+    if (room && room->process_command(user_id, command)) {
         return;
     }
 
@@ -65,7 +65,7 @@ void process_message(GameManager& manager, Client& client, std::string message) 
         return;
     }
 
-    (*room)->process_message(user_id, message);
+    room->process_message(user_id, message);
 }
 
 /**
@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
         // Destroy the connection's user object.
         auto user = manager.find_user(connection->id());
         if (user) {
-            manager.remove_user(*user);
+            manager.remove_user(user);
         }
     });
 

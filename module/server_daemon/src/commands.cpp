@@ -48,7 +48,7 @@ void init_global_commands(GlobalCommandMap& map, GameManager& manager, Server& s
         auto room = manager.create_room();
         init_room_commands(room->commands, manager);
         connection.send_system_message(std::string("Your room is: ") + std::string(room->id()));
-        manager.user_join_room(*user, room);
+        manager.user_join_room(user, room);
 
         clout << "User created room."
               << data(std::make_pair("User", std::string(connection.id())))
@@ -81,13 +81,13 @@ void init_global_commands(GlobalCommandMap& map, GameManager& manager, Server& s
             return;
         }
 
-        if ((*room)->is_full()) {
+        if (room->is_full()) {
             connection.send_error_message("Room '" + args.front() + "' is full.");
             return;
         }
 
-        manager.user_join_room(*user, *room);
-        connection.send_system_message(std::string("You joined '") + std::string((*room)->id()) + "'.");
+        manager.user_join_room(user, room);
+        connection.send_system_message(std::string("You joined '") + std::string(room->id()) + "'.");
     });
 
     map.insert("leave", [&manager](Connection& connection, const Arguments& args) -> void {
@@ -97,10 +97,10 @@ void init_global_commands(GlobalCommandMap& map, GameManager& manager, Server& s
         }
 
         auto user = manager.find_user(connection.id());
-        auto room = manager.find_user_room(*user);
+        auto room = manager.find_user_room(user);
 
-        manager.user_leave_room(*user, *room);
-        connection.send_system_message(std::string("You left '") + std::string((*room)->id()) + "'.");
+        manager.user_leave_room(user, room);
+        connection.send_system_message(std::string("You left '") + std::string(room->id()) + "'.");
     });
 
     // TODO(anyone): Re-create /help
@@ -115,22 +115,17 @@ void init_room_commands(RoomCommandMap& map, GameManager& manager) {
     map.insert("members", [](Room& room, User& user, const Arguments& args) {
         user.send_system_message("Members:");
         auto owner = room.owner();
+        auto users = room.users_by_age();
+        std::reverse(users.begin(), users.end());
 
-        // List users.
-        for (auto& member : room.players()) {
-            if (owner && *owner == member) {
+        // List members.
+        for (auto& member : room.users_by_age()) {
+            if (owner && owner == member) {
                 user.send_system_message(" - " + std::string(member->name()) + " [owner]");
+            } else if (room.is_spectating(member)) {
+                user.send_system_message(" - " + std::string(member->name()) + " [spectator]");
             } else {
                 user.send_system_message(" - " + std::string(member->name()));
-            }
-        }
-
-        // List spectators.
-        for (auto& member : room.spectators()) {
-            if (owner && *owner == member) {
-                user.send_system_message(" - " + std::string(member->name()) + " [owner]");
-            } else {
-                user.send_system_message(" - " + std::string(member->name()) + " [spectator]");
             }
         }
     });
@@ -148,7 +143,7 @@ void init_room_commands(RoomCommandMap& map, GameManager& manager) {
         }
 
         try {
-            manager.user_set_nickname(*room.find_player(user.id()), *nickname);
+            manager.user_set_nickname(manager.find_user(user.id()), *nickname);
         } catch (arepa::game::GameException& ex) {
             user.send_error_message(std::string(ex.what()));
         }
@@ -156,7 +151,7 @@ void init_room_commands(RoomCommandMap& map, GameManager& manager) {
 
     // TODO(anyone): Re-create /kick
     map.insert("kick", [&manager](Room& room, User& user, const Arguments& args) {
-        if (user != **room.owner()) {
+        if (user != *room.owner()) {
             user.send_error_message("You must be a room owner to kick out a user.");
             return;
         }
@@ -172,18 +167,18 @@ void init_room_commands(RoomCommandMap& map, GameManager& manager) {
             return;
         }
 
-        auto user_to_kick = room.find_player_or_spectator(*nickname);
+        auto user_to_kick = room.find_user(*nickname);
         if (!user_to_kick) {
             user.send_error_message("User '" + args.front() + "' is not in the room.");
             return;
         }
 
-        if (user == **user_to_kick) {
+        if (user == *user_to_kick) {
             user.send_error_message("You cannot kick yourself. Use can /leave to exit the room.");
             return;
         }
 
-        room.remove_player_or_spectator(*user_to_kick);
+        room.remove_user(user_to_kick);
         user.send_system_message("You kicked out " + (**nickname) + ".");
     });
 }

@@ -22,7 +22,7 @@
 class GameManager {
 #pragma mark - Types -
 public:
-    using User = arepa::game::User;
+    using User = arepa::game::AbstractUser;
     using UserId = arepa::game::User::Id;
     using Room = arepa::game::Room;
     using RoomId = arepa::game::Room::Id;
@@ -101,31 +101,31 @@ public:
      * @param user The user.
      * @return The room, or nullopt if they aren't in a room.
      */
-    [[nodiscard]] std::optional<std::shared_ptr<Room>> find_user_room(const std::shared_ptr<User>& user);
+    [[nodiscard]] std::shared_ptr<Room> find_user_room(const std::shared_ptr<User>& user);
 
     /**
      * Finds the room that a given user is inside.
      *
      * @param user The user ID.
-     * @return The room, or nullopt if they aren't in a room.
+     * @return The room, or nullptr if they aren't in a room.
      */
-    [[nodiscard]] std::optional<std::shared_ptr<Room>> find_user_room(const UserId& user);
+    [[nodiscard]] std::shared_ptr<Room> find_user_room(const UserId& user);
 
     /**
      * Finds the room with a given room ID.
      *
      * @param room The room ID.
-     * @return The room, or nullopt if no such room exists.
+     * @return The room, or nullptr if no such room exists.
      */
-    [[nodiscard]] std::optional<std::shared_ptr<Room>> find_room(const RoomId& room);
+    [[nodiscard]] std::shared_ptr<Room> find_room(const RoomId& room);
 
     /**
      * Finds the User from a user ID.
      *
      * @param user The user ID.
-     * @return The user object, or nullopt if they don't have an associated object.
+     * @return The user object, or nullptr if they don't have an associated object.
      */
-    [[nodiscard]] std::optional<std::shared_ptr<User>> find_user(const UserId& user);
+    [[nodiscard]] std::shared_ptr<User> find_user(const UserId& user);
 
     /**
      * Adds a User object to the user map.

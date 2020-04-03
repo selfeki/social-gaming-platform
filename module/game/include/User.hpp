@@ -1,66 +1,34 @@
 #pragma once
 
-#include "UserNickname.hpp"
 #include "PlayerStats.hpp"
+#include "UserCommunication.hpp"
+#include "UserNickname.hpp"
 #include "UserStatus.hpp"
-#include "interface/UserNetworking.hpp"
 
 #include <arepa/networking/SessionId.hpp>
 
 #include <optional>
 
 namespace arepa::game {
-class Room;
 
 /**
- * A user.
+ * An interface representing a user.
  */
-class User {
-    friend Room;
+class User : public virtual UserCommunication {
 
 #pragma mark - Types -
 public:
     using Id = arepa::networking::SessionId;
-    using Stats = PlayerStats;
     using Name = UserNickname;
-    using Status = UserStatus;
-
-
-#pragma mark - Fields -
-private:
-    Status _status;
-    Stats _stats;
-    Name _name;
-    std::optional<Name> _nickname;
-    Id _id;
-    std::shared_ptr<UserNetworking> _io;
-
-
-#pragma mark - Fields (Public) -
-public:
-    /**
-     * The user's stats.
-     */
-    Stats stats;
-
-
-#pragma mark - Constructors -
-public:
-    /**
-     * Creates a new user instance.
-     * @param id The user's session ID.
-     * @param networking The user's networking interface.
-     */
-    explicit User(arepa::networking::SessionId id, std::shared_ptr<UserNetworking> networking);
 
 
 #pragma mark - Methods -
-
+public:
     /**
      * Gets the user's ID.
      * @return The user's ID.
      */
-    [[nodiscard]] const Id& id() const;
+    [[nodiscard]] virtual const Id& id() const = 0;
 
     /**
      * Gets the user's effective name.
@@ -68,72 +36,24 @@ public:
      *
      * @return The user's name.
      */
-    [[nodiscard]] const Name& name() const;
+    [[nodiscard]] virtual const Name& name() const = 0;
 
     /**
      * Gets the user's nickname.
      * @return A reference to the user's nickname.
      */
-    [[nodiscard]] const std::optional<Name>& nickname() const;
+    [[nodiscard]] virtual const std::optional<Name>& nickname() const = 0;
 
     /**
      * Sets the user's nickname.
      * @param name The user's new nickname.
      */
-    void set_nickname(Name name);
+    virtual void set_nickname(Name name) = 0;
 
     /**
      * Clears the user's nickname.
      */
-    void clear_nickname();
-
-    /**
-     * Checks if the user is a spectator.
-     * @return True if the user is a spectator.
-     */
-    [[nodiscard]] bool is_spectator() const;
-
-    /**
-     * Checks if the user is spectating a game.
-     * This will always be true if the user is a spectator.
-     * 
-     * @return True if the user is spectating a game.
-     */
-    [[nodiscard]] bool is_spectating() const;
-
-    /**
-     * Checks if the user is currently playing a game.
-     * @return True if the user is playing a game.
-     */
-    [[nodiscard]] bool is_playing() const;
-
-    /**
-     * Sends a packet to the user.
-     * @param packet The packet.
-     */
-    void send_packet(const UserNetworking::Packet& packet) const;
-
-    /**
-     * Sends a message to the user.
-     * This is for notifying the user of system events.
-     *
-     * @param message The message.
-     */
-    void send_system_message(const std::string& message) const;
-
-    /**
-     * Sends an error message to the user.
-     * This is for notifying the user of user errors.
-     *
-     * @param message The message.
-     */
-    void send_error_message(const std::string& message) const;
-
-    /**
-     * Sends a system message to the user.
-     * @param message The message.
-     */
-    void send(const std::string& message) const;
+    virtual void clear_nickname() = 0;
 
 
 #pragma mark - Operators -

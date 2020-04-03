@@ -24,18 +24,6 @@ public:
         USER_NICKNAME_TAKEN,
 
         /**
-         * The player is already a spectator in the room.
-         * Remove them as a spectator before trying to add them as a player.
-         */
-        PLAYER_IS_SPECTATOR,
-
-        /**
-         * The spectator is already a player in the room.
-         * Remove them as a player before trying to add them as a spectator.
-         */
-        SPECTATOR_IS_PLAYER,
-
-        /**
          * The game room is not found.
          */
         ROOM_NOT_FOUND,
@@ -49,6 +37,11 @@ public:
          * That can't be done during a game.
          */
         NOT_ALLOWED_DURING_GAME,
+
+        /**
+         * That option is invalid.
+         */
+        NOT_ALLOWED_OPTION,
 
     };
 
