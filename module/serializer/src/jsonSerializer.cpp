@@ -138,9 +138,9 @@ parseGameState(const json& j) {
     return state;
 }
 
-Environment
+ExpMap
 parseEnvironment(const json& j) {
-    Environment env;
+    ExpMap env;
     for (const auto& item : j.items()) {
         auto key = item.key();
         auto value = item.value();

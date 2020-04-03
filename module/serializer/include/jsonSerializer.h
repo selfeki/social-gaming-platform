@@ -43,7 +43,7 @@ parseDataKind(const json&);
 gameSpecification::GameState
 parseGameState(const json&);
 
-gameSpecification::Environment
+gameSpecification::ExpMap
 parseEnvironment(const json&);
 
 gameSpecification::Expression
