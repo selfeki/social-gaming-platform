@@ -31,6 +31,14 @@ SessionId::operator std::string() const {
     return this->to_string();
 }
 
+bool SessionId::operator<(const SessionId& id) const {
+    return this->_uuid < id._uuid;
+}
+
+bool SessionId::operator<(const boost::uuids::uuid& id) const {
+    return this->_uuid < id;
+}
+
 bool SessionId::operator==(const SessionId& id) const {
     return this->_uuid == id._uuid;
 }

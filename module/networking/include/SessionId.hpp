@@ -39,6 +39,9 @@ public:
     [[nodiscard]] explicit operator std::string() const;
     [[nodiscard]] operator boost::uuids::uuid() const;    // NOLINT
 
+    [[nodiscard]] bool operator<(const SessionId& id) const;
+    [[nodiscard]] bool operator<(const boost::uuids::uuid& id) const;
+
     [[nodiscard]] bool operator==(const SessionId& id) const;
     [[nodiscard]] bool operator==(const boost::uuids::uuid& id) const;
     [[nodiscard]] bool operator==(const std::string& id) const;
