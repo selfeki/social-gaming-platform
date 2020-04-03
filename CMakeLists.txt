@@ -49,3 +49,5 @@ message("-- Generated project file list")
 
 # Add custom targets.
 include("${CMAKE_CURRENT_LIST_DIR}/scripts/cmake/incl_target_format.cmake")
+
+add_subdirectory(test)

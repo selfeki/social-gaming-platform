@@ -10,6 +10,7 @@
 #include <random>
 #include <boost/variant.hpp>
 
+#include <sstream>
 
 namespace gameSpecification::rule {
 
