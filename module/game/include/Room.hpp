@@ -74,31 +74,11 @@ public:
 
 
 #pragma mark - Methods (Private) -
-
+private:
     /**
      * Joins a spectator into the room.
      */
     void _join_spectator();
-
-    /**
-     * Finds a player or spectator in the room.
-     * @param name_or_id The player name or ID.
-     * @return The player pointer, or nullopt.
-     */
-    template <typename T>
-    std::optional<std::shared_ptr<Player>> _find_player_or_spectator(T name_or_id) {
-        auto foundPlayer = this->find_player(name_or_id);
-        if (foundPlayer) {
-            return *foundPlayer;
-        }
-
-        auto foundSpectator = this->find_spectator(name_or_id);
-        if (foundSpectator) {
-            return *foundSpectator;
-        }
-
-        return std::nullopt;
-    }
 
 
 #pragma mark - Methods -
@@ -227,6 +207,33 @@ public:
      * @return The spectator object, or nullopt if not found.
      */
     [[nodiscard]] std::optional<std::shared_ptr<Player>> find_spectator(Player::Name spectator) const;
+
+    /**
+     * Finds a player or spectator in the room.
+     * @param name_or_id The player name or ID.
+     * @return The player pointer, or nullopt.
+     */
+    template <typename T>
+    [[nodiscard]] std::optional<std::shared_ptr<Player>> find_player_or_spectator(T name_or_id) {
+        auto foundPlayer = this->find_player(name_or_id);
+        if (foundPlayer) {
+            return *foundPlayer;
+        }
+
+        auto foundSpectator = this->find_spectator(name_or_id);
+        if (foundSpectator) {
+            return *foundSpectator;
+        }
+
+        return std::nullopt;
+    }
+
+    /**
+     * Removes a player or spectator from the room.
+     * This is a shortcut to checking for and calling the appropriate remove function.
+     * @param player_or_spectator The player/spectator pointer.
+     */
+    void remove_player_or_spectator(std::shared_ptr<Player> player_or_spectator);
 
     /**
      * Checks if the room is full.

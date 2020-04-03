@@ -216,6 +216,14 @@ std::optional<std::shared_ptr<Player>> Room::find_spectator(Player::Id spectator
     });
 }
 
+void Room::remove_player_or_spectator(std::shared_ptr<Player> player_or_spectator) {
+    if (player_or_spectator->is_spectator()) {
+        this->remove_spectator(*player_or_spectator);
+    } else {
+        this->remove_player(*player_or_spectator);
+    }
+}
+
 void Room::broadcast_message(const std::string& message) {
     for (auto& user : this->_players) {
         user->send(message);
@@ -228,7 +236,7 @@ void Room::broadcast_message(const std::string& message) {
 
 bool Room::process_command(Player::Id player, const arepa::command::Command& command) {
     // Get the player object.
-    std::optional<std::shared_ptr<Player>> playerPtr = this->_find_player_or_spectator(player);
+    std::optional<std::shared_ptr<Player>> playerPtr = this->find_player_or_spectator(player);
     if (!playerPtr) {
         // TODO(ethan): Log the warning.
         return false;
@@ -253,7 +261,7 @@ bool Room::process_command(Player::Id player, const arepa::command::Command& com
 
 bool Room::process_message(Player::Id player, const std::string& message) {
     // Get the player object.
-    std::optional<std::shared_ptr<Player>> find = this->_find_player_or_spectator(player);
+    std::optional<std::shared_ptr<Player>> find = this->find_player_or_spectator(player);
     if (!find) {
         // Player isn't in the room.
         // TODO(ethan): Log the warning.
