@@ -24,8 +24,8 @@ Room::Room()
 // ---------------------------------------------------------------------------------------------------------------------
 
 void Room::_join_spectator() {
-    auto next = std::find_if(this->_spectators.begin(), this->_spectators.end(), [](const std::shared_ptr<Player>& spec) {
-        return spec->_status == Player::Status::SPECTATOR_WAITLIST;
+    auto next = std::find_if(this->_spectators.begin(), this->_spectators.end(), [](const std::shared_ptr<User>& spec) {
+        return spec->_status == User::Status::SPECTATOR_WAITLIST;
     });
 
     if (next != this->_spectators.end()) {
@@ -43,7 +43,7 @@ const Room::Id& Room::id() const {
     return this->_id;
 }
 
-std::optional<std::shared_ptr<Player>> Room::owner() const {
+std::optional<std::shared_ptr<User>> Room::owner() const {
     return this->_owner;
 }
 
@@ -51,16 +51,16 @@ bool Room::is_full() const {
     return this->_players.size() >= this->player_limit();
 }
 
-const std::vector<std::shared_ptr<Player>>& Room::players() const {
+const std::vector<std::shared_ptr<User>>& Room::players() const {
     return this->_players;
 }
 
-const std::vector<std::shared_ptr<Player>>& Room::players_in_game() const {
+const std::vector<std::shared_ptr<User>>& Room::players_in_game() const {
     // TODO(ethan): When playing a game.
     return this->players();
 }
 
-const std::vector<std::shared_ptr<Player>>& Room::spectators() const {
+const std::vector<std::shared_ptr<User>>& Room::spectators() const {
     return this->_spectators;
 }
 
@@ -72,7 +72,7 @@ size_t Room::player_limit() const {
     return this->_player_limit;
 }
 
-void Room::add_spectator(const std::shared_ptr<Player>& spectator, bool waitlist = true) {
+void Room::add_spectator(const std::shared_ptr<User>& spectator, bool waitlist = true) {
     if (this->find_player(spectator->id())) {
         throw GameException(GameException::SPECTATOR_IS_PLAYER);
     }
@@ -80,17 +80,17 @@ void Room::add_spectator(const std::shared_ptr<Player>& spectator, bool waitlist
     // Add the spectator if they aren't already in the room.
     if (std::find(this->_spectators.begin(), this->_spectators.end(), spectator) == this->_spectators.end()) {
         this->_spectators.emplace_back(spectator);
-        spectator->_status = waitlist ? Player::Status::SPECTATOR_WAITLIST : Player::Status::SPECTATOR;
+        spectator->_status = waitlist ? User::Status::SPECTATOR_WAITLIST : User::Status::SPECTATOR;
     }
 }
 
-void Room::remove_spectator(const Player& spectator) {
+void Room::remove_spectator(const User& spectator) {
     this->remove_spectator(spectator.id());
 }
 
-void Room::remove_spectator(Player::Id spectator) {
+void Room::remove_spectator(User::Id spectator) {
     // Find the spectator in the room.
-    auto find = std::find_if(this->_spectators.begin(), this->_spectators.end(), [spectator](const std::shared_ptr<Player>& spec) {
+    auto find = std::find_if(this->_spectators.begin(), this->_spectators.end(), [spectator](const std::shared_ptr<User>& spec) {
         return spec->id() == spectator;
     });
 
@@ -99,11 +99,11 @@ void Room::remove_spectator(Player::Id spectator) {
     }
 
     // Remove the spectator.
-    (*find)->_status = Player::Status::UNKNOWN;
+    (*find)->_status = User::Status::UNKNOWN;
     this->_spectators.erase(find);
 }
 
-void Room::add_player(const std::shared_ptr<Player>& player) {
+void Room::add_player(const std::shared_ptr<User>& player) {
     if (this->find_spectator(player->id())) {
         throw GameException(GameException::PLAYER_IS_SPECTATOR);
     }
@@ -124,20 +124,20 @@ void Room::add_player(const std::shared_ptr<Player>& player) {
 
     // Add the player.
     this->_players.push_back(player);
-    player->_status = Player::Status::UNKNOWN;
+    player->_status = User::Status::UNKNOWN;
 
     // Broadcast and send an event to the game instance.
     this->broadcast_message(std::string("[+] ") + std::string(player->name()) + std::string(" joined the room."));
     // TODO(ethan): Player join event.
 }
 
-void Room::remove_player(const Player& player) {
+void Room::remove_player(const User& player) {
     this->remove_player(player.id());
 }
 
-void Room::remove_player(Player::Id player) {
+void Room::remove_player(User::Id player) {
     // Find the player in the room.
-    auto find = std::find_if(this->_players.begin(), this->_players.end(), [player](const std::shared_ptr<Player>& play) {
+    auto find = std::find_if(this->_players.begin(), this->_players.end(), [player](const std::shared_ptr<User>& play) {
         return play->id() == player;
     });
 
@@ -147,7 +147,7 @@ void Room::remove_player(Player::Id player) {
 
     // Change the owner if the player was the owner.
     if (this->_owner && (player == (*this->_owner)->id())) {
-        auto next = std::find_if(this->_players.begin(), this->_players.end(), [&player](const std::shared_ptr<Player>& play) {
+        auto next = std::find_if(this->_players.begin(), this->_players.end(), [&player](const std::shared_ptr<User>& play) {
             return play->id() != player;
         });
 
@@ -159,7 +159,7 @@ void Room::remove_player(Player::Id player) {
     }
 
     // Remove the player if they are in the room.
-    (*find)->_status = Player::Status::UNKNOWN;
+    (*find)->_status = User::Status::UNKNOWN;
     this->_players.erase(find);
 
     // Broadcast and send an event to the game instance.
@@ -182,7 +182,7 @@ void Room::set_player_limit(size_t limit, LimitBehavior behavior) {
     }
 }
 
-void Room::set_owner(std::shared_ptr<Player> owner) {
+void Room::set_owner(std::shared_ptr<User> owner) {
     // TODO(ethan): Owner change event.
 
     this->_owner = owner;
@@ -192,31 +192,31 @@ void Room::update_game() {
     // TODO(ethan): Update game call.
 }
 
-std::optional<std::shared_ptr<Player>> Room::find_player(Player::Name player) const {
-    return arepa::find_if(this->_players, [&player](const std::shared_ptr<Player>& other) {
+std::optional<std::shared_ptr<User>> Room::find_player(User::Name player) const {
+    return arepa::find_if(this->_players, [&player](const std::shared_ptr<User>& other) {
         return player == other->name();
     });
 }
 
-std::optional<std::shared_ptr<Player>> Room::find_player(Player::Id player) const {
-    return arepa::find_if(this->_players, [&player](const std::shared_ptr<Player>& other) {
+std::optional<std::shared_ptr<User>> Room::find_player(User::Id player) const {
+    return arepa::find_if(this->_players, [&player](const std::shared_ptr<User>& other) {
         return player == other->id();
     });
 }
 
-std::optional<std::shared_ptr<Player>> Room::find_spectator(Player::Name spectator) const {
-    return arepa::find_if(this->_spectators, [&spectator](const std::shared_ptr<Player>& other) {
+std::optional<std::shared_ptr<User>> Room::find_spectator(User::Name spectator) const {
+    return arepa::find_if(this->_spectators, [&spectator](const std::shared_ptr<User>& other) {
         return spectator == other->name();
     });
 }
 
-std::optional<std::shared_ptr<Player>> Room::find_spectator(Player::Id spectator) const {
-    return arepa::find_if(this->_spectators, [&spectator](const std::shared_ptr<Player>& other) {
+std::optional<std::shared_ptr<User>> Room::find_spectator(User::Id spectator) const {
+    return arepa::find_if(this->_spectators, [&spectator](const std::shared_ptr<User>& other) {
         return spectator == other->id();
     });
 }
 
-void Room::remove_player_or_spectator(std::shared_ptr<Player> player_or_spectator) {
+void Room::remove_player_or_spectator(std::shared_ptr<User> player_or_spectator) {
     if (player_or_spectator->is_spectator()) {
         this->remove_spectator(*player_or_spectator);
     } else {
@@ -234,9 +234,9 @@ void Room::broadcast_message(const std::string& message) {
     }
 }
 
-bool Room::process_command(Player::Id player, const arepa::command::Command& command) {
+bool Room::process_command(User::Id player, const arepa::command::Command& command) {
     // Get the player object.
-    std::optional<std::shared_ptr<Player>> playerPtr = this->find_player_or_spectator(player);
+    std::optional<std::shared_ptr<User>> playerPtr = this->find_player_or_spectator(player);
     if (!playerPtr) {
         // TODO(ethan): Log the warning.
         return false;
@@ -259,9 +259,9 @@ bool Room::process_command(Player::Id player, const arepa::command::Command& com
     return true;
 }
 
-bool Room::process_message(Player::Id player, const std::string& message) {
+bool Room::process_message(User::Id player, const std::string& message) {
     // Get the player object.
-    std::optional<std::shared_ptr<Player>> find = this->find_player_or_spectator(player);
+    std::optional<std::shared_ptr<User>> find = this->find_player_or_spectator(player);
     if (!find) {
         // Player isn't in the room.
         // TODO(ethan): Log the warning.

@@ -9,7 +9,7 @@ namespace arepa::game {
 /**
  * An interface for sending data to players.
  */
-class PlayerNetworking {
+class UserNetworking {
 #pragma mark - Types -
 public:
     using Packet = arepa::protocol::Packet;
@@ -17,7 +17,7 @@ public:
 
 #pragma mark - Constructors -
 public:
-    virtual ~PlayerNetworking() = default;
+    virtual ~UserNetworking() = default;
 
 
 #pragma mark - Virtual Methods -

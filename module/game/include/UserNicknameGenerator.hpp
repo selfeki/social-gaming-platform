@@ -1,6 +1,6 @@
 #pragma once
 
-#include "PlayerNickname.hpp"
+#include "UserNickname.hpp"
 
 #include <random>
 #include <vector>
@@ -10,10 +10,10 @@ namespace arepa::game {
 /**
  * A class that generates human-friendly player nicknames.
  */
-class PlayerNicknameGenerator {
+class UserNicknameGenerator {
 #pragma mark - Constants -
 public:
-    static PlayerNicknameGenerator DEFAULT;
+    static UserNicknameGenerator DEFAULT;
 
 
 #pragma mark - Fields -
@@ -23,8 +23,8 @@ private:
 
 #pragma mark - Fields (Public) -
 public:
-    std::vector<PlayerNickname> name_pool;
-    std::vector<PlayerNickname> adjective_pool;
+    std::vector<UserNickname> name_pool;
+    std::vector<UserNickname> adjective_pool;
 
 
 #pragma mark - Constructors -
@@ -32,7 +32,7 @@ public:
     /**
      * Creates a new, empty nickname generator.
      */
-    explicit PlayerNicknameGenerator();
+    explicit UserNicknameGenerator();
 
     /**
      * Creates a nickname generator.
@@ -40,7 +40,7 @@ public:
      * @param name_pool The name pool.
      * @param adjective_pool The adjective pool.
      */
-    explicit PlayerNicknameGenerator(std::vector<PlayerNickname> name_pool, std::vector<PlayerNickname> adjective_pool);
+    explicit UserNicknameGenerator(std::vector<UserNickname> name_pool, std::vector<UserNickname> adjective_pool);
 
 
 #pragma mark - Operators -
@@ -49,7 +49,7 @@ public:
      * Generates a new, likely-to-be-unique random nickname.
      * @return The new nickname.
      */
-    [[nodiscard]] PlayerNickname operator()();
+    [[nodiscard]] UserNickname operator()();
 };
 
 }

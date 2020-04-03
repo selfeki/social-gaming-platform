@@ -2,18 +2,18 @@
 
 #include <arepa/Util.hpp>
 #include <arepa/game/GameException.hpp>
-#include <arepa/game/PlayerNicknameGenerator.hpp>
-#include <arepa/game/interface/PlayerNetworking.hpp>
+#include <arepa/game/UserNicknameGenerator.hpp>
+#include <arepa/game/interface/UserNetworking.hpp>
 #include <arepa/server/Connection.hpp>
 
 using arepa::game::GameException;
-using arepa::game::PlayerNetworking;
-using arepa::game::PlayerNicknameGenerator;
+using arepa::game::UserNetworking;
+using arepa::game::UserNicknameGenerator;
 using arepa::server::Connection;
 using std::shared_ptr;
 
-using Player = GameManager::Player;
-using PlayerId = GameManager::PlayerId;
+using User = GameManager::User;
+using UserId = GameManager::User;
 using Room = GameManager::Room;
 using RoomId = GameManager::RoomId;
 
@@ -31,7 +31,7 @@ GameManager::GameManager(const serverConfig::Configuration& config) {
 #pragma mark - Methods (Internal) -
 // ---------------------------------------------------------------------------------------------------------------------
 
-bool room_has_nickname(const std::shared_ptr<Room>& room, const Player::Name& name) {
+bool room_has_nickname(const std::shared_ptr<Room>& room, const User::Name& name) {
     return room->find_spectator(name) || room->find_spectator(name);
 }
 
@@ -40,9 +40,9 @@ bool room_has_nickname(const std::shared_ptr<Room>& room, const Player::Name& na
 #pragma mark - Methods (Static) -
 // ---------------------------------------------------------------------------------------------------------------------
 
-shared_ptr<Player> GameManager::make_player(const shared_ptr<Connection>& connection) {
-    std::shared_ptr<PlayerNetworking> net = connection;
-    return std::make_shared<Player>(connection->session_id(), net);
+shared_ptr<User> GameManager::make_user(const shared_ptr<Connection>& connection) {
+    std::shared_ptr<UserNetworking> net = connection;
+    return std::make_shared<User>(connection->session_id(), net);
 }
 
 
@@ -69,12 +69,12 @@ shared_ptr<Room> GameManager::create_room() {
 void GameManager::destroy_room(const std::shared_ptr<Room>& room) {
     // Remove all players.
     for (auto player : room->players()) {
-        this->player_leave_room(player, room);
+        this->user_leave_room(player, room);
     }
 
     // Remove all spectators.
     for (auto player : room->spectators()) {
-        this->player_leave_room(player, room);
+        this->user_leave_room(player, room);
     }
 
     // Remove the room.
@@ -86,13 +86,13 @@ void GameManager::destroy_room(const std::shared_ptr<Room>& room) {
     this->_roomid_to_room.erase(roomRef);
 }
 
-void GameManager::player_leave_room(const std::shared_ptr<Player>& player, const std::shared_ptr<Room>& room) {
-    room->remove_player(player->id());
+void GameManager::user_leave_room(const std::shared_ptr<User>& user, const std::shared_ptr<Room>& room) {
+    room->remove_player(user->id());
 
-    // Remove from the Player <-> Room map.
-    auto find = this->_playerid_to_room.find(player->id());
-    if (find != this->_playerid_to_room.end()) {
-        this->_playerid_to_room.erase(find);
+    // Remove from the User <-> Room map.
+    auto find = this->_userid_to_room.find(user->id());
+    if (find != this->_userid_to_room.end()) {
+        this->_userid_to_room.erase(find);
     }
 
     // Remove the room (if empty).
@@ -101,79 +101,79 @@ void GameManager::player_leave_room(const std::shared_ptr<Player>& player, const
     }
 }
 
-void GameManager::player_join_room(const std::shared_ptr<Player>& player, const std::shared_ptr<Room>& room) {
-    if (this->find_player_room(player)) {
-        player->send_system_message("Error: You must leave your current room before joining another one.");
+void GameManager::user_join_room(const std::shared_ptr<User>& user, const std::shared_ptr<Room>& room) {
+    if (this->find_user_room(user)) {
+        user->send_system_message("Error: You must leave your current room before joining another one.");
         return;
     }
 
-    // Reset the player's nickname if need be.
-    if (room_has_nickname(room, player->name())) {
-        player->send_system_message("Your nickname is already used by somebody in the room you are joining.");
-        player->clear_nickname();
+    // Reset the user's nickname if need be.
+    if (room_has_nickname(room, user->name())) {
+        user->send_system_message("Your nickname is already used by somebody in the room you are joining.");
+        user->clear_nickname();
     }
 
-    // Generate a player nickname if need be.
-    if (!player->nickname()) {
-        auto nickname = PlayerNicknameGenerator::DEFAULT();
-        player->send_system_message("Your new nickname is: " + *nickname);
-        player->set_nickname(nickname);
+    // Generate a user nickname if need be.
+    if (!user->nickname()) {
+        auto nickname = UserNicknameGenerator::DEFAULT();
+        user->send_system_message("Your new nickname is: " + *nickname);
+        user->set_nickname(nickname);
     }
 
-    // Add the player to the room.
-    room->add_player(player);
+    // Add the user to the room.
+    room->add_player(user);
 
-    // Add to the Player <-> Room map.
-    this->_playerid_to_room.emplace(player->id(), room);
+    // Add to the User <-> Room map.
+    this->_userid_to_room.emplace(user->id(), room);
 }
 
-std::optional<std::shared_ptr<Player>> GameManager::find_player(const PlayerId& player) {
-    return arepa::find_in_map(this->_playerid_to_player, player);
+std::optional<std::shared_ptr<User>> GameManager::find_user(const UserId& user) {
+    return arepa::find_in_map(this->_userid_to_user, user);
 }
 
 std::optional<std::shared_ptr<Room>> GameManager::find_room(const RoomId& room) {
     return arepa::find_in_map(this->_roomid_to_room, room);
 }
 
-std::optional<std::shared_ptr<Room>> GameManager::find_player_room(const PlayerId& player) {
-    return arepa::find_in_map(this->_playerid_to_room, player);
+std::optional<std::shared_ptr<Room>> GameManager::find_user_room(const UserId& user) {
+    return arepa::find_in_map(this->_userid_to_room, user);
 }
 
-std::optional<std::shared_ptr<Room>> GameManager::find_player_room(const std::shared_ptr<Player>& player) {
-    return this->find_player_room(player->id());
+std::optional<std::shared_ptr<Room>> GameManager::find_user_room(const std::shared_ptr<User>& user) {
+    return this->find_user_room(user->id());
 }
 
-void GameManager::add_player(const std::shared_ptr<Player>& player) {
-    this->_playerid_to_player.emplace(player->id(), player);
+void GameManager::add_user(const std::shared_ptr<User>& user) {
+    this->_userid_to_user.emplace(user->id(), user);
 }
 
-void GameManager::remove_player(const std::shared_ptr<Player>& player) {
-    auto find = this->_playerid_to_player.find(player->id());
-    if (find == this->_playerid_to_player.end()) {
-        // TODO(ethan): Warning about removing a player when they aren't in the list.
+void GameManager::remove_user(const std::shared_ptr<User>& user) {
+    auto find = this->_userid_to_user.find(user->id());
+    if (find == this->_userid_to_user.end()) {
+        // TODO(ethan): Warning about removing a user when they aren't in the list.
         return;
     }
 
-    // Remove the player from their room.
-    auto room = this->find_player_room(find->second);
+    // Remove the user from their room.
+    auto room = this->find_user_room(find->second);
     if (room) {
-        this->player_leave_room(find->second, *room);
+        this->user_leave_room(find->second, *room);
     }
 }
 
-void GameManager::player_set_nickname(const std::shared_ptr<Player>& player, const Player::Name& name) {
-    auto room = this->find_player_room(player);
+void GameManager::user_set_nickname(const std::shared_ptr<User>& user, const User::Name& name) {
+    auto room = this->find_user_room(user);
     if (room) {
-        if (room_has_nickname(*room, player->name())) {
+        if (room_has_nickname(*room, user->name())) {
             throw GameException(GameException::USER_NICKNAME_TAKEN);
         }
 
-        if (player->is_playing()) {
+        if (user->is_playing()) {
             throw GameException(GameException::NOT_ALLOWED_DURING_GAME);
         }
 
-        (*room)->broadcast_message("[~] " + std::string(player->name()) + " is now known as " + std::string(name) + ".");
+        (*room)->broadcast_message("[~] " + std::string(user->name()) + " is now known as " + std::string(name) + ".");
     }
 
-    player->set_nickname(name);
+    user->set_nickname(name);
 }

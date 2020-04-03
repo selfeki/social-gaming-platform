@@ -3,8 +3,8 @@
 #include <arepa/command/CommandMap.hpp>
 #include <arepa/command/CommandName.hpp>
 #include <arepa/command/Executor.hpp>
-#include <arepa/game/Player.hpp>
 #include <arepa/game/Room.hpp>
+#include <arepa/game/User.hpp>
 #include <arepa/server/Connection.hpp>
 #include <arepa/server/Server.hpp>
 

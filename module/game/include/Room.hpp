@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Player.hpp"
 #include "RoomId.hpp"
+#include "User.hpp"
 
 #include <arepa/command/Command.hpp>
 #include <arepa/command/CommandMap.hpp>
@@ -17,12 +17,17 @@ namespace arepa::game {
 /**
  * A game room.
  * This is a room that allows users to chat and play games together.
+ *
+ * Terminology:
+ * - "user"      -- A human.
+ * - "player"    -- A user who is currently in a game, or waiting to start a game.
+ * - "spectator" -- A user who is watching games.
  */
 class Room {
 #pragma mark - Types -
 public:
     using Id = RoomId;
-    using CommandMap = arepa::command::CommandMap<Player&, Room&>;
+    using CommandMap = arepa::command::CommandMap<User&, Room&>;
     using CommandExecutor = CommandMap::Executor;
 
     enum class LimitBehavior {
@@ -40,13 +45,13 @@ public:
 
 #pragma mark - Fields -
 private:
-    std::optional<std::shared_ptr<Player>> _owner;
+    std::optional<std::shared_ptr<User>> _owner;
     std::chrono::system_clock::time_point _created_at;
     Id _id;
 
     size_t _player_limit;
-    std::vector<std::shared_ptr<Player>> _players;
-    std::vector<std::shared_ptr<Player>> _spectators;
+    std::vector<std::shared_ptr<User>> _players;
+    std::vector<std::shared_ptr<User>> _spectators;
 
     // GameInstance _game;
 
@@ -99,7 +104,7 @@ public:
      * Gets the players in this room.
      * @return The players in this room.
      */
-    [[nodiscard]] const std::vector<std::shared_ptr<Player>>& players() const;
+    [[nodiscard]] const std::vector<std::shared_ptr<User>>& players() const;
 
     /**
      * Gets the players currently playing a game.
@@ -107,13 +112,13 @@ public:
      *
      * @return The players currently playing a game.
      */
-    [[nodiscard]] const std::vector<std::shared_ptr<Player>>& players_in_game() const;
+    [[nodiscard]] const std::vector<std::shared_ptr<User>>& players_in_game() const;
 
     /**
      * Gets the spectators in this room.
      * @return The spectators in this room.
      */
-    [[nodiscard]] const std::vector<std::shared_ptr<Player>>& spectators() const;
+    [[nodiscard]] const std::vector<std::shared_ptr<User>>& spectators() const;
 
     /**
      * Gets the date when the room was created.
@@ -132,7 +137,7 @@ public:
      * Removes a player from the room.
      * @param player The player to remove.
      */
-    void remove_player(const Player& player);
+    void remove_player(const User& player);
 
     /**
      * Removes a player from the room.
@@ -140,19 +145,19 @@ public:
      *
      * @param player The ID of the player to remove.
      */
-    void remove_player(Player::Id player);
+    void remove_player(User::Id player);
 
     /**
      * Removes a spectator from the room.
      * @param spectator The spectator to remove.
      */
-    void remove_spectator(const Player& spectator);
+    void remove_spectator(const User& spectator);
 
     /**
      * Removes a spectator from the room.
      * @param spectator The spectator to remove.
      */
-    void remove_spectator(Player::Id spectator);
+    void remove_spectator(User::Id spectator);
 
     /**
      * Adds a player to the room.
@@ -161,20 +166,20 @@ public:
      * @throws GameException::ROOM_FULL When the room is full.
      * @param player The player to add.
      */
-    void add_player(const std::shared_ptr<Player>& player);
+    void add_player(const std::shared_ptr<User>& player);
 
     /**
      * Adds a spectator to the room.
      * @param spectator The spectator to add.
      * @param waitlist The spectator can be added to the game when a player leaves.
      */
-    void add_spectator(const std::shared_ptr<Player>& spectator, bool waitlist);
+    void add_spectator(const std::shared_ptr<User>& spectator, bool waitlist);
 
     /**
      * Gets the room owner.
      * @return The room owner. This will be nullopt when the room is empty.
      */
-    [[nodiscard]] std::optional<std::shared_ptr<Player>> owner() const;
+    [[nodiscard]] std::optional<std::shared_ptr<User>> owner() const;
 
     /**
      * Finds a player object in this room.
@@ -182,7 +187,7 @@ public:
      * @param player The player ID.
      * @return The player object, or nullopt if not found.
      */
-    [[nodiscard]] std::optional<std::shared_ptr<Player>> find_player(Player::Id player) const;
+    [[nodiscard]] std::optional<std::shared_ptr<User>> find_player(User::Id player) const;
 
     /**
      * Finds a spectator object in this room.
@@ -190,7 +195,7 @@ public:
      * @param player The spectator ID.
      * @return The spectator object, or nullopt if not found.
      */
-    [[nodiscard]] std::optional<std::shared_ptr<Player>> find_spectator(Player::Id spectator) const;
+    [[nodiscard]] std::optional<std::shared_ptr<User>> find_spectator(User::Id spectator) const;
 
     /**
      * Finds a player object in this room.
@@ -198,7 +203,7 @@ public:
      * @param player The player name.
      * @return The player object, or nullopt if not found.
      */
-    [[nodiscard]] std::optional<std::shared_ptr<Player>> find_player(Player::Name player) const;
+    [[nodiscard]] std::optional<std::shared_ptr<User>> find_player(User::Name player) const;
 
     /**
      * Finds a spectator object in this room.
@@ -206,7 +211,7 @@ public:
      * @param player The spectator name.
      * @return The spectator object, or nullopt if not found.
      */
-    [[nodiscard]] std::optional<std::shared_ptr<Player>> find_spectator(Player::Name spectator) const;
+    [[nodiscard]] std::optional<std::shared_ptr<User>> find_spectator(User::Name spectator) const;
 
     /**
      * Finds a player or spectator in the room.
@@ -214,7 +219,7 @@ public:
      * @return The player pointer, or nullopt.
      */
     template <typename T>
-    [[nodiscard]] std::optional<std::shared_ptr<Player>> find_player_or_spectator(T name_or_id) {
+    [[nodiscard]] std::optional<std::shared_ptr<User>> find_player_or_spectator(T name_or_id) {
         auto foundPlayer = this->find_player(name_or_id);
         if (foundPlayer) {
             return *foundPlayer;
@@ -233,7 +238,7 @@ public:
      * This is a shortcut to checking for and calling the appropriate remove function.
      * @param player_or_spectator The player/spectator pointer.
      */
-    void remove_player_or_spectator(std::shared_ptr<Player> player_or_spectator);
+    void remove_player_or_spectator(std::shared_ptr<User> player_or_spectator);
 
     /**
      * Checks if the room is full.
@@ -254,7 +259,7 @@ public:
      * @throws GameException::PLAYER_NOT_FOUND
      * @param owner The new owner.
      */
-    void set_owner(std::shared_ptr<Player> owner);
+    void set_owner(std::shared_ptr<User> owner);
 
     /**
      * Runs a tick on the game instance.
@@ -269,7 +274,7 @@ public:
      *
      * @return True if the message was handled by the room.
      */
-    bool process_message(Player::Id player, const std::string& message);
+    bool process_message(User::Id player, const std::string& message);
 
     /**
      * Processes a player or spectator's command.
@@ -279,7 +284,7 @@ public:
      *
      * @return True if the command was handled by the room.
      */
-    bool process_command(Player::Id player, const arepa::command::Command& command);
+    bool process_command(User::Id player, const arepa::command::Command& command);
 
 
 #pragma mark - Operators -

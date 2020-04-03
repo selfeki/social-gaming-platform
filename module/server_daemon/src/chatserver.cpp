@@ -29,11 +29,11 @@ void greet_user(arepa::server::Connection& user) {
  * @param command The command to execute.
  */
 void process_command(GameManager& manager, Client& client, Command& command) {
-    auto player_id = client.connection->session_id();
+    auto user_id = client.connection->session_id();
 
-    // If the player is in a room, let the room process their commands.
-    auto room = manager.find_player_room(player_id);
-    if (room && (*room)->process_command(player_id, command)) {
+    // If the user is in a room, let the room process their commands.
+    auto room = manager.find_user_room(user_id);
+    if (room && (*room)->process_command(user_id, command)) {
         return;
     }
 
@@ -57,15 +57,15 @@ void process_command(GameManager& manager, Client& client, Command& command) {
  * @param packet The message to process.
  */
 void process_message(GameManager& manager, Client& client, std::string message) {
-    auto player_id = client.connection->session_id();
-    auto room = manager.find_player_room(client.connection->id());
+    auto user_id = client.connection->session_id();
+    auto room = manager.find_user_room(client.connection->id());
 
     if (!room) {
         client.connection->send_system_message("You need to be in a room to send a message! /create or /join a room.");
         return;
     }
 
-    (*room)->process_message(player_id, message);
+    (*room)->process_message(user_id, message);
 }
 
 /**
@@ -133,16 +133,16 @@ int main(int argc, char* argv[]) {
     });
 
     server.on_accept([&manager](std::shared_ptr<arepa::server::Connection> connection) {
-        // Create the connection's player object.
-        auto player = GameManager::make_player(connection);
-        manager.add_player(player);
+        // Create the connection's user object.
+        auto user = GameManager::make_user(connection);
+        manager.add_user(user);
     });
 
     server.on_accept([&manager](std::shared_ptr<arepa::server::Connection> connection) {
-        // Destroy the connection's player object.
-        auto player = manager.find_player(connection->id());
-        if (player) {
-            manager.remove_player(*player);
+        // Destroy the connection's user object.
+        auto user = manager.find_user(connection->id());
+        if (user) {
+            manager.remove_user(*user);
         }
     });
 

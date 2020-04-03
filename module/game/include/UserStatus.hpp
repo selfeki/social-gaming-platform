@@ -1,7 +1,7 @@
 #pragma once
 
-#include "PlayerNickname.hpp"
 #include "PlayerStats.hpp"
+#include "UserNickname.hpp"
 
 #include <arepa/networking/SessionId.hpp>
 
@@ -12,7 +12,7 @@ namespace arepa::game {
 /**
  * A player's game Room status.
  */
-enum class PlayerStatus : int {
+enum class UserStatus : int {
 
     /**
      * The player status is unknown.

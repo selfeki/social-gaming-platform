@@ -1,9 +1,9 @@
 #pragma once
 
 #include <arepa/command/Executor.hpp>
-#include <arepa/game/Player.hpp>
 #include <arepa/game/Room.hpp>
 #include <arepa/game/RoomId.hpp>
+#include <arepa/game/User.hpp>
 #include <arepa/game_spec/GameSpecification.h>
 #include <arepa/server/Connection.hpp>
 #include <arepa/server_config/Config.h>
@@ -22,15 +22,15 @@
 class GameManager {
 #pragma mark - Types -
 public:
-    using Player = arepa::game::Player;
-    using PlayerId = arepa::game::Player::Id;
+    using User = arepa::game::User;
+    using UserId = arepa::game::User::Id;
     using Room = arepa::game::Room;
     using RoomId = arepa::game::Room::Id;
 
 #pragma mark - Fields -
 private:
-    std::unordered_map<PlayerId, std::shared_ptr<Player>> _playerid_to_player;
-    std::unordered_map<PlayerId, std::shared_ptr<Room>> _playerid_to_room;
+    std::unordered_map<UserId, std::shared_ptr<User>> _userid_to_user;
+    std::unordered_map<UserId, std::shared_ptr<Room>> _userid_to_room;
     std::unordered_map<RoomId, std::shared_ptr<Room>> _roomid_to_room;
 
 #pragma mark - Constructors -
@@ -45,13 +45,13 @@ public:
 #pragma mark - Methods (Static) -
 public:
     /**
-     * Create a Player shared pointer from a client connection.
+     * Create a User shared pointer from a client connection.
      * This will not prevent you from creating multiple copies.
      *
      * @param connection The client connection.
-     * @return The player shared pointer.
+     * @return The user shared pointer.
      */
-    static std::shared_ptr<Player> make_player(const std::shared_ptr<arepa::server::Connection>& connection);
+    static std::shared_ptr<User> make_user(const std::shared_ptr<arepa::server::Connection>& connection);
 
 
 #pragma mark - Methods (Public) -
@@ -70,46 +70,46 @@ public:
     void destroy_room(const std::shared_ptr<Room>& room);
 
     /**
-     * Adds a player to a room.
+     * Adds a user to a room.
      *
-     * @param player The player that will join the room.
+     * @param user The user that will join the room.
      * @param room The room to join.
      */
-    void player_join_room(const std::shared_ptr<Player>& player, const std::shared_ptr<Room>& room);
+    void user_join_room(const std::shared_ptr<User>& user, const std::shared_ptr<Room>& room);
 
     /**
-     * Removes a player from a room.
+     * Removes a user from a room.
      * 
-     * @param player The player that will leave the room.
+     * @param user The user that will leave the room.
      * @param room The room to leave.
      */
-    void player_leave_room(const std::shared_ptr<Player>& player, const std::shared_ptr<Room>& room);
+    void user_leave_room(const std::shared_ptr<User>& user, const std::shared_ptr<Room>& room);
 
     /**
-     * Sets a player's nickname.
+     * Sets a user's nickname.
      *
-     * @param player The player.
-     * @param name The player's new nickname.
+     * @param user The user.
+     * @param name The user's new nickname.
      *
      * @throws GameException::USER_NICKNAME_TAKEN If the user's nickname was taken.
      */
-    void player_set_nickname(const std::shared_ptr<Player>& player, const Player::Name& name);
+    void user_set_nickname(const std::shared_ptr<User>& user, const User::Name& name);
 
     /**
-     * Finds the room that a given player is inside.
+     * Finds the room that a given user is inside.
      * 
-     * @param player The player.
+     * @param user The user.
      * @return The room, or nullopt if they aren't in a room.
      */
-    [[nodiscard]] std::optional<std::shared_ptr<Room>> find_player_room(const std::shared_ptr<Player>& player);
+    [[nodiscard]] std::optional<std::shared_ptr<Room>> find_user_room(const std::shared_ptr<User>& user);
 
     /**
-     * Finds the room that a given player is inside.
+     * Finds the room that a given user is inside.
      *
-     * @param player The player ID.
+     * @param user The user ID.
      * @return The room, or nullopt if they aren't in a room.
      */
-    [[nodiscard]] std::optional<std::shared_ptr<Room>> find_player_room(const PlayerId& player);
+    [[nodiscard]] std::optional<std::shared_ptr<Room>> find_user_room(const UserId& user);
 
     /**
      * Finds the room with a given room ID.
@@ -120,26 +120,26 @@ public:
     [[nodiscard]] std::optional<std::shared_ptr<Room>> find_room(const RoomId& room);
 
     /**
-     * Finds the Player from a player ID.
+     * Finds the User from a user ID.
      *
-     * @param player The player ID.
-     * @return The player object, or nullopt if they don't have an associated object.
+     * @param user The user ID.
+     * @return The user object, or nullopt if they don't have an associated object.
      */
-    [[nodiscard]] std::optional<std::shared_ptr<Player>> find_player(const PlayerId& player);
+    [[nodiscard]] std::optional<std::shared_ptr<User>> find_user(const UserId& user);
 
     /**
-     * Adds a Player object to the player map.
-     * @param player The player object.
+     * Adds a User object to the user map.
+     * @param user The user object.
      */
-    void add_player(const std::shared_ptr<Player>& player);
+    void add_user(const std::shared_ptr<User>& user);
 
     /**
-     * Removes a Player object from the player map.
+     * Removes a User object from the user map.
      * This will also kick them from their room.
      * 
-     * @param player The player object.
+     * @param user The user object.
      */
-    void remove_player(const std::shared_ptr<Player>& player);
+    void remove_user(const std::shared_ptr<User>& user);
 };
 
 // }
