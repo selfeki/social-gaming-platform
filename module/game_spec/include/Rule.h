@@ -127,20 +127,6 @@ struct ParallelFor final : public Rule {
 };
 
 
-using uniqueName   = std::string;
-using UserNameList = std::vector<uniqueName>;
-
-struct InputChoice : public Rule {
-    virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
-
-    uniqueName targetUsers;
-    Expression prompt;
-    Expression choiceList;
-    Expression result;
-    std::optional<Expression> timeout;
-};
-
-
 struct Discard : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
 
@@ -193,7 +179,7 @@ struct InParallel : public Rule {
 struct Message : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
 
-    UserNameList targetUsers;
+    Expression targetUsers;
     Expression content;
 };
 
@@ -268,15 +254,21 @@ struct Sort : public Rule {
 };
 
 
+struct InputChoice : public Rule {
+    virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
+
+    Expression targetUser;
+    Expression prompt;
+    Expression choiceList;
+    Expression result;
+    std::optional<Expression> timeout;
+};
+
+
 struct InputText final : public Rule {
     virtual void accept(RuleVisitor& visitor) { visitor.visit(*this); }
 
-    InputText(Expression _to, Expression _prompt, Expression _result)
-        : to(_to)
-        , prompt(_prompt)
-        , result(_result) {}
-
-    Expression to;
+    Expression targetUser;
     Expression prompt;
     Expression result;
     // optional
@@ -287,7 +279,7 @@ struct InputText final : public Rule {
 struct InputVote : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
 
-    UserNameList targetUsers;
+    Expression targetUsers;
     Expression prompt;
     Expression choiceList;
     Expression resultMap;
@@ -313,10 +305,7 @@ struct Timer : public Rule {
 struct GlobalMessage final : public Rule {
     virtual void accept(RuleVisitor& visitor) { visitor.visit(*this); }
 
-    GlobalMessage(Expression _content)
-        : content(_content) {}
-
-    Expression content;
+    std::string content;
 };
 
 
