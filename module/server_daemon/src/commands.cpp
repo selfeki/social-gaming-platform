@@ -178,6 +178,11 @@ void init_room_commands(RoomCommandMap& map, GameManager& manager) {
             return;
         }
 
+        if (player == **player_to_kick) {
+            player.send_error_message("You cannot kick yourself. Use can /leave to exit the room.");
+            return;
+        }
+
         room.remove_player_or_spectator(*player_to_kick);
         player.send_system_message("You kicked out " + (**nickname) + ".");
     });
