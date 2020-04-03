@@ -6,10 +6,6 @@
 #include <iterator>
 #include <string_view>
 
-
-namespace gameSpecification::rule {
-
-
 int
 countUnclosedParenthesis(std::string str) {
     int count = 0;
@@ -25,7 +21,7 @@ countUnclosedParenthesis(std::string str) {
     into { "players", "elements", "weapon", "contains(weapon.name)" }
 */
 std::vector<std::string>
-InterpretVisitor::tokenizeDotNotation(std::string_view str) {
+tokenizeDotNotation(std::string_view str) {
     std::vector<std::string> names;
     std::stringstream ss(static_cast<std::string>(str));
     std::string buffer;
@@ -46,63 +42,6 @@ InterpretVisitor::tokenizeDotNotation(std::string_view str) {
     return names;
 }
 
-std::optional<Expression>
-InterpretVisitor::lookupLocalScope(const std::vector<std::string>& indices) {
-    ExpressionPtr expPtr(indices);
-    auto& context = getGameState().context;
-    auto found = std::find_if(context.rbegin(), context.rend(),
-        [&expPtr](auto& expMap) { return expPtr.getPtr(expMap); }
-    );
-    if (found == context.rend()) {
-        return { };
-    }
-    auto getPtrRes = expPtr.getPtr(*found);
-    auto resPtr    = getPtrRes.value();
-    return *resPtr;
-}
-
-std::optional<Expression>
-InterpretVisitor::lookupGlobalScope(const std::vector<std::string>& indices) {
-    ExpressionPtr expPtr(indices);
-    auto getPtrVars = expPtr.getPtr(state.variables);
-    if (getPtrVars) {
-        auto resPtr = getPtrVars.value();
-        return *resPtr;
-    }
-    auto getPtrConsts = expPtr.getPtr(state.constants);
-    if (getPtrConsts) {
-        auto resPtr = getPtrConsts.value();
-        return *resPtr;
-    }
-    return { };
-}
-
-std::optional<Expression>
-InterpretVisitor::lookupWithIndices(const std::vector<std::string>& indices) {
-    auto expLocalScope = lookupLocalScope(indices);
-    if (expLocalScope) {
-        return expLocalScope;
-    }
-    return lookupGlobalScope(indices);
-}
-
-std::optional<Expression>
-InterpretVisitor::lookupWithString(std::string_view name) {
-    auto indices = tokenizeDotNotation(name);
-    return lookupWithIndices(indices);
-}
-
-/*
-    parses strings like
-    "Round {round}. Choose your weapon!"
-    into  "Round 1. Choose your weapon!"
-*/
-std::string
-InterpretVisitor::interpolateString(std::string_view str) {
-    return "";
-    // todo
-}
-
 const auto ATTRIBUTES = { "upfrom", "size", "elements", "contains", "collect" };
 
 bool
@@ -119,6 +58,61 @@ Expression
 applyAttribute(const Expression& exp, std::string_view) {
     // todo
     return 0;
+}
+
+
+namespace gameSpecification::rule {
+
+
+std::optional<Expression*>
+InterpretVisitor::lookupLocalScope(const std::vector<std::string>& indices) {
+    ExpressionPtr expPtr(indices);
+    auto& context = state.context;
+    auto found = std::find_if(context.rbegin(), context.rend(),
+        [&expPtr](auto& expMap) { return expPtr.getPtr(expMap); }
+    );
+    if (found == context.rend()) {
+        return { };
+    }
+    auto res = expPtr.getPtr(*found);
+    return res;
+}
+
+std::optional<Expression*>
+InterpretVisitor::lookupGlobalScope(const std::vector<std::string>& indices) {
+    ExpressionPtr expPtr(indices);
+    auto ptrVars = expPtr.getPtr(state.variables);
+    if (ptrVars) {
+        return ptrVars;
+    }
+    auto ptrConsts = expPtr.getPtr(state.constants);
+    return ptrConsts;
+}
+
+std::optional<Expression*>
+InterpretVisitor::lookupWithIndices(const std::vector<std::string>& indices) {
+    auto expLocalScope = lookupLocalScope(indices);
+    if (expLocalScope) {
+        return expLocalScope;
+    }
+    return lookupGlobalScope(indices);
+}
+
+std::optional<Expression*>
+InterpretVisitor::lookupName(std::string_view name) {
+    auto indices = tokenizeDotNotation(name);
+    return lookupWithIndices(indices);
+}
+
+/*
+    parses strings like
+    "Round {round}. Choose your weapon!"
+    into  "Round 1. Choose your weapon!"
+*/
+std::string
+InterpretVisitor::interpolateString(std::string_view str) {
+    return "";
+    // todo
 }
 
  /* 
@@ -162,7 +156,7 @@ InterpretVisitor::evaluateExpression(const Expression& exp) {
     if (!lookupRes) {
         throw std::runtime_error("invalid object name in evaluateExpression: " + std::string(str));
     }
-    auto resExp = lookupRes.value();
+    auto resExp = *(lookupRes.value());
     // apply attributes
     for (const auto& attr : attributes) {
         resExp = applyAttribute(resExp, attr);
@@ -170,20 +164,101 @@ InterpretVisitor::evaluateExpression(const Expression& exp) {
     return resExp;
 }
 
+// todo: refactor redundancy with evaluateExpression
+// used to get pointers to objects in the state (needed for input rules).
+// This functions makes explicit that fact that the returned expression is
+// a pointer to an expression in state
+std::optional<Expression*>
+InterpretVisitor::getExpressionPtr(const Expression& name) {
+    assert(exp.type() != typeid(std::string));
+    auto str = castExp<std::string>(name);
+    return lookupName(str);
+}
+
+InputRequest
+InterpretVisitor::createInputRequest(InputType type,
+                   const Expression& targetUser,
+                   const Expression& promptExp,
+                   const Expression& choiceList,
+                   const Expression& resultExp,
+                   const std::optional<Expression>& timeout) {
+    // check if the targetUser field is valid
+    auto exp = evaluateExpression(targetUser);
+    auto user = castExp<ExpMap>(exp);
+    assert(user.map.count("name") > 0);
+
+    auto rawPrompt = castExp<std::string>(promptExp);
+    auto prompt = interpolateString(rawPrompt);
+    // extract list of strings as choices
+    auto choicesExp = evaluateExpression(choiceList);
+    auto choiceExpList = castExp<ExpList>(choicesExp).list;
+    std::vector<std::string> choices;
+    std::transform(choiceExpList.begin(), choiceExpList.end(), choices.begin(),
+        [](const auto& exp) { return castExp<std::string>(exp); }
+    );
+    // extract pointer to result
+    auto expPtr = getExpressionPtr(resultExp);
+    if (!expPtr) {
+        throw std::runtime_error("invalid result object in ");
+    }
+    auto* resultPtr = expPtr.value();
+    // todo: handle InputVote case
+    // result must by a map containing all entries in choices as keys
+
+    // extract timeout if provided
+    std::optional<int> tOut = {};
+    if (timeout) {
+        auto timeoutExp = evaluateExpression(timeout.value());
+        tOut = castExp<int>(timeoutExp);
+    }
+
+    return InputRequest({type, user, prompt, choices, resultPtr, tOut});
+}
+
+// load gamestate with input request details
 void 
 InterpretVisitor::visitImpl(InputChoice& rule) {
-    // load gamestate with input request details
-    //auto user = rule.targetUser;
-    auto rawPrompt = castExp<std::string>(rule.prompt);
-    auto prompt = interpolateString(rawPrompt);
-    auto choices = castExp<ExpList>(rule.choiceList);
-    auto resultStr = castExp<std::string>(rule.result);
-    auto names = tokenizeDotNotation(resultStr);
-    ExpressionPtr resultPtr(names);
+    auto inputRequest = createInputRequest(InputType::CHOICE, 
+                                           rule.targetUser, 
+                                           rule.prompt, 
+                                           rule.choiceList, 
+                                           rule.result, 
+                                           rule.timeout);
+    // todo:
     // set flag indicating need for user input
     // needUserInput = true;
-
+    state.enqueueInputRequest(inputRequest);
 }
+
+// todo: refactor redundancy
+void 
+InterpretVisitor::visitImpl(InputText& rule) {
+    auto inputRequest = createInputRequest(InputType::TEXT, 
+                                           rule.targetUser, 
+                                           rule.prompt, 
+                                           {}, 
+                                           rule.result, 
+                                           rule.timeout);
+    state.enqueueInputRequest(inputRequest);
+}
+
+// void 
+// InterpretVisitor::visitImpl(InputVote& rule) {
+//     // extract pointer to result
+//     auto resultStr = castExp<std::string>(rule.resultMap);
+//     auto indices = tokenizeDotNotation(resultStr);
+//     ExpressionPtr resultPtr(indices);
+
+//     for (const auto& user : rule.targetUsers) {
+//         auto inputRequest = createInputRequest(InputType::VOTE, 
+//                                                rule.targetUser, 
+//                                                rule.prompt, 
+//                                                rule.choiceList, 
+//                                                resultMap, 
+//                                                rule.timeout);
+//         state.enqueueInputRequest(inputRequest);
+//     }
+// }
 
 void 
 InterpretVisitor::visitImpl(ForEach& forEach) {
@@ -219,6 +294,8 @@ InterpretVisitor::visitImpl(ForEach& forEach) {
     rule_state->elemListIndex += 1;
 }
 
+// todo: make this use getExpressionPtr
+// the add rule needs to contain a pointer to an expression instead
 void 
 InterpretVisitor::visitImpl(Add& add) {
 
@@ -243,9 +320,8 @@ InterpretVisitor::visitImpl(Add& add) {
 
 void 
 InterpretVisitor::visitImpl(GlobalMessage& globalMessage) {
-    auto content = castExp<std::string>(globalMessage.content);
-    auto message = interpolateString(content);
-    state.enqueueGlobalMessage(message);
+    auto message = interpolateString(globalMessage.content);
+    state.enqueueGlobalMessage(std::move(message));
 }
 
 void
@@ -298,16 +374,6 @@ InterpretVisitor::visitImpl(Timer& timer) {
 }
 
 
-
-void 
-InterpretVisitor::visitImpl(InputText& inputText) {
-    
-}
-
-
-
-
-
 }    // namespace gameSpecification::rule
 
 
@@ -319,7 +385,7 @@ void
 testTokenizeExpression(GameState state) {
     InterpretVisitor interpreter(state);
     auto testStr = "players.elements.collect(player, player.weapon.contains(x)).size.contains(weapon)";
-    auto names   = interpreter.tokenizeDotNotation(testStr);
+    auto names   = tokenizeDotNotation(testStr);
     for (auto s : names) {
         std::cout << s << std::endl;
     }
@@ -334,7 +400,7 @@ testTokenizeExpression(GameState state) {
 }
 
 void
-testEvaluateExpression(GameState state) {
+testGetExpressionPtr(GameState state) {
     Expression exp1 = ExpMap({ { { "c", 1234 } } });
     Expression exp2 = ExpMap({ { { "b", exp1 } } });
     Expression exp3 = ExpMap({ { { "a", exp2 } } });
@@ -344,12 +410,18 @@ testEvaluateExpression(GameState state) {
 
     InterpretVisitor interpreter(state);
     auto res = interpreter.evaluateExpression(objectName);
-    boost::apply_visitor(printExpVisitor(), res);
-
     // output: 1234
+    boost::apply_visitor(printExpVisitor(), res);
+    std::cout << std::endl;
+
+    auto* ptr = interpreter.getExpressionPtr(objectName).value();
+    *ptr = 5678;
+    res = interpreter.evaluateExpression(objectName);
+    // output: 5678
+    boost::apply_visitor(printExpVisitor(), res);
+    std::cout << std::endl;
+
 }
-
-
 
 //test interpreter fn's
 int main() {
@@ -357,6 +429,6 @@ int main() {
     std::cout << "------------ testTokenizeExpression --------------" << std::endl;
     testTokenizeExpression(state);
     std::cout << "------------ testEvaluateExpression --------------" << std::endl;
-    testEvaluateExpression(state);
+    testGetExpressionPtr(state);
     return 0;
 }

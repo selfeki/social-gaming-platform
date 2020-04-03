@@ -29,42 +29,43 @@ public:
 
     void visitImpl(rule::Timer&);
 
-
-
     void
     setGameState(GameState& gs) { state = gs; }
 
     GameState&
     getGameState() { return state; }
 
-    // made public for testing purposes
-    std::vector<std::string>
-    tokenizeDotNotation(std::string_view);
-
     Expression
     evaluateExpression(const Expression&);
-    
-private:
 
-    std::optional<Expression>
+    std::optional<Expression*>
+    getExpressionPtr(const Expression&);
+
+private:
+    std::optional<Expression*>
     lookupLocalScope(const std::vector<std::string>&);
 
-    std::optional<Expression>
+    std::optional<Expression*>
     lookupGlobalScope(const std::vector<std::string>&);
 
-    std::optional<Expression>
+    std::optional<Expression*>
     lookupWithIndices(const std::vector<std::string>&);
 
-    std::optional<Expression>
-    lookupWithString(std::string_view);
+    std::optional<Expression*>
+    lookupName(std::string_view);
 
     std::string
     interpolateString(const std::string_view);
 
+    InputRequest
+    createInputRequest(InputType,
+                       const Expression&,
+                       const Expression&,
+                       const Expression&,
+                       const Expression&,
+                       const std::optional<Expression>&);
+
     GameState& state;
-
-
-
 
 };
 

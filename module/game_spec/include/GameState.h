@@ -41,29 +41,25 @@ struct RuleState {
 
 };
 
-typedef std::stack<RuleState> RuleStateStack;
-
-// A GameState is the input and output of the DSLInterpreter
-
-using uniqueName = rule::uniqueName;
-
 
 struct GameMessage {
-    uniqueName targetUser;
+    ExpMap targetUser;
     std::string content;
 };
 
+enum InputType{ CHOICE, TEXT, VOTE };
 
 struct InputRequest {
-    uniqueName  targetUser;
+    InputType type;
+    ExpMap targetUser;
     std::string prompt;
     std::vector<std::string> choices;
-    ExpressionPtr resultPtr;
+    Expression* resultPtr;
     std::optional<int> timeout;
 };
 
-// keeping this for legacy code
-using Environment = ExpMap;
+
+using RuleStateStack = std::stack<RuleState>;
 
 struct GameState {
     ExpMap constants;
@@ -92,15 +88,15 @@ struct GameState {
     }
 
     void
-    enqueueInputRequest(uniqueName name, const std::string message) {
+    enqueueInputRequest(const InputRequest& request) {
         // todo: check if name exists in the game
-        messageQueue.push_back({name, message});
+        inputRequests.push_back(request);
     }
 
     void
-    enqueueMessage(uniqueName name, const std::string message) {
+    enqueueMessage(const ExpMap& userData, const std::string message) {
         // todo: check if name exists in the game
-        messageQueue.push_back({name, message});
+        messageQueue.push_back({userData, std::move(message)});
     }
 
     void
@@ -108,11 +104,9 @@ struct GameState {
         for (auto userTy : {"players", "audience"}) {
             auto users = castExp<ExpList>(variables.map[userTy]);
             for (const auto& exp : users.list) {
-                auto userExpMap = castExp<ExpMap>(exp);
-                assert(user.count("name") > 0);
-                auto nameExp = userExpMap.map["name"];
-                std::string name = castExp<std::string>(nameExp);
-                enqueueMessage(name, message);
+                auto userData = castExp<ExpMap>(exp);
+                assert(userData.map.count("name") > 0);
+                enqueueMessage(userData, message);
             }
         }
     }
