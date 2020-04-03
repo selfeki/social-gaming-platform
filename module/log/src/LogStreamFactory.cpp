@@ -16,4 +16,4 @@ LogStreamFactory::LogStreamFactory(std::shared_ptr<Adapter> adapter)
 LogStreamFactory::LogStreamFactory(std::string module) noexcept
     : _module(std::move(module)) {}
 
-LogStreamFactory::LogStreamFactory() noexcept {}
+LogStreamFactory::LogStreamFactory() noexcept = default;
