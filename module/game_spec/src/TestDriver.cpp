@@ -2,8 +2,8 @@
 
 #include "Expression.h"
 #include "ExpressionPtr.h"
+#include "GameState.h"
 
-#include <boost/variant/polymorphic_get.hpp>
 #include <iostream>
 #include <string>
 
@@ -16,8 +16,8 @@ void testExpressionPtr() {
     Expression exp1 = ExpMap({ { { "c", 1 } } });
     Expression exp2 = ExpMap({ { { "b", exp1 } } });
     Expression exp3 = ExpMap({ { { "a", exp2 } } });
-    ExpMap& mapRef = boost::polymorphic_strict_get<ExpMap>(exp3);
-    ExpMap mapCopy = boost::polymorphic_strict_get<ExpMap>(exp3);
+    ExpMap& mapRef = castExpUnsafe<ExpMap>(exp3);
+    ExpMap mapCopy = castExpUnsafe<ExpMap>(exp3);
 
     ExpressionPtr expPtr { { "a", "b", "c" } };
     auto PtrCopy = expPtr.getPtr(mapCopy);
@@ -54,7 +54,7 @@ void testPrintExpVisitor() {
     // Expression exp3 = "hello";
     // does not work; "hello" gets implicitly converted to bool
     // see https://stackoverflow.com/questions/13268608/boostvariant-why-is-const-char-converted-to-bool
-    Expression stringExp = std::string_view("hello");
+    Expression stringExp = std::string("hello");
     boost::apply_visitor(printExpVisitor(), stringExp);
     std::cout << std::endl;
 
@@ -62,7 +62,7 @@ void testPrintExpVisitor() {
     boost::apply_visitor(printExpVisitor(), expMap);
     std::cout << std::endl;
 
-    Expression expList = ExpList({ { 1, false, std::string_view("hello") } });
+    Expression expList = ExpList({ { 1, false, std::string("hello") } });
     boost::apply_visitor(printExpVisitor(), expList);
     std::cout << std::endl;
 
@@ -74,7 +74,6 @@ void testPrintExpVisitor() {
     boost::apply_visitor(printExpVisitor(), nestedList);
     std::cout << std::endl;
 }
-
 
 int main() {
     std::cout << "------------ testPrintExpVisitor --------------" << std::endl;

@@ -5,6 +5,7 @@
 #include <boost/variant.hpp>
 #include <boost/variant/recursive_wrapper.hpp>
 #include <boost/variant/variant.hpp>
+#include <boost/variant/polymorphic_get.hpp>
 #include <iostream>
 #include <string_view>
 
@@ -15,20 +16,51 @@ namespace gameSpecification {
 struct ExpMap;
 struct ExpList;
 
+
 using Expression = boost::variant<
     boost::recursive_wrapper<ExpMap>,
     boost::recursive_wrapper<ExpList>,
     int,
     bool,
-    std::string_view>;
+    std::string>;
+
 
 struct ExpMap {
-    MapWrapper<std::string_view, Expression> map;
+    MapWrapper<std::string, Expression> map;
 };
+
 
 struct ExpList {
     std::vector<Expression> list;
+    
+    size_t
+    getSize() { return list.size(); }
 };
+
+
+template<class SubTy>
+SubTy
+castExp(const Expression& exp) {
+    SubTy res;
+    try {
+        res = boost::polymorphic_strict_get<SubTy>(exp);
+    } catch (boost::bad_get e) {
+        throw std::runtime_error("invalid castExp");
+    }
+    return res;
+}
+
+// returns mutable subTy
+template<class SubTy>
+SubTy&
+castExpUnsafe(Expression& exp) {
+    try {
+        SubTy& res = boost::polymorphic_strict_get<SubTy>(exp);
+        return res;
+    } catch (boost::bad_get e) {
+        throw std::runtime_error("invalid castExpUnsafe");
+    }
+}
 
 // For debugging purposes
 class printExpVisitor : public boost::static_visitor<void> {
@@ -39,7 +71,7 @@ public:
         std::cout << i;
     }
 
-    void operator()(const std::string_view str) const {
+    void operator()(const std::string& str) const {
         std::cout << str;
     }
 

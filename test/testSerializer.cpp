@@ -235,9 +235,10 @@ TEST(jsonSerializerTest, parseExpression_string) {
     })"_json;
 
     gameSpecification::Expression stub;
+    //casting to string view before assigning to expression
     stub = jsonSerializer::parseExpression(exp_stub["value1"]);
 
-    EXPECT_TRUE(boost::get<std::string_view>(stub) == "test");
+    EXPECT_TRUE(boost::get<std::string>(stub) =="test");
 }
 
 TEST(jsonSerializerTest, parseExpression_int) {
@@ -270,7 +271,7 @@ TEST(jsonSerializerTest, parseExpression_expmap) {
     gameSpecification::Expression stub;
     stub = jsonSerializer::parseExpression(exp_stub["value1"]);
     
-    EXPECT_TRUE(boost::get<std::string_view>(boost::get<gameSpecification::ExpMap>(stub).map["name"]) == "test");
+    EXPECT_TRUE(boost::get<std::string>(boost::get<gameSpecification::ExpMap>(stub).map["name"]) == "test");
 }
 
 /*

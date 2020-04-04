@@ -3,96 +3,117 @@
 #include "Expression.h"
 #include "ExpressionPtr.h"
 #include "MapWrapper.h"
+#include "Rule.h"
+#include "Timer.h"
 
 #include <optional>
 #include <stack>
 #include <string_view>
 
+
 namespace gameSpecification {
 
+struct RuleState {
 
-// A GameState is the input and output of the DSLInterpreter
+    RuleState(rule::Rule* _rule) : rule(_rule), 
+        finished(false), needsInput(false), nestedRulesInProgess(false),
+        elemListIndex(0) {
+        this->parent = rule->parent;
+        this->next = &(*rule->next);
+        this->nested = &(*rule->nested);
+    }
 
-using GameMessage = std::string_view;
+    rule::Rule* rule;
+    rule::Rule* parent;
+    rule::Rule* next;
+    rule::Rule* nested;
+    
+    //put any stateful things required to execute a rule in this structure.
+    //TODO: may have to implement inheritance on this structure, for every rule, (visitor pattern appropriate here?)
+    bool finished;
+    bool needsInput;
+    bool nestedRulesInProgess;
 
-using uniqueName = std::string_view;
+    //foreach rule only
+    int elemListIndex;
 
-struct GamePlayer {
-    uniqueName name;
-    std::vector<GameMessage> messages;
+    //etc... *sigh*
+
 };
 
-struct GameAudience {
-    uniqueName name;
-    std::vector<GameMessage> messages;
+
+struct GameMessage {
+    ExpMap targetUser;
+    std::string content;
 };
+
+enum InputType{ CHOICE, TEXT, VOTE };
 
 struct InputRequest {
-    uniqueName targetUser;
-    // note: choices, if any, are captured in the prompt
-    std::string_view prompt;
-    ExpressionPtr resultPtr;
+    InputType type;
+    ExpMap targetUser;
+    std::string prompt;
+    std::vector<std::string> choices;
+    Expression* resultPtr;
     std::optional<int> timeout;
 };
 
-using Environment = ExpMap;
+
+using RuleStateStack = std::stack<RuleState>;
 
 struct GameState {
-    Environment constants;
-    Environment variables;
-    Environment perPlayer;
-    Environment perAudience;
-    // keeps track of which variables are in scope
-    std::stack<Environment> context;
+    ExpMap constants;
+    ExpMap variables;
+    ExpMap perPlayer;
+    ExpMap perAudience;
 
+    // keeps track of local variables
+    std::vector<ExpMap> context;
+    RuleStateStack ruleStateStack;
+    std::vector<TimerObject> timerList;
+
+    // Design: should these 2 be combined?
     // stores input requests to be delivered to users
     std::vector<InputRequest> inputRequests;
+    std::vector<GameMessage>  messageQueue;
 
-    // player exclusive data contained here or in userStates?
-    // A user might have game-agnostic data
-    std::vector<GamePlayer> players;
-    std::vector<GameAudience> audience;
-
-
-    void enterScope() {
-        context.emplace();
+    void 
+    enterScope() {
+        context.emplace_back();
     }
 
-    void exitScope() {
-        context.pop();
+    void 
+    exitScope() {
+        context.pop_back();
     }
 
-    void enqueueMessage(uniqueName name, GameMessage message) {
-        auto it = std::find_if(players.begin(), players.end(),
-            [&name](const auto& player) { return player.name == name; });
-        if (it != players.end()) {
-            it->messages.push_back(message);
-            return;
+    void
+    enqueueInputRequest(const InputRequest& request) {
+        // todo: check if name exists in the game
+        inputRequests.push_back(request);
+    }
+
+    void
+    enqueueMessage(const ExpMap& userData, const std::string message) {
+        // todo: check if name exists in the game
+        messageQueue.push_back({userData, std::move(message)});
+    }
+
+    void
+    enqueueGlobalMessage(const std::string message) {
+        for (auto userTy : {"players", "audience"}) {
+            auto users = castExp<ExpList>(variables.map[userTy]);
+            for (const auto& exp : users.list) {
+                auto userData = castExp<ExpMap>(exp);
+                assert(userData.map.count("name") > 0);
+                enqueueMessage(userData, message);
+            }
         }
-        it = std::find_if(players.begin(), players.end(),
-            [&name](const auto& player) { return player.name == name; });
-        if (it != players.end()) {
-            it->messages.push_back(message);
-        }
-    }
-
-    void enqueuePlayersMessage(GameMessage message) {
-        for (const auto& player : players) {
-            enqueueMessage(player.name, message);
-        }
-    }
-
-    void enqueueAudienceMessage(GameMessage message) {
-        for (const auto& aud : audience) {
-            enqueueMessage(aud.name, message);
-        }
-    }
-
-    void enqueueGlobalMessage(GameMessage message) {
-        enqueuePlayersMessage(message);
-        enqueueAudienceMessage(message);
     }
 };
 
 
+
+
 }    // namespace gameSpecification
+

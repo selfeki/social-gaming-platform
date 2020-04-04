@@ -3,7 +3,6 @@
 #include "PacketException.hpp"
 
 #include <arepa/networking/Socket.hpp>
-#include <arepa/protocol/Message.hpp>
 
 #include <google/protobuf/any.pb.h>
 #include <memory>
