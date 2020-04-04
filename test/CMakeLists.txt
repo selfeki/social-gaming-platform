@@ -6,7 +6,9 @@ add_executable(runAllTests
   # Add all new test files to the list here.
   # Place each file name on a separate line.
   testSerializer.cpp # This file is a placeholder and tests nothing.
+  TestRules.cpp
 )
+
 
 set_target_properties(runAllTests
   PROPERTIES

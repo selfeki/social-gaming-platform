@@ -151,6 +151,10 @@ struct InputChoice : public Rule {
 struct Discard : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
 
+    Discard(Expression _fromList, Expression _count)
+        : fromList(_fromList),
+          count(_count) {}
+
     Expression fromList;
     Expression count;
 };
@@ -159,7 +163,10 @@ struct Discard : public Rule {
 struct Reverse : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
 
+    Reverse(Expression _list)
+        : list(_list) {}
     Expression list;
+
 };
 
 
@@ -173,6 +180,9 @@ struct Extend : public Rule {
 
 struct Shuffle : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
+
+    Shuffle(Expression _list)
+        : list(_list) {}
 
     Expression list;
 };

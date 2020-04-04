@@ -73,6 +73,16 @@ evaluateEquality(const Expression exp1, const Expression exp2, const std::string
         return v1 > v2;
 }
 
+std::vector<std::string> tokenizer(std::string_view str, std::string_view symbol){
+	int start;
+	int end = 0;
+    std::vector<std::string> output ;
+	while ((start = str.find_first_not_of(symbol, end)) != std::string::npos){
+        end = str.find(symbol, start);
+		output.push_back(static_cast<std::string>(str.substr(start, end - start)));
+	}
+    return output ;
+}
 // returns the list attribute after evaluating the 'element', 'Collect' condition
 // {list name, attribute of list, 'contains'/'collect', contains attribute/ collect conditions}
 // e.g players.elements.collect(player, player.weapon == weapon.beats)
@@ -80,17 +90,25 @@ std::vector<std::string_view>
 evaluatelistExp(const Expression list){;
     auto listString = castExp<std::string_view>(list);
     auto openingBrackIndex = listString.find("(");
-    auto beforeBracket = tokenizeDotNotation(listString.substr(0, openingBrackIndex-1));
-    auto actualList = beforeBracket[0];
+    auto beforeBracket = tokenizer(listString.substr(0, openingBrackIndex), ".");
+    auto actualList = static_cast<std::string_view>(beforeBracket[0]);
     auto attribute = beforeBracket[2];
     std::string_view contains_collect;
     if(attribute == "collect"){
         contains_collect = beforeBracket[2];
-    }else{
+    }else if(beforeBracket.size()>3){
         contains_collect = beforeBracket[3];
+    }else{
+        contains_collect = "none";
     }
-    auto condition = listString.substr(openingBrackIndex+1, listString.length()-2);
-    std::vector<std::string_view> result = {actualList, attribute, contains_collect, condition};
+    std::string condition = "none";
+    if(openingBrackIndex !=std::string::npos ){
+        auto end = listString.length() ;
+        condition = listString.substr(openingBrackIndex+1, listString.length()-2);
+        // sub string does not eliminae the last string so using pop back
+        condition.pop_back();
+    }
+    std::vector<std::string_view> result{actualList, attribute, contains_collect, condition};
     return result;
 
 }
@@ -120,9 +138,11 @@ getlistAttribute(const ExpList list, Expression attribute){
     ExpList result;
     auto it = list.list.begin();
     while(it != list.list.end()){
-        ExpMap map = castExp<ExpMap>(*it);
-        auto itrToAttribute = map.map.find(castExp<std::string_view>(attribute));
-        if(itrToAttribute != castExp<ExpMap>(map).map.end()){
+        ExpMap mapper = castExp<ExpMap>(*it);
+        auto itr  = mapper.map.begin();
+        auto actualMap = castExp<ExpMap>(itr->second); // map1
+        auto itrToAttribute = actualMap.map.find(castExp<std::string_view>(attribute));
+        if(itrToAttribute != actualMap.map.end()){
             result.list.push_back(itrToAttribute->second);
         }
         it++;
@@ -262,8 +282,11 @@ void InterpretVisitor::visitImpl(Reverse& reverse){
         // todo:: Report Error - list not Found
         return;
     }
-    std::reverse(castExp<ExpList>(it->second).list.begin(), 
-                                    castExp<ExpList>(it->second).list.end());
+    auto secondList = castExp<ExpList>(it->second) ;
+    std::reverse(secondList.list.begin(), 
+                                    secondList.list.end());
+    auto li  = secondList.list.begin();
+    currentState.variables.map.at(listName) = secondList;
     // update state
     this->setGameState(currentState);
 }
@@ -280,9 +303,11 @@ void InterpretVisitor::visitImpl(Shuffle& shuffle){
     }
     // random number generator
     auto myrandom = std::default_random_engine {};
-    std::shuffle(castExp<ExpList>(it->second).list.begin(), 
-                                castExp<ExpList>(it->second).list.end(), myrandom);
-    // // update state
+    auto secondList = castExp<ExpList>(it->second);
+    std::shuffle(secondList.list.begin(), 
+                                secondList.list.end(), myrandom);
+    // update state
+    currentState.variables.map.at(listName) = secondList;
     this->setGameState(currentState);
 }
 
@@ -290,12 +315,14 @@ void InterpretVisitor::visitImpl(Shuffle& shuffle){
         //name of list 
         auto listExpressionEval = evaluatelistExp(discard.fromList);
         auto listName = listExpressionEval[0];
+        printf("list name %s\n", listName);
         auto currentState = this->getGameState();
         auto it = currentState.variables.map.find(listName);
         auto count  = castExp<int>(discard.count);
-        // check if 'Collect' list expression
+        // // check if 'Collect' list expression
         if(it == currentState.variables.map.end()){
             //todo :: report error
+            printf("Not found\n");
             return;
         }
          ExpList actualList = castExp<ExpList>(it->second);
@@ -304,15 +331,18 @@ void InterpretVisitor::visitImpl(Shuffle& shuffle){
         }else{
             actualList = getlistAttribute(actualList, listExpressionEval[1]);
         }
-        if(count > actualList.list.size()){
-            return;
+        for(auto mm: actualList.list){
+            std::cout<<castExp<std::string_view>(mm)<<std::endl;
         }
-        while(count > 0){
-            actualList.list.erase(actualList.list.begin());
-            count--;
-        }
-        it->second  = actualList;
-        this->setGameState(currentState);
+        // if(count > actualList.list.size()){
+        //     return;
+        // }
+        // while(count > 0){
+        //     actualList.list.erase(actualList.list.begin());
+        //     count--;
+        // }
+        // it->second  = actualList;
+        // this->setGameState(currentState);
     }
 
 void InterpretVisitor::visitImpl(rule::Deal& deal){
