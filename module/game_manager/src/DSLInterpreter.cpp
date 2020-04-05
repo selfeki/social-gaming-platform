@@ -6,6 +6,8 @@
 #include <iterator>
 #include <string_view>
 #include <sstream>
+#include <string>
+#include <boost/lexical_cast.hpp>
 
 int
 countUnclosedParenthesis(std::string str) {
@@ -54,10 +56,90 @@ isAttribute(const std::string_view str) {
     }
     return false;
 }
+std::string_view
+insideParenthesis(const std::string_view str){
+    std::size_t openParentheses = str.find("(");
+    int digitStart = openParentheses+1;
+    std::size_t closeParentheses = str.find(")");
+    return str.substr(digitStart,closeParentheses-digitStart);
+}
+Expression
+applySizeAttribute(const Expression& exp){
+    try{
+        std::cout <<"size";
+        auto temp = castExp<ExpList>(exp);
+        int size = temp.getSize();
+        Expression ret = Expression(size);
+        return ret;
+    }
+    catch(const std::exception& e){
+        std::cout<<"something wrong in size";
+    }
+}
 
 Expression
-applyAttribute(const Expression& exp, std::string_view) {
+applyUpFromAttribute(const Expression& exp, std::string_view attr){
+    std::vector<Expression> resVec = std::vector<Expression>();
+    if(exp.which() !=2 ) {
+        std::cout << "something wrong in upfrom";
+        //throw some error
+    }
+    else{
+        auto substr = insideParenthesis(attr);
+        int lowerLim = boost::lexical_cast<int>(substr);
+        int upperLim = castExp<int>(exp);
+        for(int i = lowerLim; i <= upperLim; i++){
+            Expression num = Expression(i);
+            resVec.push_back(num);
+        }
+    }
+    ExpList retList = ExpList({resVec});
+    return Expression(retList);
+}
+
+Expression
+applyContainsAttribute(const Expression& exp, std::string_view attr){
+    if(exp.which() !=1 ) {
+        std::cout << "something wrong in contains";
+        //throw some error
+    }
+    else {
+        auto substr = insideParenthesis(attr);
+        int key = boost::lexical_cast<int>(substr);
+        //boost::apply_visitor(printExpVisitor(),exp);
+        auto attrExpList = castExp<ExpList>(exp).list;
+        for(const auto & elem : attrExpList){
+            //hardcoded for int POC
+            if (boost::get<int>(elem) == key){
+                return Expression(true);
+            }
+        }
+    }
+    return Expression(false);
+}
+
+Expression
+applyCollectAttribute(const Expression& exp, std::string_view attr){
+
+}
+
+
+Expression
+applyAttribute(const Expression& exp, std::string_view attr) {
     // todo
+    if (attr == "size"){
+       return applySizeAttribute(exp);
+    }
+    else if(attr.find("upfrom")!=std::string::npos){
+        return applyUpFromAttribute(exp, attr);
+    }
+    else if(attr.find("contains")!=std::string::npos){
+        return applyContainsAttribute(exp, attr);
+    }
+    else if(attr.find("collect")!=std::string::npos){
+        return applyCollectAttribute(exp,attr);
+    }
+    std::cout<<"attr not recognized";
     return 0;
 }
 
@@ -171,7 +253,7 @@ InterpretVisitor::evaluateExpression(const Expression& exp) {
 // a pointer to an expression in state
 std::optional<Expression*>
 InterpretVisitor::getExpressionPtr(const Expression& name) {
-    assert(exp.type() != typeid(std::string));
+    //assert(exp.type() != typeid(std::string));
     auto str = castExp<std::string>(name);
     return lookupName(str);
 }
@@ -428,8 +510,16 @@ testGetExpressionPtr(GameState state) {
 int main() {
     GameState state;
     std::cout << "------------ testTokenizeExpression --------------" << std::endl;
-    testTokenizeExpression(state);
-    std::cout << "------------ testEvaluateExpression --------------" << std::endl;
-    testGetExpressionPtr(state);
+    Expression slist = ExpList({{{1,2,3,4,5}}});
+
+    std::string_view type = {"contains.(6)"};
+    auto test = applyAttribute(slist, type);
+    if (boost::get<bool>(test)){
+        std::cout << "success";
+    }
+    //boost::apply_visitor(printExpVisitor(),slist);
+    //testEvaluateExpression(state);
+    std::cout << "\n------------ testEvaluateExpression --------------" << std::endl;
     return 0;
+
 }
