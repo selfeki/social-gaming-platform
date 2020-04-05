@@ -13,15 +13,13 @@
 #include <sstream>
 
 GameState getInitialState(){
-    GamePlayer player1 = {"Player1", {}};
-    GameAudience audience1 = {"audience1", {}};
     ExpMap weaponsMap = {{
         {"rock", "scissors"},
         {"paper", "rock"},
         {"scissors", "paper"}
     }};
     ExpMap constantsMap = { { {"weapons", weaponsMap } } };
-    std::string_view r="ramana", m="mehtab", a="anmol";
+    std::string r="ramana", m="mehtab", a="anmol";
     ExpList winnenrsMap = {{r, m, a
                             }};
     ExpMap variabelsMap = { { {"winners", winnenrsMap } } };
@@ -33,19 +31,22 @@ GameState getInitialState(){
     //empty perAudienceMap
     ExpMap perAudienceMap = { {  } };
 
-    std::stack<Environment> context;
+    std::vector<ExpMap> context;
+    RuleStateStack ruleStateStack;
+    std::vector<TimerObject> timerList;
 
     // stores input requests to be delivered to users
     std::vector<InputRequest> inputRequests;
+    std::vector<GameMessage>  messageQueue;
 
-    GameState intialState = { constantsMap, variabelsMap, perPlayerMap, perAudienceMap, context, inputRequests, {player1}, {audience1}};
+    GameState intialState = { constantsMap, variabelsMap, perPlayerMap, perAudienceMap, context, ruleStateStack, timerList, inputRequests, messageQueue};
     return intialState;
 }
 
 // TEST(ListRulesTest, ReverseTest){
 //     // EXPECT_EQ(1, 1);
 //     auto intialState = getInitialState();
-//     std::string_view sw = "winners";
+//     std::string sw = "winners";
 //     rule::Reverse everse(sw);
 //     gameSpecification::rule::InterpretVisitor interpreter(intialState);
 //     interpreter.visitImpl(everse);
@@ -57,16 +58,15 @@ GameState getInitialState(){
 //         auto lister = castExp<ExpList>(it->second).list;
 //         auto li = lister.begin();
 //         while(li!=lister.end()){
-//             auto str = castExp<std::string_view>(*li);
-//             printf(" val -> %s \n", str);
+//             auto str = castExp<std::string>(*li);
 //             li++;
 //         }
-//         std::string_view r="ramana", m="mehtab", a="anmol";
+//         std::string r="ramana", m="mehtab", a="anmol";
 //         std::vector<Expression> expectedList = {a, m, r};
 
 //         for(int i=0 ; i < expectedList.size(); i++){
-//             auto str = castExp<std::string_view>(expectedList[i]);
-//             auto str2 = castExp<std::string_view>(lister[i]);
+//             auto str = castExp<std::string>(expectedList[i]);
+//             auto str2 = castExp<std::string>(lister[i]);
 //             EXPECT_EQ(str, str2) << "Vectors x and y differ at index " << i;
 //         }
 //     }
@@ -75,7 +75,7 @@ GameState getInitialState(){
 
 // TEST(ListRulesTest, ShuffleTest){
 //     auto intialState = getInitialState();
-//     std::string_view sw = "winners";
+//     std::string sw = "winners";
 //     rule::Shuffle shuffle(sw);
 //     gameSpecification::rule::InterpretVisitor interpreter(intialState);
 //     interpreter.visitImpl(shuffle);
@@ -86,59 +86,67 @@ GameState getInitialState(){
 //     }else{
 //         auto lister = castExp<ExpList>(it->second).list;
 //         auto li = lister.begin();
-//         std::vector<std::string_view> outputAsStr ;
+//         std::vector<std::string> outputAsStr ;
 //         while(li!=lister.end()){
-//             auto str = castExp<std::string_view>(*li);
+//             auto str = castExp<std::string>(*li);
 //             outputAsStr.push_back(str);
-//             printf(" val -> %s \n", str);
 //             li++;
 //         }
-//         std::vector<std::string_view> expectedAsStr{"anmol","mehtab", "ramana"};
+//         std::vector<std::string> expectedAsStr{"anmol","mehtab", "ramana"};
 //         ASSERT_NE(expectedAsStr, outputAsStr);
 
 //     }
 // }
 
+// TEST(ListRulesTest, ElementsTest){
+//      auto intialState = getInitialState();
+//     std::string w1 = "paper", w2 = "rock";
+//     ExpMap map1 = {{
+//         {"weapon", w1}
+//     }};
+//     ExpMap map2 = {{
+//             {"weapon", w2}
+//     }};    
+//     ExpMap player1Map = {{
+//         {"player1", map1}
+//     }};
+//     ExpMap player2Map = {{
+//         {"player2", map2}
+//     }};
+//     ExpList players{{player1Map, player2Map}};
+//     intialState.variables.map.insert({"players", players});
+//     std::string sw  ="players.elements.weapon" ;
+//     Expression exp = sw ;
+//     std::vector<std::string> expectedList = {w1, w2};
+//     auto outputList  = gameSpecification::rule::getEvaluatedList(
+//         gameSpecification::rule::evaluatelistExp(exp), intialState) ;
+
+//     for(int i = 0; i < outputList.list.size() ;  i++){
+//         auto outStr = castExp<std::string>(outputList.list[i]);
+//         std::cout<<i<< " "<< outStr<<std::endl;
+//         EXPECT_EQ(expectedList[i], outStr);
+//     }
+                                
+// }
+
 TEST(ListRulesTest, DiscardTest){
     auto intialState = getInitialState();
-    std::string_view w1 = "paper", w2 = "rock";
-    ExpMap map1 = {{
-        {"weapon", w1}
-    }};
-    ExpMap map2 = {{
-            {"weapon", w2}
-    }};    
-    ExpMap player1Map = {{
-        {"player1", map1}
-    }};
-    ExpMap player2Map = {{
-        {"player2", map2}
-    }};
-    ExpList players{{player1Map, player2Map}};
-    intialState.variables.map.insert({"players", players});
-    std::string_view sw = "players.elements.weapon";
-    rule::Discard discard(sw, 1);
-    auto newState = intialState;
-    auto it = newState.variables.map.find("players");
-
-        gameSpecification::rule::InterpretVisitor interpreter(intialState);
+    std::string sw = "winners";
+    Expression exp = sw;
+    rule::Discard discard(exp, 1);
+    gameSpecification::rule::InterpretVisitor interpreter(intialState);
     interpreter.visitImpl(discard);
-
+    auto newState  = interpreter.getGameState();
+    auto it = newState.variables.map.find(sw);
     if(it  == newState.variables.map.end()){
         printf("not found\n");
     }else{
-        auto lister = castExp<ExpList>(it->second).list[0];
-        auto playerm = castExp<ExpMap>(lister).map;
-        auto li = playerm.begin();
-        auto actualMap = castExp<ExpMap>(li->second).map;
-        auto realItr = actualMap.begin();
-        while(realItr != actualMap.end()){
-            auto ma = castExp<std::string_view>(realItr->second);
-            // auto ra  = castExp<std::string_view>(ma->first);
-            std::cout<<ma<<std::endl;
-            realItr++;
+        std::vector<std::string> expectedList = {"mehtab", "anmol"};
+        auto outputList  = castExp<ExpList>(it->second).list;
+        for(int i =0; i < expectedList.size(); i++){
+            auto outStr = castExp<std::string>(outputList[i]);
+            EXPECT_EQ(outStr, expectedList[i]);
         }
-
     } 
 }
 

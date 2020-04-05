@@ -1,14 +1,13 @@
 #pragma once
 
-#ifndef RULE_H
-    #define RULE_H
+#include "GameState.h"
+#include "Expression.h"
+#include "MapWrapper.h"
 
-    #include "Expression.h"
-    #include "MapWrapper.h"
-
-    #include <memory>
+#include <memory>
 
 namespace gameSpecification::rule {
+
 
 struct Rule;
 // Control flow
@@ -93,19 +92,14 @@ using RulePtr = std::unique_ptr<Rule>;
 struct Rule {
     virtual void accept(RuleVisitor& visitor) = 0;
 
-    Rule()
-        : finished(false)
-        , needsInput(false)
-        , nestedRulesInProgess(false) {};
+    Rule() {};
     virtual ~Rule() = default;
 
-    bool finished;
-    bool needsInput;
-    bool nestedRulesInProgess;
     // raw pointer okay b/c child does not own parent
     Rule*   parent;
     RulePtr next;
     RulePtr nested;
+    
 };
 
 
@@ -115,12 +109,10 @@ struct ForEach final : public Rule {
     ForEach(Expression _elemList, Expression _elem)
         : elemList(_elemList)
         , elem(_elem)
-        , elemListIndex(0)
         , elemListSize(castExp<ExpList>(_elemList).getSize()) {}
 
     Expression  elemList;
     Expression  elem;
-    int elemListIndex;
     int elemListSize;
 };
 
@@ -132,19 +124,6 @@ struct ParallelFor final : public Rule {
 
     Expression  elemList;
     Expression  elem;
-};
-
-
-using UserIDList = std::vector<uniqueName>;
-
-struct InputChoice : public Rule {
-    virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
-
-    UserIDList targetUsers;
-    Expression prompt;
-    Expression choiceList;
-    Expression result;
-    std::optional<Expression> timeout;
 };
 
 
@@ -210,7 +189,7 @@ struct InParallel : public Rule {
 struct Message : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
 
-    UserIDList targetUsers;
+    Expression targetUsers;
     Expression content;
 };
 
@@ -285,15 +264,21 @@ struct Sort : public Rule {
 };
 
 
+struct InputChoice : public Rule {
+    virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
+
+    Expression targetUser;
+    Expression prompt;
+    Expression choiceList;
+    Expression result;
+    std::optional<Expression> timeout;
+};
+
+
 struct InputText final : public Rule {
     virtual void accept(RuleVisitor& visitor) { visitor.visit(*this); }
 
-    InputText(Expression _to, Expression _prompt, Expression _result)
-        : to(_to)
-        , prompt(_prompt)
-        , result(_result) {}
-
-    Expression to;
+    Expression targetUser;
     Expression prompt;
     Expression result;
     // optional
@@ -304,7 +289,7 @@ struct InputText final : public Rule {
 struct InputVote : public Rule {
     virtual void accept(RuleVisitor& visitor) { return visitor.visit(*this); }
 
-    UserIDList targetUsers;
+    Expression targetUsers;
     Expression prompt;
     Expression choiceList;
     Expression resultMap;
@@ -323,17 +308,14 @@ struct Timer : public Rule {
 
     Expression  duration;
     TimerMode   mode;
-    Expression  flag;
+    std::optional<Expression> flag;
 };
 
 
 struct GlobalMessage final : public Rule {
     virtual void accept(RuleVisitor& visitor) { visitor.visit(*this); }
 
-    GlobalMessage(Expression _content)
-        : content(_content) {}
-
-    Expression content;
+    std::string content;
 };
 
 
@@ -345,5 +327,3 @@ struct Scores final : public Rule {
 };
 
 }    // namespace rule
-
-#endif /* RULE_H */

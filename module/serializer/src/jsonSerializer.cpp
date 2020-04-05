@@ -138,9 +138,9 @@ parseGameState(const json& j) {
     return state;
 }
 
-Environment
+ExpMap
 parseEnvironment(const json& j) {
-    Environment env;
+    ExpMap env;
     for (const auto& item : j.items()) {
         auto key = item.key();
         auto value = item.value();
@@ -154,7 +154,7 @@ gameSpecification::Expression
 parseExpression(const json& j) {
     switch (j.type()) {
     case json::value_t::string:
-        return std::string_view(j.get<std::string_view>());
+        return std::string(j.get<std::string>());
     case json::value_t::number_integer:
         return j.get<int>();
     case json::value_t::boolean:

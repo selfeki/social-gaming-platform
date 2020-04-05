@@ -4,8 +4,8 @@
 #include <boost/variant/polymorphic_get.hpp>
 #include <optional>
 
-ExpressionPtr::ExpressionPtr(std::vector<std::string_view> inds)
-    : indices { inds } {}
+ExpressionPtr::ExpressionPtr(const std::vector<std::string> inds)
+    : indices{std::move(inds)} {}
 
 std::optional<ExpMap*>
 castToExpMap(Expression& exp) {
@@ -26,6 +26,8 @@ castToExpMap(Expression& exp) {
         exp = exp[ind]
     return &exp
 */
+
+// todo: make this take in const&
 std::optional<Expression*>
 ExpressionPtr::getPtr(ExpMap& expMap) {
     assert(indices.size() > 0);
@@ -50,4 +52,14 @@ ExpressionPtr::getPtr(ExpMap& expMap) {
         exp = mapPtr.value();
     }
     return {};
+}
+
+void
+ExpressionPtr::store(Expression exp, ExpMap& expMap) {
+    auto res = getPtr(expMap);
+    if (!res) {
+        throw std::runtime_error("storing to invalid object name");
+    }
+    auto ptr = res.value();
+    *ptr = exp;
 }
