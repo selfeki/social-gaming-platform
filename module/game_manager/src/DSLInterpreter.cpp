@@ -131,8 +131,14 @@ getlistAttribute(const ExpList list, Expression attribute){
     auto it = list.list.begin();
     while(it != list.list.end()){
         ExpMap mapper = castExp<ExpMap>(*it);
-        auto itr  = mapper.map.begin();
-        auto actualMap = castExp<ExpMap>(itr->second); // map1
+        ExpMap actualMap; 
+        auto itr = mapper.map.find(castExp<std::string>(attribute));
+        if(itr != mapper.map.end()){
+            actualMap = mapper;
+        }else{
+            auto itr  = mapper.map.begin();
+            actualMap = castExp<ExpMap>(itr->second); // map1
+        }
         auto itrToAttribute = actualMap.map.find(castExp<std::string>(attribute));
         if(itrToAttribute != actualMap.map.end()){
             result.list.push_back(itrToAttribute->second);
