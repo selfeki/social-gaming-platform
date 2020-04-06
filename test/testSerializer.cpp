@@ -235,9 +235,10 @@ TEST(jsonSerializerTest, parseExpression_string) {
     })"_json;
 
     gameSpecification::Expression stub;
+    //casting to string view before assigning to expression
     stub = jsonSerializer::parseExpression(exp_stub["value1"]);
 
-    EXPECT_TRUE(boost::get<std::string_view>(stub) == "test");
+    EXPECT_TRUE(boost::get<std::string>(stub) =="test");
 }
 
 TEST(jsonSerializerTest, parseExpression_int) {
@@ -270,7 +271,7 @@ TEST(jsonSerializerTest, parseExpression_expmap) {
     gameSpecification::Expression stub;
     stub = jsonSerializer::parseExpression(exp_stub["value1"]);
     
-    EXPECT_TRUE(boost::get<std::string_view>(boost::get<gameSpecification::ExpMap>(stub).map["name"]) == "test");
+    EXPECT_TRUE(boost::get<std::string>(boost::get<gameSpecification::ExpMap>(stub).map["name"]) == "test");
 }
 
 /*
@@ -283,38 +284,38 @@ TEST(jsonSerializerTest, parseExpression_explist) {
     gameSpecification::Expression stub;
     stub = jsonSerializer::parseExpression(exp_stub["value1"]);
     
-}
-*/
+// // }
+// // */
 
-//TODO: create testcases for all rules
+// // //TODO: create testcases for all rules
 
-/*
-ONHOLD: Can't find rulevisitor's implementation
-TEST(jsonSerializerTest, parseRuleGlobalMessage) {
-    json rule_stub = R"(
-        { "rule": "global-message",
-          "value": "Round {round}. Choose your weapon!"
-        }
-    )"_json;
+// // /*
+// // ONHOLD: Can't find rulevisitor's implementation
+// // TEST(jsonSerializerTest, parseRuleGlobalMessage) {
+// //     json rule_stub = R"(
+// //         { "rule": "global-message",
+// //           "value": "Round {round}. Choose your weapon!"
+// //         }
+// //     )"_json;
 
-    gameSpecification::rule::RuleVisitor visitor;
-    gameSpecification::rule::Rule* parent_stub;
-    std::unique_ptr<gameSpecification::rule::Rule> stub;
-    stub = jsonSerializer::parseRuleGlobalMessage(rule_stub, parent_stub);
+// //     gameSpecification::rule::RuleVisitor visitor;
+// //     gameSpecification::rule::Rule* parent_stub;
+// //     std::unique_ptr<gameSpecification::rule::Rule> stub;
+// //     stub = jsonSerializer::parseRuleGlobalMessage(rule_stub, parent_stub);
 
-    EXPECT_TRUE(boost::get<std::string_view>(stub->content) == "Round {round}. Choose your weapon!");
+// //     EXPECT_TRUE(boost::get<std::string_view>(stub->content) == "Round {round}. Choose your weapon!");
 
-}
-*/
+// // }
+// // */
 
-TEST(jsonSerializerTest, hasNoExtraFields) {
-    EXPECT_TRUE(jsonSerializer::hasNoExtraFields(game_stub));
-}
+// // TEST(jsonSerializerTest, hasNoExtraFields) {
+// //     EXPECT_TRUE(jsonSerializer::hasNoExtraFields(game_stub));
+// // }
 
-TEST(jsonSerializerTest, hasAllRequiredFields) {
-    EXPECT_TRUE(jsonSerializer::hasAllRequiredFields(game_stub));
-}
+// // TEST(jsonSerializerTest, hasAllRequiredFields) {
+// //     EXPECT_TRUE(jsonSerializer::hasAllRequiredFields(game_stub));
+// // }
 
-TEST(jsonSerializerTest, validFieldValues) {
-    EXPECT_TRUE(jsonSerializer::validFieldValues(game_stub));
-}
+// // TEST(jsonSerializerTest, validFieldValues) {
+// //     EXPECT_TRUE(jsonSerializer::validFieldValues(game_stub));
+// // }
