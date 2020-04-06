@@ -64,7 +64,7 @@ public:
 #pragma mark - Methods (Player) -
 public:
     const Player::Stats& stats() const override;
-    const Player::Stats& stats() override;
+    Player::Stats& stats() override;
 
 
 #pragma mark - Operators -

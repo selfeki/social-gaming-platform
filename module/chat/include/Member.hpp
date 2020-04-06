@@ -51,6 +51,8 @@ private:
     size_t _unique;    // Used to make sure members of different rooms don't compare.
     Status status;
 
+    bool disqualified = false;
+
 
 #pragma mark - Constructors -
 private:
@@ -90,7 +92,13 @@ public:
     bool is_waitlisted() const;
 
     /**
-     * Checks if the user is a player.
+     * Checks if the user is a player who lost.
+     * @return True if the user lost the current game.
+     */
+    bool is_disqualified() const;
+
+    /**
+     * Checks if the user is a current (or disqualified) player.
      * @return True if the user is a player.
      */
     bool is_player() const;

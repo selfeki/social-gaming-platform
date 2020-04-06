@@ -7,7 +7,7 @@
 namespace arepa::chat {
 
 /**
- * An exception for some game issue.
+ * An exception for some chat issue.
  */
 class ChatException : public std::exception {
 public:
@@ -42,6 +42,11 @@ public:
          * That option is invalid.
          */
         NOT_ALLOWED_OPTION,
+
+        /**
+         * That requires a game to do.
+         */
+        REQUIRES_GAME
 
     };
 

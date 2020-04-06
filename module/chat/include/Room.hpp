@@ -12,6 +12,8 @@
 #include <arepa/command/CommandMap.hpp>
 #include <arepa/command/Executor.hpp>
 #include <arepa/communication/Signal.hpp>
+#include <arepa/game/Controller.hpp>
+#include <arepa/game/Environment.hpp>
 
 #include <chrono>
 #include <map>
@@ -29,7 +31,7 @@ namespace arepa::chat {
  * - "player"    -- A user who is currently in a game, or waiting to start a game.
  * - "spectator" -- A user who is watching games.
  */
-class Room {
+class Room : public arepa::game::Environment {
 
 #pragma mark - Types -
 public:
@@ -93,12 +95,6 @@ private:
 #pragma mark - Signals -
 private:
     arepa::communication::Signal<MemberPtr<User>> on_owner_change;
-    //    arepa::communication::Signal<std::shared_ptr<User>&> on_user_join;
-    //    arepa::communication::Signal<std::shared_ptr<User>&> on_user_leave;
-    //    arepa::communication::Signal<std::shared_ptr<User>&> on_user_is_spectating;
-    //    arepa::communication::Signal<std::shared_ptr<User>&> on_user_is_playing;
-    //    arepa::communication::Signal<> on_game_start;
-    //    arepa::communication::Signal<> on_game_end;
 
 
 #pragma mark - Fields -
@@ -109,17 +105,20 @@ private:
 
     size_t _player_limit = 8;
     size_t _spectator_limit = 12;
+    size_t _players_disqualified = 0;
     std::map<User::Id, Member> _members;
     std::set<MemberPtr<User>> _cached_users;
     std::set<MemberPtr<Player>> _cached_players;
     std::set<MemberPtr<Spectator>> _cached_spectators;
 
-    // GameInstance _game;
+    std::unique_ptr<arepa::game::Controller> _game;
+    bool _game_started;
 
 
 #pragma mark - Fields (Public) -
 public:
     CommandMap commands;
+    CommandMap protected_commands;
 
 
 #pragma mark - Constructors -
@@ -137,6 +136,8 @@ public:
      * The first player added to this room will be set as the owner.
      */
     Room();
+
+    ~Room() = default;
 
 
 #pragma mark - Methods (Private) -
@@ -228,27 +229,35 @@ public:
 
     /**
      * Gets the number of players in the room.
-     * @return The spectator count.
+     * This counts disqualified players in the total.
+     * 
+     * @return The player count.
      */
-    [[nodiscard]] size_t player_count() const;
+    [[nodiscard]] size_t player_count() const final;
+
+    /**
+     * Gets the number of active players (non-disqualified) in the room.
+     * @return The active player count.
+     */
+    [[nodiscard]] size_t active_player_count() const final;
 
     /**
      * Gets the number of spectators in the room.
      * @return The spectator count.
      */
-    [[nodiscard]] size_t spectator_count() const;
+    [[nodiscard]] size_t spectator_count() const final;
 
     /**
      * Gets the maximum number of players in this room.
      * @return The maximum number of players.
      */
-    [[nodiscard]] size_t player_limit() const;
+    [[nodiscard]] size_t player_limit() const final;
 
     /**
      * Gets the maximum number of spectators in this room.
      * @return The maximum number of players.
      */
-    [[nodiscard]] size_t spectator_limit() const;
+    [[nodiscard]] size_t spectator_limit() const final;
 
     /**
      * Gets the users in this room.
@@ -262,13 +271,13 @@ public:
      *
      * @return The players currently playing a game.
      */
-    [[nodiscard]] const std::set<MemberPtr<Player>>& players() const;
+    [[nodiscard]] const std::set<MemberPtr<Player>>& players() const final;
 
     /**
      * Gets the spectators in this room.
      * @return The spectators in this room.
      */
-    [[nodiscard]] const std::set<MemberPtr<Spectator>>& spectators() const;
+    [[nodiscard]] const std::set<MemberPtr<Spectator>>& spectators() const final;
 
     /**
      * Gets the date when the room was created.
@@ -280,17 +289,21 @@ public:
      * Checks if the room is in an active game.
      * @return True if a game is active.
      */
-    [[nodiscard]] bool is_game_active() const;
+    [[nodiscard]] bool is_game_active() const final;
 
     /**
-     * Sets the soft player limit.
+     * Checks if the room has a loaded game.
+     * @return True if a game is loaded.
+     */
+    [[nodiscard]] bool is_game_loaded() const;
+
+    /**
+     * Sets the player limit.
      * Excess players will be added as waitlisted players.
-     *
-     * This can be overridden by the game instance.
      *
      * @param limit The new player limit.
      */
-    void set_player_limit(size_t limit);
+    void set_player_limit(size_t limit) final;
 
     /**
      * Sets the spectator limit.
@@ -327,7 +340,7 @@ public:
      * Gets the room owner.
      * @return The room owner. This will be nullptr when the room is empty.
      */
-    [[nodiscard]] MemberPtr<User> owner() const;
+    [[nodiscard]] MemberPtr<User> owner() const final;
 
     /**
      * Finds a player in this room.
@@ -361,7 +374,7 @@ public:
      * @param player The spectator ID.
      * @return The spectator pointer, or nullopt if not found.
      */
-    [[nodiscard]] MemberPtr<Spectator> find_spectator(User::Id spectator) const;
+    [[nodiscard]] MemberPtr<Spectator> find_spectator(User::Id spectator) const final;
 
     /**
      * Finds a player in this room.
@@ -369,7 +382,7 @@ public:
      * @param player The player ID.
      * @return The player pointer, or nullptr if not found.
      */
-    [[nodiscard]] MemberPtr<Player> find_player(User::Id player) const;
+    [[nodiscard]] MemberPtr<Player> find_player(User::Id player) const final;
 
     /**
      * Finds a user (player or spectator) in this room.
@@ -385,7 +398,7 @@ public:
      * @param player The player name.
      * @return The player pointer, or nullopt if not found.
      */
-    [[nodiscard]] MemberPtr<Player> find_player(User::Name player) const;
+    [[nodiscard]] MemberPtr<Player> find_player(User::Name player) const final;
 
     /**
      * Finds a spectator in this room.
@@ -393,7 +406,7 @@ public:
      * @param player The spectator name.
      * @return The spectator pointer, or nullopt if not found.
      */
-    [[nodiscard]] MemberPtr<Spectator> find_spectator(User::Name spectator) const;
+    [[nodiscard]] MemberPtr<Spectator> find_spectator(User::Name spectator) const final;
 
     /**
      * Finds a user (player or spectator) in this room.
@@ -413,25 +426,25 @@ public:
      * Broadcasts a message to all players and spectators in the room.
      * @param message The message to broadcast.
      */
-    void broadcast_message(const std::string& message);
+    void broadcast_message(const std::string& message) final;
 
     /**
      * Broadcasts a message to all players and spectators in the room.
      * @param message The message to broadcast.
      */
-    void broadcast_message_to_spectators(const std::string& message);
+    void broadcast_message_to_spectators(const std::string& message) final;
 
     /**
      * Broadcasts a packet to all players and spectators in the room.
      * @param packet The packet to broadcast.
      */
-    void broadcast_packet(const User::Packet& packet);
+    void broadcast_packet(const User::Packet& packet) final;
 
     /**
      * Broadcasts a packet to all spectators in the room.
      * @param message The message to broadcast.
      */
-    void broadcast_packet_to_spectators(const User::Packet& packet);
+    void broadcast_packet_to_spectators(const User::Packet& packet) final;
 
     /**
      * Sets the room owner.
@@ -456,6 +469,40 @@ public:
     void update_game();
 
     /**
+     * Loads a game in this room.
+     * @param game The game controller.
+     */
+    void load_game(std::unique_ptr<arepa::game::Controller> game);
+
+    /**
+     * Starts or restarts a game in this room.
+     */
+    void start_game() final;
+
+    /**
+     * Ends the game in this room.
+     */
+    void end_game() final;
+
+    /**
+     * Get the game controller.
+     * This will throw if there isn't a game.
+     *
+     * @return The game controller.
+     */
+    arepa::game::Controller& game() const;
+
+    /**
+     * Set a game option.
+     *
+     * @param option The option name.
+     * @param value The option value.
+     * 
+     * @return The Result.
+     */
+    arepa::Result<void, std::string> game_option(const arepa::game::Controller::OptionKey& option, const arepa::game::Controller::OptionValue& value);
+
+    /**
      * Processes a player or spectators's message.
      *
      * @param player  The player or spectator.
@@ -476,10 +523,25 @@ public:
     bool process_command(User::Id player, const arepa::command::Command& command);
 
 
+#pragma mark - Methods (Environment) -
+public:
+    /**
+     * Flag a player as disqualified.
+     * This effectively converts them to a game spectator.
+     *
+     * @param player The player to disqualify.
+     */
+    virtual void disqualify_player(const arepa::chat::MemberPtr<arepa::chat::Player>& player) override;
+
+    /**
+     * Reset all player flags (e.g. disqualifications).
+     */
+    virtual void reset_players() override;
+
+
 #pragma mark - Operators -
 public:
     [[nodiscard]] bool operator==(const Room& other) const;
     [[nodiscard]] bool operator!=(const Room& other) const;
 };
-
 }

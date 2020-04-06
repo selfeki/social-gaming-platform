@@ -1,11 +1,14 @@
 #include "commands.hpp"
 
+#include "EXAMPLE_Simon.hpp"
 #include "logging.hpp"
 
 #include <arepa/chat/ChatException.hpp>
 #include <arepa/chat/Room.hpp>
+#include <arepa/game/GameException.hpp>
 
 using Arguments = arepa::command::CommandArguments;
+using arepa::chat::ChatException;
 using arepa::chat::Room;
 using arepa::chat::User;
 using arepa::server::Connection;
@@ -37,6 +40,14 @@ void init_global_commands(GlobalCommandMap& map, ServerManager& manager, Server&
 
     map.insert("clear", [](Connection& connection, const Arguments& args) -> void {
         connection.send_message("/clear");
+    });
+
+    map.insert("whoami", [&manager](Connection& connection, const Arguments& args) -> void {
+        auto user = manager.find_user(connection.id());
+
+        user->send_system_message("You are: " + std::string(user->name()));
+        user->send_system_message("Games:   " + std::to_string(user->stats().games()));
+        user->send_system_message("Wins:    " + std::to_string(user->stats().wins()));
     });
 
     map.insert("create", [&manager](Connection& connection, const Arguments& args) -> void {
@@ -78,17 +89,16 @@ void init_global_commands(GlobalCommandMap& map, ServerManager& manager, Server&
         auto room = manager.find_room(*room_id);
 
         if (!room) {
-            connection.send_error_message("Could not find room '" + args.front() + "'. Are you sure it exists?");
+            connection.send_error_message("[" + args.front() + "] The room does not exist.");
             return;
         }
 
-        if (room->is_full()) {
-            connection.send_error_message("Room '" + args.front() + "' is full.");
-            return;
+        try {
+            manager.user_join_room(user, room);
+            connection.send_system_message(std::string("You joined '") + std::string(room->id()) + "'.");
+        } catch (ChatException& ex) {
+            connection.send_error_message("[" + args.front() + "] " + std::string(ex.what()));
         }
-
-        manager.user_join_room(user, room);
-        connection.send_system_message(std::string("You joined '") + std::string(room->id()) + "'.");
     });
 
     map.insert("leave", [&manager](Connection& connection, const Arguments& args) -> void {
@@ -122,6 +132,10 @@ void init_room_commands(RoomCommandMap& map, ServerManager& manager) {
         for (auto& member : room.users()) {
             if (owner && owner == member) {
                 user.send_system_message(" - " + std::string(member->name()) + " [owner]");
+            } else if (member.is_disqualified()) {
+                user.send_system_message(" - " + std::string(member->name()) + " [spectator|disqualified]");
+            } else if (member.is_waitlisted()) {
+                user.send_system_message(" - " + std::string(member->name()) + " [spectator|waitlisted]");
             } else if (member.is_spectator()) {
                 user.send_system_message(" - " + std::string(member->name()) + " [spectator]");
             } else {
@@ -131,7 +145,9 @@ void init_room_commands(RoomCommandMap& map, ServerManager& manager) {
     });
 
     map.insert("room", [](Room& room, User& user, const Arguments& args) {
-        user.send_system_message("Room ID: " + std::string(room.id()));
+        user.send_system_message("Room:       " + std::string(room.id()));
+        user.send_system_message("Players:    " + std::to_string(room.player_count()) + " / " + std::to_string(room.player_limit()));
+        user.send_system_message("Spectators: " + std::to_string(room.spectator_count()) + " / " + std::to_string(room.spectator_limit()));
     });
 
     map.insert("nick", [&manager](Room& room, User& user, const Arguments& args) {
@@ -154,13 +170,13 @@ void init_room_commands(RoomCommandMap& map, ServerManager& manager) {
     });
 
     map.insert("kick", [&manager](Room& room, User& user, const Arguments& args) {
-        if (user != *room.owner()) {
-            user.send_error_message("You must be a room owner to kick out a user.");
+        if (args.size() != 1) {
+            user.send_error_message("Invalid command usage. Example: /kick john");
             return;
         }
 
-        if (args.size() != 1) {
-            user.send_error_message("Invalid command usage. Example: /kick john");
+        if (user != *room.owner()) {
+            user.send_error_message("You must be a room owner to kick out a user.");
             return;
         }
 
@@ -184,26 +200,129 @@ void init_room_commands(RoomCommandMap& map, ServerManager& manager) {
         room.remove_user(user_to_kick);
         user.send_system_message("You kicked out " + (**nickname) + ".");
     });
-}
 
-//    COMMAND_MAP.insert(COMMAND("help", [](Context& game_manager, User& user, const Arguments& args) {
-//        std::stringstream message;
-//
-//        message << "Help Commands:\n"
-//                << "  /help        -- view the command list\n"
-//                << "\n"
-//
-//                << "Room Commands:\n"
-//                << "  /create      -- create a new room\n"
-//                << "  /join [id]   -- join an existing room\n"
-//                << "  /room        -- get the current room ID\n"
-//                << "  /member      -- get the current room members\n"
-//                << "  /quit        -- leave the current room\n"
-//                << "\n"
-//
-//                << "Room Admin Commands:\n"
-//                << "  /kick [user] -- kick a user from the room";
-//
-//        user.formMessageToSender(message.str());
-//    }));
-//}
+    map.insert("option", [](Room& room, User& user, const Arguments& args) {
+        if (args.size() != 2) {
+            user.send_error_message("Invalid command usage. Example: /option leader john_smith");
+            return;
+        }
+
+        if (user != *room.owner()) {
+            user.send_error_message("You must be a room owner to change an option.");
+            return;
+        }
+
+        if (!room.is_game_loaded()) {
+            user.send_error_message("This room isn't playing a game. Use /load to select a game.");
+            return;
+        }
+
+        std::string key = args[0];
+        std::string value = args[1];
+
+        auto result = room.game_option(key, value);
+        if (!result) {
+            user.send_error_message(result.error());
+        }
+    });
+
+    map.insert("options", [](Room& room, User& user, const Arguments& args) {
+        if (args.size() != 0) {
+            user.send_error_message("Invalid command usage. Example: /options");
+            return;
+        }
+
+        if (user != *room.owner()) {
+            user.send_error_message("You must be a room owner to see the option.");
+            return;
+        }
+
+        if (!room.is_game_loaded()) {
+            user.send_error_message("This room isn't playing a game. Use /load to select a game.");
+            return;
+        }
+
+        auto options = room.game().list_option_descriptions();
+        if (options.empty()) {
+            user.send_system_message("This game doesn't have any options.");
+            return;
+        }
+
+        user.send_system_message("Options:");
+        for (const auto& option : options) {
+            user.send_system_message("    '" + option.first + "' -- " + option.second);
+        }
+    });
+
+    map.insert("load", [](Room& room, User& user, const Arguments& args) {
+        if (args.size() != 1) {
+            user.send_error_message("Invalid command usage. Example: /load simon");
+            return;
+        }
+
+        if (user != *room.owner()) {
+            user.send_error_message("You must be a room owner to load a game.");
+            return;
+        }
+
+        std::string game = args.front();
+        // TODO(anyone): Implement your game loading here.
+
+        // FIXME(anyone): The following is a temporary example game.
+        if (game != "simon") {
+            user.send_error_message("Unknown game.");
+            return;
+        } else {
+            room.load_game(std::make_unique<EXAMPLE_Simon>());
+        }
+
+        // Message.
+        user.send_system_message("The game was loaded successfully.");
+        user.send_system_message("Use /options to see the game options.");
+        user.send_system_message("Use /start to start the game.");
+    });
+
+    map.insert("end", [](Room& room, User& user, const Arguments& args) {
+        if (args.size() != 0) {
+            user.send_error_message("Invalid command usage. Example: /end");
+            return;
+        }
+
+        if (user != *room.owner()) {
+            user.send_error_message("You must be a room owner to end a game.");
+            return;
+        }
+
+        if (!room.is_game_loaded()) {
+            user.send_error_message("This room isn't playing a game. Use /load to select a game.");
+            return;
+        }
+
+        room.end_game();
+        room.broadcast_message(std::string(user.name()) + " ended the game.");
+    });
+
+    map.insert("start", [](Room& room, User& user, const Arguments& args) {
+        if (args.size() != 0) {
+            user.send_error_message("Invalid command usage. Example: /start");
+            return;
+        }
+
+        if (user != *room.owner()) {
+            user.send_error_message("You must be a room owner to start a game.");
+            return;
+        }
+
+        if (!room.is_game_loaded()) {
+            user.send_error_message("This room isn't playing a game. Use /load to select a game.");
+            return;
+        }
+
+        try {
+            room.start_game();
+            user.send_system_message("Started the game. Good luck, and have fun!");
+        } catch (arepa::game::GameException& ex) {
+            user.send_error_message("Failed to start the game. " + std::string(ex.what()));
+        }
+    });
+}

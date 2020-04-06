@@ -18,14 +18,14 @@ unsigned int PlayerStats::wins() const {
     return this->_wins;
 }
 
-unsigned int& PlayerStats::wins() {
-    return this->_wins;
-}
-
 unsigned int PlayerStats::games() const {
     return this->_games;
 }
 
-unsigned int& PlayerStats::games() {
-    return this->_games;
+void PlayerStats::increment_wins() {
+    this->_wins++;
+}
+
+void PlayerStats::increment_games() {
+    this->_games++;
 }

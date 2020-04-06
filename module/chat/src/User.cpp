@@ -47,7 +47,7 @@ void User::clear_nickname() {
 #pragma mark - Methods (Player) -
 // ---------------------------------------------------------------------------------------------------------------------
 
-const Player::Stats& User::stats() {
+Player::Stats& User::stats() {
     return this->_stats;
 }
 

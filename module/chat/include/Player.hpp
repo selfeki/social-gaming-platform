@@ -31,7 +31,7 @@ public:
      * Gets the player's stats.
      * @return The player's stats object.
      */
-    virtual const Stats& stats() = 0;
+    virtual Stats& stats() = 0;
 
 
 #pragma mark - Operators -

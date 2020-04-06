@@ -1,4 +1,4 @@
-#include "../include/ChatException.hpp"
+#include "ChatException.hpp"
 
 using namespace arepa::chat;
 using Kind = ChatException::Kind;
@@ -17,6 +17,8 @@ constexpr const char* what_message(Kind kind) noexcept {
         return "You can't do that during a game.";
     case Kind::NOT_ALLOWED_OPTION:
         return "That option is invalid.";
+    case Kind::REQUIRES_GAME:
+        return "That requires a game to do.";
     default:
         return "Some error";    // TODO(ethan): Error handling.
     }

@@ -19,7 +19,7 @@ UserNicknameGenerator::UserNicknameGenerator()
     : _rand(time(nullptr)) {}
 
 UserNicknameGenerator::UserNicknameGenerator(std::vector<UserNickname> name_pool,
-                                             std::vector<UserNickname> adjective_pool)
+    std::vector<UserNickname> adjective_pool)
     : _rand(time(nullptr))
     , name_pool(std::move(name_pool))
     , adjective_pool(std::move(adjective_pool)) {}
@@ -34,13 +34,13 @@ UserNickname UserNicknameGenerator::operator()() {
 
     // Add the adjective.
     if (!this->adjective_pool.empty()) {
-        name << *this->adjective_pool[this->_rand() % (this->name_pool.size())];
+        name << *this->adjective_pool[this->_rand() % (this->name_pool.size())];    // FIXME(ethan): This segfaults (nullptr) rarely.
         name << "_";
     }
 
     // Add the name.
     if (!this->name_pool.empty()) {
-        name << *this->name_pool[this->_rand() % (this->name_pool.size())];
+        name << *this->name_pool[this->_rand() % (this->name_pool.size())];    // FIXME(ethan): This segfaults (nullptr) rarely.
     }
 
     // Add the number.

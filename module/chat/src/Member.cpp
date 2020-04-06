@@ -48,6 +48,10 @@ bool Member::is_waitlisted() const {
     return this->status == Status::PLAYER_WAITLIST;
 }
 
+bool Member::is_disqualified() const {
+    return this->disqualified;
+}
+
 
 // ---------------------------------------------------------------------------------------------------------------------
 #pragma mark - Operators -

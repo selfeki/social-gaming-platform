@@ -24,6 +24,12 @@ public:
      */
     SessionId(boost::uuids::uuid uuid);    //NOLINT
 
+    /**
+     * Creates a new default Session ID.
+     * This is an invalid and non-unique UUID.
+     */
+    SessionId();
+
 
 #pragma mark - Methods -
 public:

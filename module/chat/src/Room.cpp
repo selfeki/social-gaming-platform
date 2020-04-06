@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <queue>
 
+using Game = arepa::game::Controller;
+
 using namespace arepa::chat;
 
 
@@ -70,11 +72,15 @@ const Member* Room::_find_member(const std::shared_ptr<User>& user) const {
 void Room::_cached_remove(const Member& member) {
     this->_cached_users.erase(MemberPtr<User>(const_cast<Member*>(&member)));
 
-    if (member.is_spectator()) {
+    if (member.is_disqualified()) {
+        this->_players_disqualified--;
+    }
+
+    if (member.is_spectator() || member.is_disqualified()) {
         this->_cached_spectators.erase(MemberPtr<Spectator>(const_cast<Member*>(&member)));
     }
 
-    if (member.is_player()) {
+    if (member.is_player() && !member.is_disqualified()) {
         this->_cached_players.erase(MemberPtr<Player>(const_cast<Member*>(&member)));
     }
 }
@@ -82,11 +88,15 @@ void Room::_cached_remove(const Member& member) {
 void Room::_cached_add(Member& member) {
     this->_cached_users.insert(MemberPtr<User>(&member));
 
-    if (member.is_spectator()) {
+    if (member.is_disqualified()) {
+        this->_players_disqualified++;
+    }
+
+    if (member.is_spectator() || member.is_disqualified()) {
         this->_cached_spectators.insert(MemberPtr<Spectator>(&member));
     }
 
-    if (member.is_player()) {
+    if (member.is_player() && !member.is_disqualified()) {
         this->_cached_players.insert(MemberPtr<Player>(&member));
     }
 }
@@ -140,6 +150,10 @@ size_t Room::player_limit() const {
 }
 
 size_t Room::player_count() const {
+    return this->_cached_players.size() + this->_players_disqualified;
+}
+
+size_t Room::active_player_count() const {
     return this->_cached_players.size();
 }
 
@@ -148,7 +162,7 @@ size_t Room::spectator_limit() const {
 }
 
 size_t Room::spectator_count() const {
-    return this->_cached_spectators.size();
+    return this->_cached_spectators.size() - this->_players_disqualified;
 }
 
 size_t Room::user_count() const {
@@ -168,6 +182,11 @@ void Room::_remove_user(const std::shared_ptr<User>& user) {
 
     // Remove the user from the users map.
     this->_members.erase(user->id());
+
+    // Notify the game instance (if they were a player).
+    if (this->is_game_active() && (member->is_player() || member->is_disqualified())) {
+        this->_game->on_player_quit(*member->user());
+    }
 
     // Flush the waitlist.
     this->flush_waitlist();
@@ -258,18 +277,23 @@ void Room::flush_waitlist() {
         Member* member = waitlisted.front();
         waitlisted.pop();
 
-        MemberGuard(this, *member);
+        MemberGuard guard(this, *member);
         member->status = Member::Status::PLAYER;
     }
 }
 
 bool Room::is_game_active() const {
-    // TODO(ethan): Game instance.
-    return false;
+    return this->_game_started;
+}
+
+bool Room::is_game_loaded() const {
+    return this->_game != nullptr;
 }
 
 void Room::update_game() {
-    // TODO(ethan): Game instance.
+    if (this->is_game_active()) {
+        this->_game->update();
+    }
 }
 
 void Room::set_player_limit(size_t limit) {
@@ -413,20 +437,34 @@ bool Room::process_command(Room::User::Id user, const arepa::command::Command& c
         return false;
     }
 
+    // Get the executor for the command (if it's a protected command).
+    {
+        auto executor = this->commands.find(command.name());
+        if (executor) {
+            (*executor)->execute(*this, *member->user(), command.arguments());
+            return true;
+        }
+    }
+
     // Try processing it through the game instance.
-    if (this->is_game_active() && member->is_player()) {
-        // TODO(ethan): Try game instance command.
+    if (this->is_game_active()) {
+        Game::Intercept result = (member->is_player() && !member->is_disqualified())
+            ? this->_game->intercept_player_command(*member->user(), command)
+            : this->_game->intercept_spectator_command(*member->user(), command);
+
+        if (result == Game::Intercept::INTERCEPTED) {
+            return true;
+        }
     }
 
     // Get the executor for the command.
     auto executor = this->commands.find(command.name());
-    if (!executor) {
-        return false;
+    if (executor) {
+        (*executor)->execute(*this, *member->user(), command.arguments());
+        return true;
     }
 
-    // Execute the command.
-    (*executor)->execute(*this, *member->user(), command.arguments());
-    return true;
+    return false;
 }
 
 bool Room::process_message(Room::User::Id user, const std::string& message) {
@@ -438,17 +476,95 @@ bool Room::process_message(Room::User::Id user, const std::string& message) {
 
     // Try processing it through the game instance.
     if (this->is_game_active() && member->is_player()) {
-        // TODO(ethan): Try game instance messages.
+        Game::Intercept result = (member->is_player() && !member->is_disqualified())
+            ? this->_game->intercept_player_message(*member->user(), message)
+            : this->_game->intercept_spectator_message(*member->user(), message);
+
+        if (result == Game::Intercept::INTERCEPTED) {
+            return true;
+        }
     }
 
     // Create a regular player message.
-    std::string messagePrefix = (this->is_game_active() && member->is_spectator()) ? "[spectator] " : "";
+    std::string messagePrefix = (this->is_game_loaded() && (member->is_spectator() || member->is_disqualified())) ? "[spectator] " : "";
     std::string messageSender = (*member)->name();
     std::string outbound = messagePrefix + messageSender + ": " + message;
 
     // Handle it normally.
     this->broadcast_message(outbound);
     return true;
+}
+
+void Room::load_game(std::unique_ptr<arepa::game::Controller> game) {
+    if (this->_game != nullptr && this->_game_started) {
+        this->end_game();
+    }
+
+    this->_game = std::move(game);
+    this->_game->initialize(*this);
+}
+
+void Room::start_game() {
+    if (!this->is_game_loaded()) {
+        throw ChatException(ChatException::REQUIRES_GAME);
+    }
+
+    this->reset_players();
+
+    for (auto& player : this->players()) {
+        player->stats().increment_wins();
+    }
+
+    this->_game_started = true;
+    this->_game->start();
+}
+
+void Room::end_game() {
+    this->reset_players();
+    this->_game_started = false;
+}
+
+arepa::Result<void, std::string> Room::game_option(const arepa::game::Controller::OptionKey& option, const arepa::game::Controller::OptionValue& value) {
+    if (!this->is_game_loaded()) {
+        throw ChatException(ChatException::REQUIRES_GAME);
+    }
+
+    return this->_game->on_option_change(option, value);
+}
+
+
+arepa::game::Controller& Room::game() const {
+    if (this->_game == nullptr) {
+        throw ChatException(ChatException::REQUIRES_GAME);
+    }
+
+    return *this->_game;
+}
+
+
+// ---------------------------------------------------------------------------------------------------------------------
+#pragma mark - Methods (Environment) -
+// ---------------------------------------------------------------------------------------------------------------------
+
+void Room::disqualify_player(const arepa::chat::MemberPtr<arepa::chat::Player>& player) {
+    if (!player.is_player()) {
+        // FIXME(ethan): Maybe this should throw intead?
+        return;
+    }
+
+    auto member = static_cast<Member*>(player);
+    MemberGuard guard(this, *member);
+    member->disqualified = true;
+}
+
+void Room::reset_players() {
+    for (auto& pair : this->_members) {
+        Member& member = pair.second;
+        if (member.disqualified) {
+            MemberGuard guard(this, member);
+            member.disqualified = false;
+        }
+    }
 }
 
 

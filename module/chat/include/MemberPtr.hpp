@@ -1,6 +1,7 @@
 #pragma once
 
 #include "User.hpp"
+#include "Member.hpp"
 
 #include <chrono>
 
@@ -46,6 +47,10 @@ public:
 
     bool is_spectator() const {
         return this->_ptr->is_spectator();
+    }
+
+    bool is_disqualified() const {
+        return this->_ptr->is_disqualified();
     }
 
     bool is_waitlisted() const {
