@@ -43,7 +43,7 @@ std::optional<Command> Command::parse(std::string_view input) {
     try {
         // Parse the command name.
         CommandName name = CommandName(split.front().substr(1));
-        std::string_view rawArgs = input.substr((split.front()).size());
+        std::string rawArgs = split.size() == 1 ? "" : std::string(input.substr((split.front()).size() + 1));
         split.pop_front();
 
         // Parse the command arguments.
