@@ -63,6 +63,16 @@ insideParenthesis(const std::string_view str){
     std::size_t closeParentheses = str.find(")");
     return str.substr(digitStart,closeParentheses-digitStart);
 }
+
+bool
+isAllDigits(const std::string_view str){
+    if(str.end() == std::find_if(str.begin(), str.end(),
+            [](unsigned char c)->bool {return !isdigit(c);})){
+        return true;
+    }
+    return false;
+}
+
 Expression
 applySizeAttribute(const Expression& exp){
     try{
@@ -78,7 +88,7 @@ applySizeAttribute(const Expression& exp){
 }
 
 Expression
-applyUpFromAttribute(const Expression& exp, std::string_view attr){
+applyUpFromAttribute(const Expression& exp, std::string attr){
     std::vector<Expression> resVec = std::vector<Expression>();
     if(exp.which() !=2 ) {
         std::cout << "something wrong in upfrom";
@@ -98,22 +108,38 @@ applyUpFromAttribute(const Expression& exp, std::string_view attr){
 }
 
 Expression
-applyContainsAttribute(const Expression& exp, std::string_view attr){
+applyContainsAttribute(const Expression& exp, std::string attr){
+    //check to see if exp is ExpList
     if(exp.which() !=1 ) {
         std::cout << "something wrong in contains";
         //throw some error
     }
     else {
-        auto substr = insideParenthesis(attr);
-        int key = boost::lexical_cast<int>(substr);
-        //boost::apply_visitor(printExpVisitor(),exp);
         auto attrExpList = castExp<ExpList>(exp).list;
-        for(const auto & elem : attrExpList){
-            //hardcoded for int POC
-            if (boost::get<int>(elem) == key){
-                return Expression(true);
+        auto containsParam = insideParenthesis(attr);
+        //comparing ints
+        if(isAllDigits(containsParam)){
+            int containsParamAsInt = boost::lexical_cast<int>(containsParam);
+            //boost::apply_visitor(printExpVisitor(),exp);
+            for(const auto & elem : attrExpList){
+                //hardcoded for int POC
+                if (boost::get<int>(elem) == containsParamAsInt){
+                    return Expression(true);
+                }
             }
         }
+        //comparing strings
+        //WIP
+        /*else{
+            for(const auto & elem : attrExpList){
+                //boost::apply_visitor(printExpVisitor(),elem);
+                std::string strzzz = boost::apply_visitor(stringExpVisitor(),elem);
+                std::cout << strzzz;
+                //if (boost::lexical_cast<std::string>(elem) == containsParam){
+                    //return Expression(true);
+                //}
+            }
+        }*/
     }
     return Expression(false);
 }
@@ -125,7 +151,7 @@ applyCollectAttribute(const Expression& exp, std::string_view attr){
 
 
 Expression
-applyAttribute(const Expression& exp, std::string_view attr) {
+applyAttribute(const Expression& exp, std::string attr) {
     // todo
     if (attr == "size"){
        return applySizeAttribute(exp);
@@ -135,9 +161,6 @@ applyAttribute(const Expression& exp, std::string_view attr) {
     }
     else if(attr.find("contains")!=std::string::npos){
         return applyContainsAttribute(exp, attr);
-    }
-    else if(attr.find("collect")!=std::string::npos){
-        return applyCollectAttribute(exp,attr);
     }
     std::cout<<"attr not recognized";
     return 0;
@@ -510,10 +533,18 @@ testGetExpressionPtr(GameState state) {
 int main() {
     GameState state;
     std::cout << "------------ testTokenizeExpression --------------" << std::endl;
-    Expression slist = ExpList({{{1,2,3,4,5}}});
-
-    std::string_view type = {"contains.(6)"};
-    auto test = applyAttribute(slist, type);
+    Expression s1 = Expression(1);
+    Expression s2 = Expression(2);
+    Expression s3 = Expression(3);
+    auto list = std::vector<Expression>();
+    list.push_back(s1);
+    list.push_back(s2);
+    list.push_back(s3);
+    auto explist = ExpList();
+    explist.list = list;
+    Expression listAsExp = Expression(explist);
+    std::string type = "contains.(3)";
+    auto test = applyAttribute(listAsExp, type);
     if (boost::get<bool>(test)){
         std::cout << "success";
     }
