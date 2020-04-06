@@ -5,6 +5,7 @@
 #include <arepa/Util.hpp>
 
 #include <algorithm>
+#include <queue>
 
 using namespace arepa::chat;
 
@@ -147,7 +148,7 @@ size_t Room::spectator_limit() const {
 }
 
 size_t Room::spectator_count() const {
-    return this->_cached_players.size();
+    return this->_cached_spectators.size();
 }
 
 size_t Room::user_count() const {
@@ -167,6 +168,9 @@ void Room::_remove_user(const std::shared_ptr<User>& user) {
 
     // Remove the user from the users map.
     this->_members.erase(user->id());
+
+    // Flush the waitlist.
+    this->flush_waitlist();
 
     // Shift the owner to the next person.
     auto owner = this->owner();
@@ -232,6 +236,30 @@ void Room::add_user(const std::shared_ptr<User>& user, Room::Join method) {
         if (!this->_owner) {
             this->set_owner(MemberPtr<User>(member));
         }
+    }
+}
+
+void Room::flush_waitlist() {
+    if (this->is_game_active() || this->spectator_count() == 0) {
+        return;
+    }
+
+    // Collect a list of waitlisted users.
+    std::queue<Member*> waitlisted;
+    for (auto& spectator : this->spectators()) {
+        auto member = static_cast<Member*>(spectator);
+        if (member->is_waitlisted()) {
+            waitlisted.push(member);
+        }
+    }
+
+    // Flush the users.
+    while (!waitlisted.empty() && this->player_count() < this->player_limit()) {
+        Member* member = waitlisted.front();
+        waitlisted.pop();
+
+        MemberGuard(this, *member);
+        member->status = Member::Status::PLAYER;
     }
 }
 

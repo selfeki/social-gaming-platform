@@ -301,6 +301,12 @@ public:
     void set_spectator_limit(size_t limit);
 
     /**
+     * Attempt to flush users out of the waitlist and into the player slots.
+     * This will do nothing during a game.
+     */
+    void flush_waitlist();
+
+    /**
      * Removes a user from the room.
      * @param user The user to remove.
      */
