@@ -71,6 +71,7 @@ const Member* Room::_find_member(const std::shared_ptr<User>& user) const {
 
 void Room::_cached_remove(const Member& member) {
     this->_cached_users.erase(MemberPtr<User>(const_cast<Member*>(&member)));
+    this->_cached_users_as_spectators.erase(MemberPtr<Spectator>(const_cast<Member*>(&member)));
 
     if (member.is_disqualified()) {
         this->_players_disqualified--;
@@ -87,6 +88,7 @@ void Room::_cached_remove(const Member& member) {
 
 void Room::_cached_add(Member& member) {
     this->_cached_users.insert(MemberPtr<User>(&member));
+    this->_cached_users_as_spectators.insert(MemberPtr<User>(&member));
 
     if (member.is_disqualified()) {
         this->_players_disqualified++;
@@ -131,14 +133,7 @@ const std::set<MemberPtr<Spectator>>& Room::spectators() const {
         return this->_cached_spectators;
     }
 
-    // Warning: Super dangerous territory.
-    //
-    // The template parameter of MemberPtr only changes the return type of a few functions within it.
-    // Consequently, every form of it has a compatible vtable and data member offset.
-    //
-    // We're going to use some extremely dirty casting to skip having to needlessly copy things.
-    // This is perfectly safe as long as nobody changes the implementation of MemberPtr.
-    return *reinterpret_cast<const std::set<MemberPtr<Spectator>>*>(reinterpret_cast<const void*>(&this->_cached_users));
+    return this->_cached_users_as_spectators;
 }
 
 const std::chrono::system_clock::time_point& Room::creation_date() const {

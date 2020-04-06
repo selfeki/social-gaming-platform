@@ -112,6 +112,7 @@ private:
     std::set<MemberPtr<User>> _cached_users;
     std::set<MemberPtr<Player>> _cached_players;
     std::set<MemberPtr<Spectator>> _cached_spectators;
+    std::set<MemberPtr<Spectator>> _cached_users_as_spectators;
 
     std::unique_ptr<arepa::game::Controller> _game;
     bool _game_started;
@@ -269,7 +270,9 @@ public:
 
     /**
      * Gets the players currently playing a game.
-     * This may be different than the users in the room (i.e. when a spectator joins an in-progress game).
+     *
+     * When a player is disqualified (i.e. they lost), they will be temporarily removed from this set.
+     * The only legitimate way to check a member's room status is to use the helper functions provided by MemberPtr.
      *
      * @return The players currently playing a game.
      */
@@ -277,6 +280,8 @@ public:
 
     /**
      * Gets the spectators in this room.
+     * When not playing a game, every player is included in this set.
+     *
      * @return The spectators in this room.
      */
     [[nodiscard]] const std::set<MemberPtr<Spectator>>& spectators() const final;
