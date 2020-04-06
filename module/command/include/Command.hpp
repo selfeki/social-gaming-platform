@@ -47,6 +47,13 @@ public:
      */
     [[nodiscard]] const CommandArguments& arguments() const;
 
+    /**
+     * Returns the raw command arguments.
+     * @return A reference to the raw command arguments.
+     */
+    [[nodiscard]] const std::string& raw_arguments() const;
+
+
 #pragma mark - Methods (Static) -
 public:
     /**

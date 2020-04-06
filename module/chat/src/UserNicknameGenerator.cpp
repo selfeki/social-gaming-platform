@@ -1,13 +1,13 @@
-#include "PlayerNicknameGenerator.hpp"
+#include "UserNicknameGenerator.hpp"
 
 #include <ctime>
 #include <sstream>
 
-#define NN(x) PlayerNickname(x)
+#define NN(x) UserNickname(x)
 
-using namespace arepa::game;
+using namespace arepa::chat;
 
-PlayerNicknameGenerator PlayerNicknameGenerator::DEFAULT = PlayerNicknameGenerator(
+UserNicknameGenerator UserNicknameGenerator::DEFAULT = UserNicknameGenerator(
     std::vector({ NN("aardwolf"), NN("beaver"), NN("lemming"), NN("fox"), NN("baboon"), NN("dragon"), NN("elephant"), NN("sloth") }),
     std::vector({ NN("super"), NN("iridescent"), NN("bittersweet"), NN("euphoric"), NN("golden"), NN("temporary"), NN("melancholy") }));
 
@@ -15,11 +15,11 @@ PlayerNicknameGenerator PlayerNicknameGenerator::DEFAULT = PlayerNicknameGenerat
 #pragma mark - Constructors -
 // ---------------------------------------------------------------------------------------------------------------------
 
-PlayerNicknameGenerator::PlayerNicknameGenerator()
+UserNicknameGenerator::UserNicknameGenerator()
     : _rand(time(nullptr)) {}
 
-PlayerNicknameGenerator::PlayerNicknameGenerator(std::vector<PlayerNickname> name_pool,
-    std::vector<PlayerNickname> adjective_pool)
+UserNicknameGenerator::UserNicknameGenerator(std::vector<UserNickname> name_pool,
+    std::vector<UserNickname> adjective_pool)
     : _rand(time(nullptr))
     , name_pool(std::move(name_pool))
     , adjective_pool(std::move(adjective_pool)) {}
@@ -29,23 +29,23 @@ PlayerNicknameGenerator::PlayerNicknameGenerator(std::vector<PlayerNickname> nam
 #pragma mark - Operators -
 // ---------------------------------------------------------------------------------------------------------------------
 
-PlayerNickname PlayerNicknameGenerator::operator()() {
+UserNickname UserNicknameGenerator::operator()() {
     std::stringstream name;
 
     // Add the adjective.
     if (!this->adjective_pool.empty()) {
-        name << *this->adjective_pool[this->_rand() % (this->name_pool.size())];
+        name << *this->adjective_pool[this->_rand() % (this->name_pool.size())];    // FIXME(ethan): This segfaults (nullptr) rarely.
         name << "_";
     }
 
     // Add the name.
     if (!this->name_pool.empty()) {
-        name << *this->name_pool[this->_rand() % (this->name_pool.size())];
+        name << *this->name_pool[this->_rand() % (this->name_pool.size())];    // FIXME(ethan): This segfaults (nullptr) rarely.
     }
 
     // Add the number.
     name << std::to_string(this->_rand() % 99);
 
     // Return the nickname.
-    return PlayerNickname(name.str());
+    return UserNickname(name.str());
 }

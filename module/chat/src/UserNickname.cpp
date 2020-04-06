@@ -1,22 +1,22 @@
-#include "PlayerNickname.hpp"
+#include "UserNickname.hpp"
 
 #include <algorithm>
 #include <cctype>
 #include <stdexcept>
 
-using namespace arepa::game;
+using namespace arepa::chat;
 
 // ---------------------------------------------------------------------------------------------------------------------
 #pragma mark - Constructors -
 // ---------------------------------------------------------------------------------------------------------------------
 
-PlayerNickname::PlayerNickname(const std::string& name)
-    : PlayerNickname(std::string_view(name)) {}
+UserNickname::UserNickname(const std::string& name)
+    : UserNickname(std::string_view(name)) {}
 
-PlayerNickname::PlayerNickname(const char* name)
-    : PlayerNickname(std::string_view(name)) {}
+UserNickname::UserNickname(const char* name)
+    : UserNickname(std::string_view(name)) {}
 
-PlayerNickname::PlayerNickname(const std::string_view& name) {
+UserNickname::UserNickname(const std::string_view& name) {
     auto found = std::find_if_not(name.begin(), name.end(), [](auto& character) {
         return std::isalnum(character) || character == '_' || character == '-';
     });
@@ -33,13 +33,13 @@ PlayerNickname::PlayerNickname(const std::string_view& name) {
 #pragma mark - Methods (Static) -
 // ---------------------------------------------------------------------------------------------------------------------
 
-std::optional<PlayerNickname> PlayerNickname::parse(const std::string& name) {
-    return PlayerNickname::parse(std::string_view(name));
+std::optional<UserNickname> UserNickname::parse(const std::string& name) {
+    return UserNickname::parse(std::string_view(name));
 }
 
-std::optional<PlayerNickname> PlayerNickname::parse(const std::string_view& name) {
+std::optional<UserNickname> UserNickname::parse(const std::string_view& name) {
     try {
-        return { PlayerNickname(name) };
+        return {UserNickname(name) };
     } catch (std::runtime_error& ex) {
         return std::nullopt;
     }
@@ -50,26 +50,26 @@ std::optional<PlayerNickname> PlayerNickname::parse(const std::string_view& name
 #pragma mark - Operators -
 // ---------------------------------------------------------------------------------------------------------------------
 
-const std::string& PlayerNickname::operator*() const {
+const std::string& UserNickname::operator*() const {
     return this->_name;
 }
 
-PlayerNickname::operator std::string() const {
+UserNickname::operator std::string() const {
     return this->_name;
 }
 
-bool PlayerNickname::operator==(const PlayerNickname& other) const {
+bool UserNickname::operator==(const UserNickname& other) const {
     return this->_name == other._name;
 }
 
-bool PlayerNickname::operator==(const std::string& other) const {
+bool UserNickname::operator==(const std::string& other) const {
     return this->_name == other;
 }
 
-bool PlayerNickname::operator!=(const PlayerNickname& other) const {
+bool UserNickname::operator!=(const UserNickname& other) const {
     return !(*this == other);
 }
 
-bool PlayerNickname::operator!=(const std::string& other) const {
+bool UserNickname::operator!=(const std::string& other) const {
     return !(*this == other);
 }

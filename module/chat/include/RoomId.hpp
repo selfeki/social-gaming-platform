@@ -4,7 +4,7 @@
 #include <string>
 #include <string_view>
 
-namespace arepa::game {
+namespace arepa::chat {
 
 /**
  * A structured representation of a room ID.
@@ -72,8 +72,8 @@ public:
 
 #pragma mark - std::hash -
 template <>
-struct std::hash<arepa::game::RoomId> {
-    std::size_t operator()(arepa::game::RoomId const& id) const noexcept {
+struct std::hash<arepa::chat::RoomId> {
+    std::size_t operator()(arepa::chat::RoomId const& id) const noexcept {
         std::hash<std::string> hash;
         return hash(id);
     }

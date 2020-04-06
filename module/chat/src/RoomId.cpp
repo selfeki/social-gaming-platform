@@ -5,7 +5,7 @@
 #include <sstream>
 #include <stdexcept>
 
-using namespace arepa::game;
+using namespace arepa::chat;
 
 // ---------------------------------------------------------------------------------------------------------------------
 #pragma mark - Tables -

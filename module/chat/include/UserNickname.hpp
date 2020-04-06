@@ -4,7 +4,7 @@
 #include <string>
 #include <string_view>
 
-namespace arepa::game {
+namespace arepa::chat {
 
 /**
  * A structured representation of a player's nickname name.
@@ -12,7 +12,7 @@ namespace arepa::game {
  *
  * It can be implicitly casted to std::string, or accessed with the dereference operator.
  */
-class PlayerNickname {
+class UserNickname {
 #pragma mark - Fields -
 private:
     std::string _name;
@@ -28,9 +28,9 @@ public:
      *
      * @param name The player name.
      */
-    explicit PlayerNickname(const std::string& name);
-    explicit PlayerNickname(const char* name);
-    explicit PlayerNickname(const std::string_view& name);
+    explicit UserNickname(const std::string& name);
+    explicit UserNickname(const char* name);
+    explicit UserNickname(const std::string_view& name);
 
 
 #pragma mark - Methods (Static) -
@@ -42,8 +42,8 @@ public:
      * @param name The player nickname.
      * @return An optional of the parsed nickname.
      */
-    static std::optional<PlayerNickname> parse(const std::string& name);
-    static std::optional<PlayerNickname> parse(const std::string_view& name);
+    static std::optional<UserNickname> parse(const std::string& name);
+    static std::optional<UserNickname> parse(const std::string_view& name);
 
 
 #pragma mark - Operators -
@@ -57,9 +57,9 @@ public:
     operator std::string() const;
 
     bool operator==(const std::string& other) const;
-    bool operator==(const PlayerNickname& other) const;
+    bool operator==(const UserNickname& other) const;
     bool operator!=(const std::string& other) const;
-    bool operator!=(const PlayerNickname& other) const;
+    bool operator!=(const UserNickname& other) const;
 };
 
 }
@@ -67,8 +67,8 @@ public:
 
 #pragma mark - std::hash -
 template <>
-struct std::hash<arepa::game::PlayerNickname> {
-    std::size_t operator()(arepa::game::PlayerNickname const& name) const noexcept {
+struct std::hash<arepa::chat::UserNickname> {
+    std::size_t operator()(arepa::chat::UserNickname const& name) const noexcept {
         std::hash<std::string> hash;
         return hash(name);
     }

@@ -24,6 +24,12 @@ public:
      */
     SessionId(boost::uuids::uuid uuid);    //NOLINT
 
+    /**
+     * Creates a new default Session ID.
+     * This is an invalid and non-unique UUID.
+     */
+    SessionId();
+
 
 #pragma mark - Methods -
 public:
@@ -38,6 +44,9 @@ public:
 public:
     [[nodiscard]] explicit operator std::string() const;
     [[nodiscard]] operator boost::uuids::uuid() const;    // NOLINT
+
+    [[nodiscard]] bool operator<(const SessionId& id) const;
+    [[nodiscard]] bool operator<(const boost::uuids::uuid& id) const;
 
     [[nodiscard]] bool operator==(const SessionId& id) const;
     [[nodiscard]] bool operator==(const boost::uuids::uuid& id) const;
