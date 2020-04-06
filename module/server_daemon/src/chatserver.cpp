@@ -7,6 +7,9 @@
 #include <arepa/server/ServerLoop.hpp>
 #include <arepa/server/ServerManager.hpp>
 
+#include <mutex>
+#include <vector>
+
 using arepa::command::Command;
 using arepa::server::Client;
 using arepa::server::Server;
@@ -138,12 +141,11 @@ int main(int argc, char* argv[]) {
         manager.add_user(user);
     });
 
-    server.on_accept([&manager](std::shared_ptr<arepa::server::Connection> connection) {
-        // Destroy the connection's user object.
-        auto user = manager.find_user(connection->id());
-        if (user) {
-            manager.remove_user(user);
-        }
+    std::vector<arepa::server::Connection::Id> disconnected;
+    std::mutex disconnected_mutex;
+    server.on_accept([&manager, &disconnected, &disconnected_mutex](std::shared_ptr<arepa::server::Connection> connection) {
+        std::lock_guard guard(disconnected_mutex);
+        disconnected.push_back(connection->id());
     });
 
     clout << "Successfully created server instance." << endl;
@@ -153,7 +155,21 @@ int main(int argc, char* argv[]) {
 
     // Main game server loop.
     clout << "Initialization is complete." << endl;
-    ServerLoop main([&main, &server, &manager]() {
+    ServerLoop main([&main, &server, &manager, &disconnected, &disconnected_mutex]() {
+        // Process disconnections.
+        {
+            std::lock_guard guard(disconnected_mutex);
+            for (const auto& id : disconnected) {
+                auto user = manager.find_user(id);
+                if (user) {
+                    manager.remove_user(user);
+                }
+            }
+
+            disconnected.clear();
+        }
+
+        // Process packets.
         for (auto& client : server.clients()) {
             while (auto packet = client.messages->receive()) {
                 process_packet(manager, client, *packet);
