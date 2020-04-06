@@ -1,5 +1,6 @@
 #include "ServerManager.hpp"
 
+#include "../../chat/include/Room.hpp"
 #include "ServerUser.hpp"
 
 #include <arepa/Util.hpp>
@@ -61,9 +62,27 @@ shared_ptr<Room> ServerManager::create_room() {
     }
 
     // Create the room object.
-    auto room = std::make_pair(room_code, std::make_shared<Room>(room_code));
-    this->_roomid_to_room.insert(room);
-    return room.second;
+    auto pair = std::make_pair(room_code, std::make_shared<Room>(room_code));
+    this->_roomid_to_room.insert(pair);
+
+    // Add room listeners.
+    {
+        Room* room = &*pair.second;
+
+        room->on_member_join([room](MemberPtr<User> member) {
+            room->broadcast_message("[+] " + std::string(member->name()));
+        });
+
+        room->on_member_leave([room](MemberPtr<User> member) {
+            room->broadcast_message("[-] " + std::string(member->name()));
+        });
+
+        room->on_owner_change([room](MemberPtr<User> owner) {
+            room->broadcast_message("[!] " + std::string(owner->name()) + " is the new owner.");
+        });
+    }
+
+    return pair.second;
 }
 
 void ServerManager::destroy_room(const std::shared_ptr<Room>& room) {

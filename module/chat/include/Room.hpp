@@ -93,8 +93,10 @@ private:
 
 
 #pragma mark - Signals -
-private:
+public:
     arepa::communication::Signal<MemberPtr<User>> on_owner_change;
+    arepa::communication::Signal<MemberPtr<User>> on_member_join;
+    arepa::communication::Signal<MemberPtr<User>> on_member_leave;
 
 
 #pragma mark - Fields -

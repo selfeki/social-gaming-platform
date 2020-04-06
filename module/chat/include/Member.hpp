@@ -52,6 +52,7 @@ private:
     Status status;
 
     bool disqualified = false;
+    bool suppress_broadcasts = false;
 
 
 #pragma mark - Constructors -

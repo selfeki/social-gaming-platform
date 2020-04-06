@@ -177,6 +177,9 @@ void Room::_remove_user(const std::shared_ptr<User>& user) {
         return;
     }
 
+    // Fire signal for leave event.
+    this->on_member_leave(member);
+
     // Remove the user from the cached lists.
     this->_cached_remove(*member);
 
@@ -249,12 +252,17 @@ void Room::add_user(const std::shared_ptr<User>& user, Room::Join method) {
     } else {
         this->_members.insert({ user->id(), Member(user, status) });
         member = this->_find_member(user);
+        member->suppress_broadcasts = true;
         this->_cached_add(*member);
 
         // If there isn't an owner, make the new user an owner.
         if (!this->_owner) {
             this->set_owner(MemberPtr<User>(member));
         }
+
+        // Fire signal for join event.
+        this->on_member_join(member);
+        member->suppress_broadcasts = false;
     }
 }
 
@@ -408,25 +416,33 @@ MemberPtr<User> Room::find_user(User::Name user) const {
 
 void Room::broadcast_message(const std::string& message) {
     for (auto& user : this->_cached_users) {
-        user->send_message(message);
+        if (!static_cast<Member*>(user)->suppress_broadcasts) {
+            user->send_message(message);
+        }
     }
 }
 
 void Room::broadcast_message_to_spectators(const std::string& message) {
     for (auto& user : this->spectators()) {
-        user->send_message(message);
+        if (!static_cast<Member*>(user)->suppress_broadcasts) {
+            user->send_message(message);
+        }
     }
 }
 
 void Room::broadcast_packet(const User::Packet& packet) {
     for (auto& user : this->_cached_users) {
-        user->send_packet(packet);
+        if (!static_cast<Member*>(user)->suppress_broadcasts) {
+            user->send_packet(packet);
+        }
     }
 }
 
 void Room::broadcast_packet_to_spectators(const User::Packet& packet) {
     for (auto& user : this->spectators()) {
-        user->send_packet(packet);
+        if (!static_cast<Member*>(user)->suppress_broadcasts) {
+            user->send_packet(packet);
+        }
     }
 }
 
