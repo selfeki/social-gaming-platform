@@ -200,3 +200,6 @@ void ServerManager::user_set_nickname(const std::shared_ptr<User>& user, const U
 
     user->set_nickname(name);
 }
+
+std::vector<std::shared_ptr<Room>> ServerManager::rooms() {
+}

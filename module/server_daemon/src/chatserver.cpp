@@ -175,6 +175,11 @@ int main(int argc, char* argv[]) {
                 process_packet(manager, client, *packet);
             }
         }
+
+        // Update games.
+        for (auto& room : manager.rooms()) {
+            room->update_game();
+        }
     });
 
     main.start();

@@ -140,6 +140,12 @@ public:
      * @param user The user object.
      */
     void remove_user(const std::shared_ptr<User>& user);
+
+    /**
+     * Gets the list of rooms.
+     * @return A vector of the room in the server.
+     */
+    std::vector<std::shared_ptr<Room>> rooms();
 };
 
 }
