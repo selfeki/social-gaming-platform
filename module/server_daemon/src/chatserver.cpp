@@ -5,13 +5,13 @@
 #include <arepa/command/Command.hpp>
 #include <arepa/server/Server.hpp>
 #include <arepa/server/ServerLoop.hpp>
-
-#include <GameManager.hpp>
+#include <arepa/server/ServerManager.hpp>
 
 using arepa::command::Command;
 using arepa::server::Client;
 using arepa::server::Server;
 using arepa::server::ServerLoop;
+using arepa::server::ServerManager;
 using Packet = arepa::server::Client::packet_type;
 
 void greet_user(arepa::server::Connection& user) {
@@ -28,7 +28,7 @@ void greet_user(arepa::server::Connection& user) {
  * @param client The client.
  * @param command The command to execute.
  */
-void process_command(GameManager& manager, Client& client, Command& command) {
+void process_command(ServerManager& manager, Client& client, Command& command) {
     auto user_id = client.connection->session_id();
 
     // If the user is in a room, let the room process their commands.
@@ -56,7 +56,7 @@ void process_command(GameManager& manager, Client& client, Command& command) {
  * @param client The client.
  * @param packet The message to process.
  */
-void process_message(GameManager& manager, Client& client, std::string message) {
+void process_message(ServerManager& manager, Client& client, std::string message) {
     auto user_id = client.connection->session_id();
     auto room = manager.find_user_room(client.connection->id());
 
@@ -75,7 +75,7 @@ void process_message(GameManager& manager, Client& client, std::string message) 
  * @param client The client.
  * @param packet The packet to process.
  */
-void process_packet(GameManager& manager, Client& client, Packet& packet) {
+void process_packet(ServerManager& manager, Client& client, Packet& packet) {
     if (!Command::is_command(packet.text)) {
         process_message(manager, client, packet.text);
         return;
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
 
     // Set up the game manager.
     clout << "Creating game manager." << endl;
-    GameManager manager(*config);
+    ServerManager manager(*config);
 
     // Create and start the network server.
     unsigned short port = (*config).port;
@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
 
     server.on_accept([&manager](std::shared_ptr<arepa::server::Connection> connection) {
         // Create the connection's user object.
-        auto user = GameManager::make_user(connection);
+        auto user = ServerManager::make_user(connection);
         manager.add_user(user);
     });
 

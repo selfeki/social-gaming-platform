@@ -3,9 +3,9 @@
 #include "ConnectionId.hpp"
 #include "ConnectionSocket.hpp"
 
+#include <arepa/chat/UserCommunication.hpp>
 #include <arepa/communication/ChannelMultiQueue.hpp>
 #include <arepa/communication/ChannelSingleQueue.hpp>
-#include <arepa/game/UserCommunication.hpp>
 #include <arepa/networking/Session.hpp>
 #include <arepa/networking/Socket.hpp>
 #include <arepa/protocol/Message.hpp>
@@ -19,7 +19,7 @@ namespace arepa::server {
 /**
  * A client connection.
  */
-class Connection : public arepa::game::UserCommunication {
+class Connection : public arepa::chat::UserCommunication {
 #pragma mark - Types -
 public:
     using PacketQueue = std::shared_ptr<arepa::communication::ChannelSingleQueue<arepa::protocol::Packet>>;

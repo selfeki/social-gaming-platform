@@ -2,14 +2,15 @@
 
 #include "logging.hpp"
 
-#include <arepa/game/GameException.hpp>
-#include <arepa/game/Room.hpp>
+#include <arepa/chat/ChatException.hpp>
+#include <arepa/chat/Room.hpp>
 
 using Arguments = arepa::command::CommandArguments;
-using arepa::game::Room;
-using arepa::game::User;
+using arepa::chat::Room;
+using arepa::chat::User;
 using arepa::server::Connection;
 using arepa::server::Server;
+using arepa::server::ServerManager;
 
 GlobalCommandMap GLOBAL_COMMAND_MAP;    // NOLINT
 
@@ -25,7 +26,7 @@ void stub_room_only(GlobalCommandMap& map, std::string name) {
     });
 }
 
-void init_global_commands(GlobalCommandMap& map, GameManager& manager, Server& server) {
+void init_global_commands(GlobalCommandMap& map, ServerManager& manager, Server& server) {
     stub_room_only(map, "nick");
     stub_room_only(map, "kick");
     stub_room_only(map, "members");
@@ -111,19 +112,17 @@ void init_global_commands(GlobalCommandMap& map, GameManager& manager, Server& s
 #pragma mark - Room Commands -
 // ---------------------------------------------------------------------------------------------------------------------
 
-void init_room_commands(RoomCommandMap& map, GameManager& manager) {
+void init_room_commands(RoomCommandMap& map, ServerManager& manager) {
 
     map.insert("members", [](Room& room, User& user, const Arguments& args) {
         user.send_system_message("Members:");
         auto owner = room.owner();
-        auto users = room.users_by_age();
-        std::reverse(users.begin(), users.end());
 
         // List members.
-        for (auto& member : room.users_by_age()) {
+        for (auto& member : room.users()) {
             if (owner && owner == member) {
                 user.send_system_message(" - " + std::string(member->name()) + " [owner]");
-            } else if (room.is_spectating(member)) {
+            } else if (member.is_spectator()) {
                 user.send_system_message(" - " + std::string(member->name()) + " [spectator]");
             } else {
                 user.send_system_message(" - " + std::string(member->name()));
@@ -132,7 +131,7 @@ void init_room_commands(RoomCommandMap& map, GameManager& manager) {
     });
 
     map.insert("room", [](Room& room, User& user, const Arguments& args) {
-        user.send_system_message("Room ID: " + room.name());
+        user.send_system_message("Room ID: " + std::string(room.id()));
     });
 
     map.insert("nick", [&manager](Room& room, User& user, const Arguments& args) {
@@ -149,7 +148,7 @@ void init_room_commands(RoomCommandMap& map, GameManager& manager) {
 
         try {
             manager.user_set_nickname(manager.find_user(user.id()), *nickname);
-        } catch (arepa::game::GameException& ex) {
+        } catch (arepa::chat::ChatException& ex) {
             user.send_error_message(std::string(ex.what()));
         }
     });
