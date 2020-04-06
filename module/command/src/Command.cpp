@@ -27,6 +27,11 @@ const CommandArguments& Command::arguments() const {
     return this->_arguments;
 }
 
+const std::string& Command::raw_arguments() const {
+    return this->_raw_arguments;
+}
+
+
 // ---------------------------------------------------------------------------------------------------------------------
 #pragma mark - Methods (Static) -
 // ---------------------------------------------------------------------------------------------------------------------

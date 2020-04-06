@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
 
     std::vector<arepa::server::Connection::Id> disconnected;
     std::mutex disconnected_mutex;
-    server.on_accept([&manager, &disconnected, &disconnected_mutex](std::shared_ptr<arepa::server::Connection> connection) {
+    server.on_close([&manager, &disconnected, &disconnected_mutex](std::shared_ptr<arepa::server::Connection> connection) {
         std::lock_guard guard(disconnected_mutex);
         disconnected.push_back(connection->id());
     });
