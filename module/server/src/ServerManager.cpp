@@ -168,7 +168,7 @@ void ServerManager::remove_user(const std::shared_ptr<User>& user) {
 void ServerManager::user_set_nickname(const std::shared_ptr<User>& user, const User::Name& name) {
     auto room = this->find_user_room(user);
     if (room) {
-        if (room->find_user(user->name())) {
+        if (room->find_user(name)) {
             throw ChatException(ChatException::USER_NICKNAME_TAKEN);
         }
 
