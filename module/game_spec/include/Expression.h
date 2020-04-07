@@ -22,8 +22,7 @@ using Expression = boost::variant<
     boost::recursive_wrapper<ExpList>,
     int,
     bool,
-    std::string,
-    boost::recursive_wrapper<ExpString>>;
+    std::string>;
 
 
 struct ExpMap {
@@ -103,9 +102,6 @@ public:
             std::cout << ", ";
         }
         std::cout << " ]";
-    }
-    void operator()(const ExpString exp ) const{
-        std::cout <<"temp placeholder. just use .getString for ExpString instead -AT\n";
     }
 };
 

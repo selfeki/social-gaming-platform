@@ -134,8 +134,8 @@ applyContainsAttribute(const Expression& exp, std::string attr){
         //WIP
         else{
             for(const auto & elem : attrExpList){
-                auto elemStr = castExp<ExpString>(elem);
-                if(elemStr.getString() == containsParam){
+                auto elemStr = castExp<std::string>(elem);
+                if(elemStr == containsParam){
                     return Expression(true);
                 }
             }
@@ -146,21 +146,8 @@ applyContainsAttribute(const Expression& exp, std::string attr){
 
 Expression
 applyCollectAttribute(const Expression& exp, std::string_view attr){
-/*
-    auto result = ExpList();
-    //auto localScope = exp.top();
-    ExpList tempres = ExpList();
-    //for(){
-    auto innerExp = insideParenthesis(attr);
-    auto exphp = Expression(innerExp);
-    auto evalRes = evaluateExpression(exphp);
-    auto boolRes = castExp<bool>(evalRes);
-    if(boolRes){
-        //result.list.push_back();
-    }
-    //}*/
+    std::cout << "not done yet";
     return Expression("fakeExpression");
-
 }
 
 
@@ -552,7 +539,7 @@ void testSizeAttr(){
     std::cout << "empty test\n";
     auto test1 = applyAttribute(expList1, ".size");
     if(boost::get<int>(test1) == 0){
-        std::cout << "size Sucessful. found: " << boost::get<int>(test1);
+        std::cout << "size Sucessful. found: " << boost::get<int>(test1) << "\n";
     }
     else{
         std::cout << "size Unsucessful. found: " << boost::get<int>(test1) << ". Expected 0\n";
@@ -566,7 +553,7 @@ void testSizeAttr(){
     std::cout<<"\nsingle Expression Test\n";
     auto test2 = applyAttribute(expList2, ".size");
     if(boost::get<int>(test2) == 1){
-        std::cout << "size Successful. found: " << boost::get<int>(test2);
+        std::cout << "size Successful. found: " << boost::get<int>(test2)<< "\n";
     }
     else{
         std::cout << "size Unsucessful. found: " << boost::get<int>(test2) << ". Expected 1\n";
@@ -582,7 +569,7 @@ void testSizeAttr(){
     std::cout<<"\nMulti Expression Test\n";
     auto test3 = applyAttribute(expList3, ".size");
     if(boost::get<int>(test3) == 4){
-        std::cout << "size Successful. found: " << boost::get<int>(test3);
+        std::cout << "size Successful. found: " << boost::get<int>(test3)<< "\n";
     }
     else{
         std::cout << "size Unsuccessful. found: " << boost::get<int>(test3) << ". Expected 4\n";
@@ -623,12 +610,9 @@ void testContainsAttr(){
     }
 
     std::cout << "***strings list test***\n";
-    ExpString str1 = ExpString();
-    str1.str = "apple";
-    ExpString str2 = ExpString();
-    str2.str = "banana";
-    ExpString str3 = ExpString();
-    str3.str = "coconut";
+    auto str1 = std::string("apple");
+    auto str2 = std::string("banana");
+    auto str3 = std::string("coconut");
 
     Expression expS1 = Expression (str1);
     Expression expS2 = Expression (str2);
@@ -680,15 +664,28 @@ void testUpFromAttr(){
     auto test3 = applyAttribute(s1, op3);
     std::cout << "expected: []\nactual: ";
     boost::apply_visitor(printExpVisitor(),test3);
+
+}
+
+void testAttr(){
+    std::cout << "~~~~~sizeTest~~~~~\n" ;
+    testSizeAttr();
+    std::cout << "~~~~~upfromTest~~~~~\n" ;
+    testUpFromAttr();
+    std::cout << "\n~~~~~sizeTest~~~~~\n" ;
+    testContainsAttr();
 }
 
 //test interpreter fn's
 int main() {
     GameState state;
     std::cout << "------------ testTokenizeExpression --------------" << std::endl;
-    testContainsAttr();
-
-    std::cout << "\n------------ testEvaluateExpression --------------" << std::endl;
+    testTokenizeExpression(state);
+    std::cout << "------------ testEvaluateExpression --------------" << std::endl;
+    testGetExpressionPtr(state);
+    std::cout << "------------ testAttributes --------------" << std::endl;
+    testAttr();
     return 0;
+
 
 }
