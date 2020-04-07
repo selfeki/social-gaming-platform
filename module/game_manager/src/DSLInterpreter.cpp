@@ -52,16 +52,18 @@ isAttribute(const std::string_view str) {
     for (const auto& attr : ATTRIBUTES) {
         if (str.find(attr) != std::string::npos) {
             return true;
-        } 
+        }
     }
     return false;
 }
-std::string_view
+
+std::string
 insideParenthesis(const std::string_view str){
     std::size_t openParentheses = str.find("(");
     int digitStart = openParentheses+1;
     std::size_t closeParentheses = str.find(")");
-    return str.substr(digitStart,closeParentheses-digitStart);
+    auto extracted = str.substr(digitStart,closeParentheses-digitStart);
+    return std::string(extracted);
 }
 
 bool
@@ -132,12 +134,10 @@ applyContainsAttribute(const Expression& exp, std::string attr){
         //WIP
         /*else{
             for(const auto & elem : attrExpList){
-                //boost::apply_visitor(printExpVisitor(),elem);
-                std::string strzzz = boost::apply_visitor(stringExpVisitor(),elem);
-                std::cout << strzzz;
-                //if (boost::lexical_cast<std::string>(elem) == containsParam){
-                    //return Expression(true);
-                //}
+                boost::apply_visitor(printExpVisitor(),elem);
+                if (boost::lexical_cast<std::string>(elem) == containsParam){
+                    return Expression(true);
+                }
             }
         }*/
     }
@@ -146,6 +146,20 @@ applyContainsAttribute(const Expression& exp, std::string attr){
 
 Expression
 applyCollectAttribute(const Expression& exp, std::string_view attr){
+/*
+    auto result = ExpList();
+    //auto localScope = exp.top();
+    ExpList tempres = ExpList();
+    //for(){
+    auto innerExp = insideParenthesis(attr);
+    auto exphp = Expression(innerExp);
+    auto evalRes = evaluateExpression(exphp);
+    auto boolRes = castExp<bool>(evalRes);
+    if(boolRes){
+        //result.list.push_back();
+    }
+    //}*/
+    return Expression("fakeExpression");
 
 }
 
@@ -161,6 +175,9 @@ applyAttribute(const Expression& exp, std::string attr) {
     }
     else if(attr.find("contains")!=std::string::npos){
         return applyContainsAttribute(exp, attr);
+    }
+    else if (attr.find("collect")!=std::string::npos){
+        return applyCollectAttribute(exp, attr);
     }
     std::cout<<"attr not recognized";
     return 0;
@@ -529,10 +546,7 @@ testGetExpressionPtr(GameState state) {
 
 }
 
-//test interpreter fn's
-int main() {
-    GameState state;
-    std::cout << "------------ testTokenizeExpression --------------" << std::endl;
+void testContainsAttr(){
     Expression s1 = Expression(1);
     Expression s2 = Expression(2);
     Expression s3 = Expression(3);
@@ -543,13 +557,57 @@ int main() {
     auto explist = ExpList();
     explist.list = list;
     Expression listAsExp = Expression(explist);
-    std::string type = "contains.(3)";
+    std::string type = ".contains(3)";
+    std::cout << "contains positive test\n";
     auto test = applyAttribute(listAsExp, type);
     if (boost::get<bool>(test)){
-        std::cout << "success";
+        std::cout << "Contains successful\n";
     }
+    else{
+        std::cout << "Contains unsuccessful: 3 no found\n";
+    }
+    type = ".contains(6)";
+    auto test2 = applyAttribute(listAsExp, type);
+    std::cout << "contains negative test\n";
+    if (!boost::get<bool>(test2)){
+        std::cout << "Contains successful \n";
+    }
+    else{
+        boost::apply_visitor(printExpVisitor(), test);
+        std::cout << "Contains unsuccessful: some how found a value\n";
+    }
+}
+
+void testUpFromAttr(){
+    std::cout <<"contains test 1: populated array\n";
+    Expression s1 = Expression(7);
+    std::string op1 = ".upfrom(2)";
+    auto test1 = applyAttribute(s1, op1);
+    std::cout << "expected: [2,3,4,5,6,7]\nactual: ";
+    boost::apply_visitor(printExpVisitor(),test1);
+
+    std::cout <<"\ncontains test 2: single element array\n";
+    std::string op2 = ".upfrom(7)";
+    auto test2 = applyAttribute(s1, op2);
+    std::cout << "expected: [7]\nactual: ";
+    boost::apply_visitor(printExpVisitor(),test2);
+
+    std::cout <<"\ncontains test 3: upfrom val too high\n";
+    std::string op3 = ".upfrom(8)";
+    auto test3 = applyAttribute(s1, op3);
+    std::cout << "expected: []\nactual: ";
+    boost::apply_visitor(printExpVisitor(),test3);
+}
+
+//test interpreter fn's
+int main() {
+    GameState state;
+    std::cout << "------------ testTokenizeExpression --------------" << std::endl;
     //boost::apply_visitor(printExpVisitor(),slist);
-    //testEvaluateExpression(state);
+    //testGetExpressionPtr(state);
+    //testContainsAttr();
+    Expression test = Expression("test");
+    auto test2 = castExp<std::string>(test);
     std::cout << "\n------------ testEvaluateExpression --------------" << std::endl;
     return 0;
 
