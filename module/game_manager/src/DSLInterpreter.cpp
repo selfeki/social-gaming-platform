@@ -8,7 +8,6 @@
 #include <sstream>
 #include <string>
 #include <boost/lexical_cast.hpp>
-#include <boost/any.hpp>
 
 int
 countUnclosedParenthesis(std::string str) {
@@ -94,7 +93,6 @@ applyUpFromAttribute(const Expression& exp, std::string attr){
     std::vector<Expression> resVec = std::vector<Expression>();
     if(exp.which() !=2 ) {
         std::cout << "something wrong in upfrom";
-        //throw some error
     }
     else{
         auto substr = insideParenthesis(attr);
@@ -114,7 +112,6 @@ applyContainsAttribute(const Expression& exp, std::string attr){
     //check to see if exp is ExpList
     if(exp.which() !=1 ) {
         std::cout << "something wrong in contains";
-        //throw some error
     }
     else {
         auto attrExpList = castExp<ExpList>(exp).list;
@@ -122,16 +119,13 @@ applyContainsAttribute(const Expression& exp, std::string attr){
         //comparing ints
         if(isAllDigits(containsParam)){
             int containsParamAsInt = boost::lexical_cast<int>(containsParam);
-            //boost::apply_visitor(printExpVisitor(),exp);
             for(const auto & elem : attrExpList){
-                //hardcoded for int POC
                 if (boost::get<int>(elem) == containsParamAsInt){
                     return Expression(true);
                 }
             }
         }
         //comparing strings
-        //WIP
         else{
             for(const auto & elem : attrExpList){
                 auto elemStr = castExp<std::string>(elem);
@@ -686,6 +680,4 @@ int main() {
     std::cout << "------------ testAttributes --------------" << std::endl;
     testAttr();
     return 0;
-
-
 }
