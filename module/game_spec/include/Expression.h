@@ -15,14 +15,15 @@ namespace gameSpecification {
 
 struct ExpMap;
 struct ExpList;
-
+struct ExpString;
 
 using Expression = boost::variant<
     boost::recursive_wrapper<ExpMap>,
     boost::recursive_wrapper<ExpList>,
     int,
     bool,
-    std::string>;
+    std::string,
+    boost::recursive_wrapper<ExpString>>;
 
 
 struct ExpMap {
@@ -37,6 +38,12 @@ struct ExpList {
     getSize() { return list.size(); }
 };
 
+struct ExpString{
+    std::string str;
+
+    std::string
+    getString() { return str;}
+};
 
 template<class SubTy>
 SubTy
@@ -96,6 +103,9 @@ public:
             std::cout << ", ";
         }
         std::cout << " ]";
+    }
+    void operator()(const ExpString exp ) const{
+        std::cout <<"temp placeholder. just use .getString for ExpString instead -AT\n";
     }
 };
 
