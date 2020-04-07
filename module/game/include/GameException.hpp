@@ -14,41 +14,10 @@ public:
     enum Kind {
 
         /**
-         * The user is not in the game room.
+         * Some other exception reason.
+         * Details should be provided.
          */
-        USER_NOT_FOUND,
-
-        /**
-         * The user's nickname was taken already.
-         */
-        USER_NICKNAME_TAKEN,
-
-        /**
-         * The player is already a spectator in the room.
-         * Remove them as a spectator before trying to add them as a player.
-         */
-        PLAYER_IS_SPECTATOR,
-
-        /**
-         * The spectator is already a player in the room.
-         * Remove them as a player before trying to add them as a spectator.
-         */
-        SPECTATOR_IS_PLAYER,
-
-        /**
-         * The game room is not found.
-         */
-        ROOM_NOT_FOUND,
-
-        /**
-         * The game room is full.
-         */
-        ROOM_FULL,
-
-        /**
-         * That can't be done during a game.
-         */
-        NOT_ALLOWED_DURING_GAME,
+        OTHER
 
     };
 

@@ -10,6 +10,12 @@ namespace gameSpecification::rule {
 std::vector<std::string_view>
 parseDotNotation(const std::string_view str);
 
+std::vector<std::string>
+evaluatelistExp(const Expression list);
+
+ExpList 
+getEvaluatedList(std::vector<std::string>listExpression, GameState state);
+
 
 class InterpretVisitor : public RuleVisitor {
 public:
@@ -27,6 +33,13 @@ public:
 
     void visitImpl(rule::InputChoice&);
 
+    void visitImpl(rule::Reverse&);
+
+    void visitImpl(rule::Shuffle&);
+
+    void visitImpl(rule::Discard&);
+
+    void visitImpl(rule::Deal&);
     void visitImpl(rule::Timer&);
 
     void
@@ -40,6 +53,7 @@ public:
 
     std::optional<Expression*>
     getExpressionPtr(const Expression&);
+
 
 private:
     std::optional<Expression*>

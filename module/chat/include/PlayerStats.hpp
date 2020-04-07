@@ -2,7 +2,7 @@
 
 #include <arepa/networking/SessionId.hpp>
 
-namespace arepa::game {
+namespace arepa::chat {
 
 /**
  * A player's game statistics.
@@ -27,22 +27,20 @@ public:
     [[nodiscard]] unsigned int wins() const;
 
     /**
-     * Returns a mutable reference to the number of times a player has won.
-     * @return A reference to the number of player wins.
-     */
-    [[nodiscard]] unsigned int& wins();
-
-    /**
      * Returns the number of times a player has participated a game.
      * @return The number of player games.
      */
     [[nodiscard]] unsigned int games() const;
 
     /**
-     * Returns a mutable reference to the number of times a player has participated in a game.
-     * @return A reference to the number of player games.
+     * Increments the player's win counter.
      */
-    [[nodiscard]] unsigned int& games();
+    void increment_wins();
+
+    /**
+     * Increments the player's games counter.
+     */
+    void increment_games();
 };
 
 }

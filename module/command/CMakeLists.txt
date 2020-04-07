@@ -5,4 +5,3 @@ arepa_target_cxx(command)
 
 target_link_libraries(command common)
 target_link_libraries(command networking)
-target_link_libraries(command server)

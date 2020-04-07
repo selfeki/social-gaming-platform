@@ -5,13 +5,16 @@
 #include <arepa/command/Command.hpp>
 #include <arepa/server/Server.hpp>
 #include <arepa/server/ServerLoop.hpp>
+#include <arepa/server/ServerManager.hpp>
 
-#include <GameManager.hpp>
+#include <mutex>
+#include <vector>
 
 using arepa::command::Command;
 using arepa::server::Client;
 using arepa::server::Server;
 using arepa::server::ServerLoop;
+using arepa::server::ServerManager;
 using Packet = arepa::server::Client::packet_type;
 
 void greet_user(arepa::server::Connection& user) {
@@ -28,12 +31,12 @@ void greet_user(arepa::server::Connection& user) {
  * @param client The client.
  * @param command The command to execute.
  */
-void process_command(GameManager& manager, Client& client, Command& command) {
-    auto player_id = client.connection->session_id();
+void process_command(ServerManager& manager, Client& client, Command& command) {
+    auto user_id = client.connection->session_id();
 
-    // If the player is in a room, let the room process their commands.
-    auto room = manager.find_player_room(player_id);
-    if (room && (*room)->process_command(player_id, command)) {
+    // If the user is in a room, let the room process their commands.
+    auto room = manager.find_user_room(user_id);
+    if (room && room->process_command(user_id, command)) {
         return;
     }
 
@@ -56,16 +59,16 @@ void process_command(GameManager& manager, Client& client, Command& command) {
  * @param client The client.
  * @param packet The message to process.
  */
-void process_message(GameManager& manager, Client& client, std::string message) {
-    auto player_id = client.connection->session_id();
-    auto room = manager.find_player_room(client.connection->id());
+void process_message(ServerManager& manager, Client& client, std::string message) {
+    auto user_id = client.connection->session_id();
+    auto room = manager.find_user_room(client.connection->id());
 
     if (!room) {
         client.connection->send_system_message("You need to be in a room to send a message! /create or /join a room.");
         return;
     }
 
-    (*room)->process_message(player_id, message);
+    room->process_message(user_id, message);
 }
 
 /**
@@ -75,7 +78,7 @@ void process_message(GameManager& manager, Client& client, std::string message) 
  * @param client The client.
  * @param packet The packet to process.
  */
-void process_packet(GameManager& manager, Client& client, Packet& packet) {
+void process_packet(ServerManager& manager, Client& client, Packet& packet) {
     if (!Command::is_command(packet.text)) {
         process_message(manager, client, packet.text);
         return;
@@ -116,7 +119,7 @@ int main(int argc, char* argv[]) {
 
     // Set up the game manager.
     clout << "Creating game manager." << endl;
-    GameManager manager(*config);
+    ServerManager manager(*config);
 
     // Create and start the network server.
     unsigned short port = (*config).port;
@@ -133,17 +136,16 @@ int main(int argc, char* argv[]) {
     });
 
     server.on_accept([&manager](std::shared_ptr<arepa::server::Connection> connection) {
-        // Create the connection's player object.
-        auto player = GameManager::make_player(connection);
-        manager.add_player(player);
+        // Create the connection's user object.
+        auto user = ServerManager::make_user(connection);
+        manager.add_user(user);
     });
 
-    server.on_accept([&manager](std::shared_ptr<arepa::server::Connection> connection) {
-        // Destroy the connection's player object.
-        auto player = manager.find_player(connection->id());
-        if (player) {
-            manager.remove_player(*player);
-        }
+    std::vector<arepa::server::Connection::Id> disconnected;
+    std::mutex disconnected_mutex;
+    server.on_close([&manager, &disconnected, &disconnected_mutex](std::shared_ptr<arepa::server::Connection> connection) {
+        std::lock_guard guard(disconnected_mutex);
+        disconnected.push_back(connection->id());
     });
 
     clout << "Successfully created server instance." << endl;
@@ -153,11 +155,30 @@ int main(int argc, char* argv[]) {
 
     // Main game server loop.
     clout << "Initialization is complete." << endl;
-    ServerLoop main([&main, &server, &manager]() {
+    ServerLoop main([&main, &server, &manager, &disconnected, &disconnected_mutex]() {
+        // Process disconnections.
+        {
+            std::lock_guard guard(disconnected_mutex);
+            for (const auto& id : disconnected) {
+                auto user = manager.find_user(id);
+                if (user) {
+                    manager.remove_user(user);
+                }
+            }
+
+            disconnected.clear();
+        }
+
+        // Process packets.
         for (auto& client : server.clients()) {
             while (auto packet = client.messages->receive()) {
                 process_packet(manager, client, *packet);
             }
+        }
+
+        // Update games.
+        for (auto& room : manager.rooms()) {
+            room->update_game();
         }
     });
 

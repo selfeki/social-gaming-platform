@@ -4,12 +4,12 @@
 
 #include <string_view>
 
-namespace arepa::game {
+namespace arepa::chat {
 
 /**
- * An interface for sending data to players.
+ * An interface for sending data to users.
  */
-class PlayerNetworking {
+class UserCommunication {
 #pragma mark - Types -
 public:
     using Packet = arepa::protocol::Packet;
@@ -17,13 +17,13 @@ public:
 
 #pragma mark - Constructors -
 public:
-    virtual ~PlayerNetworking() = default;
+    virtual ~UserCommunication() = default;
 
 
 #pragma mark - Virtual Methods -
 public:
     /**
-     * Sends the player a text message.
+     * Sends the player a raw text message.
      * @param message The message to send.
      */
     virtual void send_message(const std::string_view& message) = 0;
@@ -33,6 +33,12 @@ public:
      * @param message The message to send.
      */
     virtual void send_error_message(const std::string_view& message) = 0;
+
+    /**
+     * Sends the player a system message.
+     * @param message The message to send.
+     */
+    virtual void send_system_message(const std::string_view& message) = 0;
 
     /**
      * Sends the player a raw packet.

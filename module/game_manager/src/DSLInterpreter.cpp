@@ -8,6 +8,7 @@
 #include <sstream>
 #include <string>
 #include <boost/lexical_cast.hpp>
+#include <random>
 
 int
 countUnclosedParenthesis(std::string str) {
@@ -164,10 +165,158 @@ applyAttribute(const Expression& exp, std::string attr) {
     return 0;
 }
 
+using typeVar = boost::variant<std::string, int, bool>;
+
+// evaluates if '==', '<' and '>' Caution!! only pass bool, int, string Expressions 
+bool 
+evaluateEquality(const Expression exp1, const Expression exp2, const std::string comp){
+    typeVar v1 ;
+    typeVar v2 ;
+    if (exp1.type() == typeid(int)){
+        v1 = castExp<int>(exp1);
+        v2 = castExp<int>(exp2);
+    }
+    else if(exp1.type() == typeid(bool)){
+        v1 = castExp<bool>(exp1);
+        v2 = castExp<bool>(exp2);
+    }
+    else{
+         v1 = castExp<std::string>(exp1);
+        v2 = castExp<std::string>(exp2);
+    }
+    
+    if(comp == "==")
+        return v1==v2;
+    else if(comp == "<")
+        return v1 < v2;
+    else if(comp == "!=")
+        return v1 != v2 ;
+    else
+        return v1 > v2;
+}
+
+std::vector<std::string> tokenizer(std::string str, std::string symbol){
+	int start;
+	int end = 0;
+    std::vector<std::string> output ;
+	while ((start = str.find_first_not_of(symbol, end)) != std::string::npos){
+        end = str.find(symbol, start);
+		output.push_back(static_cast<std::string>(str.substr(start, end - start)));
+	}
+    return output ;
+}
+// returns the list attribute after evaluating the 'element', 'Collect' condition
+// {list name, attribute of list, 'contains'/'collect', contains attribute/ collect conditions}
+// e.g players.elements.collect(player, player.weapon == weapon.beats)
+
+// return a Bool after evaluaing the 'contains' condition
+bool
+evalListContains(const ExpList list, Expression attribute, Expression toCompareTo){
+    auto it = list.list.begin();
+    while(it != list.list.end()){
+        ExpMap map = castExp<ExpMap>(*it);
+        auto playerVariableMap = (map.map.begin())->second;
+        auto itr  = castExp<ExpMap>(playerVariableMap).map.find(
+                            castExp<std::string>(attribute));
+        if(itr != castExp<ExpMap>(playerVariableMap).map.end()){
+            if(evaluateEquality(itr->second, toCompareTo, "==")){
+                return true ;
+            }
+        }
+        it++;
+    }
+    return false;
+}
+
+// returns a ExpList of list.element.attribute 
+ExpList
+getlistAttribute(const ExpList list, Expression attribute){
+    ExpList result;
+    auto it = list.list.begin();
+    while(it != list.list.end()){
+        ExpMap mapper = castExp<ExpMap>(*it);
+        ExpMap actualMap; 
+        auto itr = mapper.map.find(castExp<std::string>(attribute));
+        if(itr != mapper.map.end()){
+            actualMap = mapper;
+        }else{
+            auto itr  = mapper.map.begin();
+            actualMap = castExp<ExpMap>(itr->second); // map1
+        }
+        auto itrToAttribute = actualMap.map.find(castExp<std::string>(attribute));
+        if(itrToAttribute != actualMap.map.end()){
+            result.list.push_back(itrToAttribute->second);
+        }
+        it++;
+    }
+    return result ;
+}
+
+//returns a ExpLsit of list.elements.collect
+ExpList
+getCollectList(ExpList listLhs, std::string condition, ExpMap rhsMap){
+    // Break up the condition
+    std::string stringCondition = castExp<std::string>(condition);
+    auto commaIndex = stringCondition.find(",");
+    auto toCollect = stringCondition.substr(0, commaIndex-1);
+    std::string comparison;
+    ExpList result ;
+    for(auto comp: {"<", "==", "<", "!="}){
+        if(stringCondition.find(comp)){
+            comparison = stringCondition.substr(stringCondition.find_first_of(comp),
+                                            stringCondition.find_last_of(comp));
+            break;;
+        }
+    }
+    auto lhs = stringCondition.substr(commaIndex+1, stringCondition.find(comparison)-2);
+    auto rhs = stringCondition.substr(stringCondition.find_last_of(comparison)+1, stringCondition.size()-1);
+    auto tokenizedLhs = tokenizer(lhs, ".");
+    auto tokenizedRhs = tokenizer(rhs, ".");
+    auto itrList = listLhs.list.begin();
+    while(itrList!=listLhs.list.end()){
+        auto map = castExp<ExpMap>(*itrList);
+        auto lhsvariableItr = map.map.find(tokenizedLhs[1]);
+        auto rhsVariableItr = rhsMap.map.find(tokenizedRhs[0]);
+        if(lhsvariableItr == map.map.end() || rhsVariableItr == rhsMap.map.end()){
+            // Todo :: report error
+            return result ;
+        }
+        if(evaluateEquality(lhsvariableItr->second, rhsVariableItr->second, comparison)){
+            result.list.push_back(map);
+        }
+        itrList++;
+    }
+    return result;
+}
 
 namespace gameSpecification::rule {
 
+std::vector<std::string>
+evaluatelistExp(const Expression list){
+    auto listString = castExp<std::string>(list);
+    auto openingBrackIndex = listString.find("(");
+    auto beforeBracket = tokenizer(listString.substr(0, openingBrackIndex), ".");
+    auto actualList = static_cast<std::string>(beforeBracket[0]);
+    auto attribute = beforeBracket[2];
+    std::string contains_collect;
+    if(attribute == "collect"){
+        contains_collect = beforeBracket[2];
+    }else if(beforeBracket.size()>3){
+        contains_collect = beforeBracket[3];
+    }else{
+        contains_collect = "none";
+    }
+    std::string condition = "none";
+    if(openingBrackIndex !=std::string::npos ){
+        auto end = listString.length() ;
+        condition = listString.substr(openingBrackIndex+1, listString.length()-2);
+        // sub string does not eliminae the last string so using pop back
+        condition.pop_back();
+    }
+    std::vector<std::string> result{actualList, attribute, contains_collect, condition};
+    return result;
 
+}
 std::optional<Expression*>
 InterpretVisitor::lookupLocalScope(const std::vector<std::string>& indices) {
     ExpressionPtr expPtr(indices);
@@ -475,6 +624,140 @@ InterpretVisitor::visitImpl(Timer& timer) {
             flagExpPtr.store(Expression{true}, state.variables);
         }
    }
+}
+void InterpretVisitor::visitImpl(Reverse& reverse){
+    // name of the list
+    auto listName = castExp<std::string>(reverse.list);  
+    // search for list in variabels
+    auto currentState = this->getGameState();
+    auto it = currentState.variables.map.find(listName);
+    if(it == currentState.variables.map.end()){
+        // todo:: Report Error - list not Found
+        return;
+    }
+    auto secondList = castExp<ExpList>(it->second) ;
+    std::reverse(secondList.list.begin(), 
+                                    secondList.list.end());
+    auto li  = secondList.list.begin();
+    currentState.variables.map.at(listName) = secondList;
+    // update state
+    this->setGameState(currentState);
+}
+void InterpretVisitor::visitImpl(Shuffle& shuffle){
+    // name of list 
+    auto listName = castExp<std::string>(shuffle.list);
+    // search for list in state 
+    auto currentState = this->getGameState();
+    auto it = currentState.variables.map.find(listName);
+    if(it == currentState.variables.map.end()){
+        // todo :: return some error
+        return;
+    }
+    // random number generator
+    auto myrandom = std::default_random_engine {};
+    auto secondList = castExp<ExpList>(it->second);
+    std::shuffle(secondList.list.begin(), 
+                                secondList.list.end(), myrandom);
+    // update state
+    currentState.variables.map.at(listName) = secondList;
+    this->setGameState(currentState);
+}
+
+// evaluate Elements and Collect
+ExpList getEvaluatedList(std::vector<std::string>listExpression, GameState state){
+    auto listName = listExpression[0];
+    ExpList actualList;
+    std::cout<<"List name is -> "<<listName<<std::endl;
+    auto it = state.variables.map.find(listName);
+    // // check if 'Collect' list expression
+    if(it == state.variables.map.end()){
+        //todo :: report error
+        printf("Not found\n");
+        return actualList;
+    }
+    actualList = castExp<ExpList>(it->second);
+    if(listExpression[1]=="collect"){
+        actualList = getCollectList(actualList, listExpression[3], state.variables);
+    }else{
+        actualList = getlistAttribute(actualList, listExpression[1]);
+    }
+    return actualList;
+}
+
+void InterpretVisitor::visitImpl(Discard& discard){
+        //name of list 
+        auto listExp = castExp<std::string>(discard.fromList);
+        std::cout<<"EXP IS "<<listExp<<std::endl;
+        auto count  = castExp<int>(discard.count);
+        auto currentState = this->getGameState();
+        ExpList actualList ;
+        if(listExp.find(".") != std::string::npos ){
+            auto listExpressionEval = evaluatelistExp(discard.fromList);
+            auto actualList = getEvaluatedList(listExpressionEval, currentState);
+            for(auto mm: actualList.list){
+                std::cout<<castExp<std::string>(mm)<<std::endl;
+            }
+        }
+        else{
+            auto itr = currentState.variables.map.find(listExp);
+            if(itr != currentState.variables.map.end()){
+                actualList = castExp<ExpList>(itr->second);
+            }
+            else{
+                return;
+            }
+        }
+        if(count > actualList.list.size()){
+            return;
+        }
+        while(count > 0 && actualList.list.size() >=1 ){
+            std::cout<<"Satnam"<<std::endl;
+
+            actualList.list.erase(actualList.list.begin());
+            count--;
+        }
+        currentState.variables.map.at(listExp) = actualList;
+        this->setGameState(currentState);
+    }
+
+void InterpretVisitor::visitImpl(rule::Deal& deal){
+    auto fromListExpEval = evaluatelistExp(deal.fromList);
+    auto toListExpEval = evaluatelistExp(deal.toList);
+    auto fromListName = fromListExpEval[0];
+    auto toListName = toListExpEval[0];
+    auto currentState = this->getGameState();
+    auto itF = currentState.variables.map.find(fromListName);
+    auto itT = currentState.variables.map.find(toListName);
+    auto count  = castExp<int>(deal.count);
+    int ctrl = 0;
+    ExpList actualToList = castExp<ExpList>(itT->second);
+    ExpList actualFromList = castExp<ExpList>(itF->second);
+    for(auto list: {actualFromList, actualToList}){
+        std::vector<std::string> exprs ;
+        if(ctrl){
+            exprs = toListExpEval;
+        }else{
+            exprs = fromListExpEval;
+        }
+        if(exprs[1]=="collect"){
+            list = getCollectList(list, exprs[3], currentState.variables);
+        }else{
+            list = getlistAttribute(list, exprs[1]);
+        }
+        // to do :: effeciently parse two list expressions
+        ctrl ++;
+    }
+    if(count > actualFromList.list.size()){
+        return;
+    }
+    while(count > 0){
+        auto itr = actualFromList.list.begin() ;
+        actualFromList.list.erase(itr);
+        actualToList.list.push_back(*itr);
+        count--;
+    }
+    // it->second  = actualList;
+    // this->setGameState(currentState);
 }
 
 
