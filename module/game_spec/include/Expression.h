@@ -15,7 +15,7 @@ namespace gameSpecification {
 
 struct ExpMap;
 struct ExpList;
-
+struct ExpString;
 
 using Expression = boost::variant<
     boost::recursive_wrapper<ExpMap>,
@@ -37,6 +37,12 @@ struct ExpList {
     getSize() { return list.size(); }
 };
 
+struct ExpString{
+    std::string str;
+
+    std::string
+    getString() { return str;}
+};
 
 template<class SubTy>
 SubTy
