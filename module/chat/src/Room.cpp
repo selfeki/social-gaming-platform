@@ -88,7 +88,7 @@ void Room::_cached_remove(const Member& member) {
 
 void Room::_cached_add(Member& member) {
     this->_cached_users.insert(MemberPtr<User>(&member));
-    this->_cached_users_as_spectators.insert(MemberPtr<User>(&member));
+    this->_cached_users_as_spectators.insert(MemberPtr<Spectator>(&member));
 
     if (member.is_disqualified()) {
         this->_players_disqualified++;

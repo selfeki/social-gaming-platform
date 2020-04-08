@@ -202,4 +202,10 @@ void ServerManager::user_set_nickname(const std::shared_ptr<User>& user, const U
 }
 
 std::vector<std::shared_ptr<Room>> ServerManager::rooms() {
+    std::vector<std::shared_ptr<Room>> rooms;
+    std::transform(this->_roomid_to_room.begin(), this->_roomid_to_room.end(), std::back_inserter(rooms), [](auto& pair) {
+        return pair.second;
+    });
+
+    return rooms;
 }
