@@ -1,6 +1,6 @@
 #include "arepa/game_spec/GameSpecification.h"
 
-#include <GameManager.hpp>
+//#include <GameManager.hpp>
 
 using namespace gameSpecification;
 

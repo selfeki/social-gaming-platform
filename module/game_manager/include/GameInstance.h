@@ -4,7 +4,9 @@
 #include "arepa/game_spec/Rule.h"
 
 
-using namespace gameSpecification;
+namespace gameSpecification{
+
+
 using rule::InterpretVisitor;
 using rule::Rule;
 using rule::RuleList;
@@ -52,6 +54,22 @@ public:
         }
     }
 
+    /*
+    *Load players into game state
+    * */
+    void loadPlayers(const std::set<arepa::chat::MemberPtr<arepa::chat::Player>>& _players){
+    
+    }
+
+    /*
+    *Load audience into game state
+    * */
+    void loadAudience(const std::set<arepa::chat::MemberPtr<arepa::chat::Spectator>>& _spectators) {
+
+    }
+
+    
+
 private:
     InterpretVisitor  interpreter;
     std::stack<Rule*> ruleStack;
@@ -60,3 +78,5 @@ private:
     std::size_t ruleInd;
     bool isTerminated;
 };
+
+}

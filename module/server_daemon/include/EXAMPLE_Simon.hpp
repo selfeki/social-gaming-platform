@@ -60,4 +60,5 @@ public:
     std::vector<std::pair<OptionKey, std::string>> list_option_descriptions() override;
     void update() override;
     void start() override;
+
 };
