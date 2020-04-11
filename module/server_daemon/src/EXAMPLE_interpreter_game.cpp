@@ -22,9 +22,6 @@ void GameInstanceController::initialize(Environment& environment) {
 
 Intercept GameInstanceController::intercept_player_message(Player& player, const std::string& message){
     
-    
-
-
 }
 
 Intercept GameInstanceController::intercept_player_command(Player& player, const Command& command){
