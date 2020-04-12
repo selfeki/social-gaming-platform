@@ -58,14 +58,39 @@ public:
     *Load players into game state
     * */
     void loadPlayers(const std::set<arepa::chat::MemberPtr<arepa::chat::Player>>& _players){
-    
+        
+        //More player loading based things can go after/before this bit
+        //iterate over _players
+        ExpList users;
+        for (auto const& player : _players) {
+            ExpMap user;
+            user.map["name"] = player->name(); //preferred this to be player's session id, but Expression needs to be changed
+            //iterate over perPlayer
+            for (auto const& [key,value] : interpreter.getGameState().perPlayer.map) {
+                user.map[key] = value;
+            }
+            users.list.push_back(user);
+        }
+        interpreter.getGameState().variables.map["players"] = users;
+
     }
 
     /*
     *Load audience into game state
     * */
     void loadAudience(const std::set<arepa::chat::MemberPtr<arepa::chat::Spectator>>& _spectators) {
+        ExpList spectators;
+        for (auto const& audience : _spectators) {
+            ExpMap spectator;
+            for (auto const& [key, value] : interpreter.getGameState().perAudience.map) {
+                spectator.map[key] = value;
+            }
+            spectators.list.push_back(spectator);
+        }
 
+        if (boost::get<bool>(interpreter.getGameState().variables.map["audience"])) {
+            interpreter.getGameState().variables.map["audience"] = spectators;
+        }
     }
 
     
