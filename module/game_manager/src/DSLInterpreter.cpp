@@ -364,8 +364,16 @@ InterpretVisitor::lookupName(std::string_view name) {
 */
 std::string
 InterpretVisitor::interpolateString(std::string_view str) {
-    return "";
-    // todo
+    int prefix = str.find_first_of("{", 0);
+    int suffix = str.find_first_of("}", prefix);
+    std::string output = "";
+    if (suffix > prefix && suffix != std::string_view::npos) {
+        //"}" located after "{" and "}" exists
+        output.append(str.begin(), str.begin()+prefix);
+        output.append(str.begin()+prefix+1, str.begin()+suffix);
+        output.append(str.begin()+suffix+1, str.end());
+    }
+    return output;
 }
 
  /* 

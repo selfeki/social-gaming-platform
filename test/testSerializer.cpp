@@ -12,6 +12,7 @@
 
 using json = nlohmann::json;
 
+//Valid Stubs
 json server_stub = R"({
     "port":4002,
     "html":"webchat.html",
@@ -43,6 +44,24 @@ json game_stub = R"({
     "per-audience": {},
     "rules": {}
 })"_json;
+
+//valid json
+json Ptest_json = {
+    {"configuration", {{"name","Zen Game"},
+        {"player count", {
+            {"min", 1},
+            {"max", 2}
+        }},
+        {"audience", false},
+        {"setup", {"set1","set2"}}
+    }},
+    {"constants", {"a","b","c"}},
+    {"variables", {"a","b","c"}},
+    {"per-player",{"pp1","pp2","pp3"}},
+    {"per-audience",{"pa1"}},
+    {"rules",{"rule1","rule2","rule3"}}
+    };
+
 
 TEST(jsonSerializerTest, parseServerConfig_confirmVariables) {
     serverConfig::Configuration stub;
@@ -308,14 +327,140 @@ TEST(jsonSerializerTest, parseExpression_explist) {
 // // }
 // // */
 
-// // TEST(jsonSerializerTest, hasNoExtraFields) {
-// //     EXPECT_TRUE(jsonSerializer::hasNoExtraFields(game_stub));
-// // }
 
-// // TEST(jsonSerializerTest, hasAllRequiredFields) {
-// //     EXPECT_TRUE(jsonSerializer::hasAllRequiredFields(game_stub));
-// // }
+TEST(jsonSerializerTest, hasNoExtraFields) {
+    //invalid json - additional field in player count
+    json Ftest1_json = {
+        {"configuration", {{"name","Zen Game"},
+            {"player count", {
+                {"min", 1},
+                {"max", 2},
+                {"additionalField", 3}
+            }},
+            {"audience", "false value"},
+            {"setup", {"set1","set2"}}
+        }},
+        {"constants", {"a","b","c"}},
+        {"variables", {"a","b","c"}},
+        {"per-player",{"pp1","pp2","pp3"}},
+        {"per-audience",{"pa1"}},
+        {"rules",{"rule1","rule2","rule3"}}
+    };
+    //invalid json - additional field in main fields
+    json Ftest2_json = {
+        {"configuration", {{"name","Zen Game"},
+            {"player count", {
+                {"min", 1},
+                {"max", 2}
+            }},
+            {"audience", "false value"},
+            {"setup", {"set1","set2"}}
+        }},
+        {"constants", {"a","b","c"}},
+        {"variables", {"a","b","c"}},
+        {"additionalField", {"badField1","badField2"}},
+        {"per-player",{"pp1","pp2","pp3"}},
+        {"per-audience",{"pa1"}},
+        {"rules",{"rule1","rule2","rule3"}}
+    };
+    EXPECT_TRUE(jsonSerializer::hasNoExtraFields(game_stub));
+    EXPECT_FALSE(jsonSerializer::hasNoExtraFields(Ftest1_json));
+    EXPECT_FALSE(jsonSerializer::hasNoExtraFields(Ftest2_json));
+}
 
-// // TEST(jsonSerializerTest, validFieldValues) {
-// //     EXPECT_TRUE(jsonSerializer::validFieldValues(game_stub));
-// // }
+TEST(jsonSerializerTest, hasAllRequiredFields) {
+    //invalid json - missing "constants"
+    json Ftest1_json = {
+        {"configuration", {{"name","Zen Game"},
+            {"player count", {
+                {"min", 1},
+                {"max", 2}
+            }},
+            {"audience", false},
+            {"setup", {"set1","set2"}}
+        }},
+        {"missing", {"a","b","c"}},
+        {"variables", {"a","b","c"}},
+        {"per-player",{"pp1","pp2","pp3"}},
+        {"per-audience",{"pa1"}},
+        {"rules",{"rule1","rule2","rule3"}}
+    };
+    //invalid json - missing "player count"
+    json Ftest2_json = {
+        {"configuration", {{"name","Zen Game"},
+            {"missing", {
+                {"min", 1},
+                {"max", 2}
+            }},
+            {"audience", false},
+            {"setup", {"set1","set2"}}
+        }},
+        {"constants", {"a","b","c"}},
+        {"variables", {"a","b","c"}},
+        {"per-player",{"pp1","pp2","pp3"}},
+        {"per-audience",{"pa1"}},
+        {"rules",{"rule1","rule2","rule3"}}
+    };
+    EXPECT_TRUE(jsonSerializer::hasAllRequiredFields(game_stub));
+    EXPECT_FALSE(jsonSerializer::hasAllRequiredFields(Ftest1_json));
+    EXPECT_FALSE(jsonSerializer::hasAllRequiredFields(Ftest2_json));
+}
+
+TEST(jsonSerializerTest, validFieldValues) {
+    //invalid json - wrong type in "max"
+    json Ftest1_json = {
+        {"configuration", {{"name","Zen Game"},
+            {"player count", {
+                {"min", 1},
+                {"max", "2"}
+            }},
+            {"audience", "false value"},
+            {"setup", {"set1","set2"}}
+        }},
+        {"constants", {"a","b","c"}},
+        {"variables", {"a","b","c"}},
+        {"per-player",{"pp1","pp2","pp3"}},
+        {"per-audience",{"pa1"}},
+        {"rules",{"rule1","rule2","rule3"}}
+    };
+    //invalid json - wrong type in "variables"
+    json Ftest2_json = {
+        {"configuration", {{"name","Zen Game"},
+            {"player count", {
+                {"min", 1},
+                {"max", 2}
+            }},
+            {"audience", "false value"},
+            {"setup", {"set1","set2"}}
+        }},
+        {"constants", {"a","b","c"}},
+        {"variables", 1},
+        {"per-player",{"pp1","pp2","pp3"}},
+        {"per-audience",{"pa1"}},
+        {"rules",{"rule1","rule2","rule3"}}
+    };
+    EXPECT_TRUE(jsonSerializer::validFieldValues(Ptest_json));
+    EXPECT_FALSE(jsonSerializer::validFieldValues(Ftest1_json));
+    EXPECT_FALSE(jsonSerializer::validFieldValues(Ftest2_json));
+}
+
+TEST(jsonSerializerTest, isValidGameSpec) {
+    //invalid json - missing "player count"
+    json Ftest_json = {
+        {"configuration", {{"name","Zen Game"},
+            {"missing", {
+                {"min", 1},
+                {"max", 2}
+            }},
+            {"audience", false},
+            {"setup", {"set1","set2"}}
+        }},
+        {"constants", {"a","b","c"}},
+        {"variables", {"a","b","c"}},
+        {"per-player",{"pp1","pp2","pp3"}},
+        {"per-audience",{"pa1"}},
+        {"rules",{"rule1","rule2","rule3"}}
+    };
+    EXPECT_TRUE(jsonSerializer::isValidGameSpec(Ptest_json));
+    EXPECT_FALSE(jsonSerializer::isValidGameSpec(Ftest_json));
+}
