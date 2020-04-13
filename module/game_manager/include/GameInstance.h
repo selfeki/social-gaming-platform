@@ -7,9 +7,29 @@
 namespace gameSpecification{
 
 
+
 using rule::InterpretVisitor;
 using rule::Rule;
 using rule::RuleList;
+
+
+
+/*
+* Outgoing message that the controller understands
+**/
+struct ControllerOutgoingMessage {
+    std::string_view to;
+    std::string message;
+};
+
+/*
+* Input request that the controller understands
+**/
+struct ControllerInputRequest {
+    std::string_view to;
+    std::string prompt;
+    std::vector<std::string> choices;
+};
 
 
 class GameInstance {
@@ -64,7 +84,7 @@ public:
         ExpList users;
         for (auto const& player : _players) {
             ExpMap user;
-            user.map["name"] = player->name(); //preferred this to be player's session id, but Expression needs to be changed
+            user.map["name"] = *(player->name()); //preferred this to be player's session id, but Expression needs to be changed
             //iterate over perPlayer
             for (auto const& [key,value] : interpreter.getGameState().perPlayer.map) {
                 user.map[key] = value;
@@ -93,7 +113,43 @@ public:
         }
     }
 
-    
+    /*
+    * Get messages that need to be sent to players. NOTE: removes them from the queue as well
+    * */
+    std::vector<ControllerOutgoingMessage> popOutgoingPlayerMessages() {
+        std::vector<ControllerOutgoingMessage> outgoing_messages = {};
+        std::vector<GameMessage>& msg_queue = interpreter.getGameState().messageQueue;
+        outgoing_messages.reserve(msg_queue.size());
+
+        for(auto& msg : msg_queue){            
+            std::string_view name{boost::get<std::string>(msg.targetUser.map["name"])};
+            outgoing_messages.push_back(ControllerOutgoingMessage{name, msg.content});
+        }
+
+        msg_queue.clear();
+
+        return outgoing_messages;
+    }
+
+    /*
+    * Get input requests from the game state. NOTE: this method does not remove them. 
+    * */
+    std::vector<ControllerInputRequest> getInputRequests() {
+        std::vector<ControllerInputRequest> requests_to_return = {};
+        std::vector<InputRequest>& requests = interpreter.getGameState().inputRequests;
+        requests_to_return.reserve(requests.size());
+
+        for(auto& request : requests) {
+            std::string_view name{boost::get<std::string>(request.targetUser.map["name"])};
+
+            requests_to_return.push_back(ControllerInputRequest{name, request.prompt, request.choices});
+        }
+
+        return requests_to_return;
+    }
+
+
+
 
 private:
     InterpretVisitor  interpreter;

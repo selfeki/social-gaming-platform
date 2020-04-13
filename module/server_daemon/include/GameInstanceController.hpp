@@ -36,6 +36,6 @@ public:
     *Load a game instance into this controller
     * 
     * */
-    void registerInstance(std::unique_ptr<gameSpecification::GameInstance> _game_instance);
+    void loadInstance(std::unique_ptr<gameSpecification::GameInstance> _game_instance);
 
 };
