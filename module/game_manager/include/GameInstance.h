@@ -3,15 +3,22 @@
 #include "arepa/game_spec/GameState.h"
 #include "arepa/game_spec/Rule.h"
 
+#include <arepa/chat/Player.hpp>
+#include <arepa/chat/Spectator.hpp>
+
+using PlayerName = arepa::chat::Player::Name;
+using PlayerId   = arepa::chat::Player::Id;
+
+using SpectatorName = arepa::chat::Spectator::Name;
+using SpectatorId   = arepa::chat::Spectator::Id;
+
 
 namespace gameSpecification{
-
 
 
 using rule::InterpretVisitor;
 using rule::Rule;
 using rule::RuleList;
-
 
 
 /*
@@ -84,12 +91,16 @@ public:
         ExpList users;
         for (auto const& player : _players) {
             ExpMap user;
-            user.map["name"] = *(player->name()); //preferred this to be player's session id, but Expression needs to be changed
+            auto name = player->name();
+            user.map["name"] = *name;  //preferred this to be player's session id, but Expression needs to be changed
             //iterate over perPlayer
             for (auto const& [key,value] : interpreter.getGameState().perPlayer.map) {
                 user.map[key] = value;
             }
             users.list.push_back(user);
+
+            // Track player's ID
+            playerNameToId[name] = player->id();
         }
         interpreter.getGameState().variables.map["players"] = users;
 
@@ -102,10 +113,15 @@ public:
         ExpList spectators;
         for (auto const& audience : _spectators) {
             ExpMap spectator;
+            auto name = audience->name();
+            spectator.map["name"] = *name;
             for (auto const& [key, value] : interpreter.getGameState().perAudience.map) {
                 spectator.map[key] = value;
             }
             spectators.list.push_back(spectator);
+
+            // Track spectator's ID
+            spectatorNameToId[name] = audience->id();
         }
 
         if (boost::get<bool>(interpreter.getGameState().variables.map["audience"])) {
@@ -148,8 +164,10 @@ public:
         return requests_to_return;
     }
 
-
-
+    PlayerId
+    getPlayerId(const PlayerName& name) {
+        return playerNameToId[name];
+    }
 
 private:
     InterpretVisitor  interpreter;
@@ -158,6 +176,9 @@ private:
 
     std::size_t ruleInd;
     bool isTerminated;
+
+    std::unordered_map<PlayerName, PlayerId> playerNameToId;
+    std::unordered_map<SpectatorName, SpectatorId> spectatorNameToId;
 };
 
 }
