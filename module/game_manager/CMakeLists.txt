@@ -11,6 +11,8 @@ target_link_libraries(game_manager PUBLIC command)
 target_link_libraries(game_manager PUBLIC server)
 target_link_libraries(game_manager PUBLIC game_spec)
 target_link_libraries(game_manager PUBLIC game)
+target_link_libraries(game_manager PUBLIC chat)
+
 
 # Create temporary driver for testing
 arepa_create_executable(game_manager_tests "game_manager_tests")

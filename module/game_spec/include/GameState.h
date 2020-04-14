@@ -9,6 +9,7 @@
 #include <optional>
 #include <stack>
 #include <string_view>
+#include <queue>
 
 
 namespace gameSpecification {
