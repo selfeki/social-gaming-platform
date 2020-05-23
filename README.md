@@ -51,7 +51,7 @@ See [the contributing guide](./CONTRIBUTING.md) and [license](./LICENSE.md).
 
 | Contributor       | Role            |
 | ----------------- | --------------- |
-| Sami El Feki      | Project Manager |
+| Sami El Feki      | Developer + Project Manager |
 | Ethan Pini        | Technical Lead  |
 | Anthony Tran      | Developer       |
 | Harry Ceong       | Developer       |
